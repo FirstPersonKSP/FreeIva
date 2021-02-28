@@ -107,7 +107,7 @@ namespace FreeIva
                 Debug.LogError("[FreeIVA] InternalCollider " + Name + " has already been instantiated.");
                 return;
             }
-      
+
             // These values will be cleared on creating the object.
             Vector3 scale = Scale;
             Vector3 localPosition = LocalPosition;
@@ -115,7 +115,7 @@ namespace FreeIva
 
             IvaGameObject = GameObject.CreatePrimitive(colliderType);
             IvaGameObject.layer = (int)Layers.InternalSpace;
-            IvaGameObject.GetComponentCached<Collider>(ref IvaGameObjectCollider).enabled = true;
+            IvaGameObject.GetComponentCached(ref IvaGameObjectCollider).enabled = true;
             //IvaGameObject.collider.isTrigger = true;
             if (p.internalModel == null)
             {

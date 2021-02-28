@@ -60,7 +60,6 @@ using EditorGizmos;
 /* Quick list
  * 
  * 2019:
- *   HideWhenOpen not working.
  *   Multiple parts -> colliders only show for the first part.
  *   PropHatch spawns in root part, not current part - Fixed
  *   Colliders drifting apart over time???

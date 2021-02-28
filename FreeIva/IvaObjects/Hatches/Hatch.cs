@@ -319,7 +319,7 @@ namespace FreeIva
                 {
                     if (mr.name.Equals(hideProp.Value) && mr.transform != null)
                     {
-                        float error = Vector3.Distance(mr.transform.position, hideProp.Key);
+                        float error = Vector3.Distance(mr.transform.localPosition, hideProp.Key);
                         if (error < 0.15)
                         {
                             Debug.Log("# Toggling " + mr.name);
