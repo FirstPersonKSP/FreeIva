@@ -1,4 +1,4 @@
-# FreeIva
+# Free IVA
 
 Work in progress mod for Kerbal Space Program which allows getting out of your seat and moving around the vessel while on IVA.
 
