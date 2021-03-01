@@ -3,60 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using EditorGizmos;
 
-/* TODO
- * Collisions
-    * Find part collider - DONE
-    * Find which part we are currently inside - DONE
-    * Find out if we are intersecting the part - DONE
-    * Pushback on collision - DONE
-    * Collide with terrain or go on EVA when leaving the vessel
- * Acceleration
-    * Gravity - Works in some cases
-	* Vessel motion
- * Interaction/GUI
-    * Get out of/into seat
-        * Remove character model when moving - DONE
-        * Identify seat locations - DONE
-        * Perform crew transfer on selecting a new seat - DONE
-        * Allow returning to the original seat - DONE
-        * Add sound effect
-    * Open/close hatch
-        * Depth mask shader - DONE
-        * Find hatch locations/shapes - DONE
-        * Add interaction prompts for hatches - DONE
-        * Add sound effect - DONE
-        * Animation?
-        * Don't allow reaching through structural colliders
-    * Ladders / handles
-    * Disable regular flight controls and reuse their keys - DONE
-    * Prevent window focus areas dumping the player back in the seat with no way to leave again
-    * Support switching the active kerbal (V key) properly
- * Camera without gimbal lock - DONE
- * Camera with gravity gimbal lock
- * EVA
-    * Attachment over the top of external airlock hatches
-    * Transition to EVA
- * Pause - DONE
- * Persist hatch states
- * Test in Editor (VAB/SPH)
- * Test with RPM transparent cockpits
- * Add internal windows (e.g. hatches)
- * Probe Control Room support
-    * Change "Buckle" text to "Sit" or similar
-    * Allow gravity override
- * Allow enabling / disabling individual kerbals / helmets
- * Mesh switcher: Add doorways when external nodes have approprate parts attached.
- */
-
-/* IVA design tools
- * Toggle helmet
- */
-
-/* Future projects
- * Placeable IVA components
- * KerbCam movie tools
- */
-
 /* Quick list
  * 
  * 2019:
@@ -84,12 +30,21 @@ using EditorGizmos;
  * 4. Documentation for users and modellers.
  * 5. Release!
  * - Mask models for stock parts: Need a mask similar to the stock ones, but with holes only for windows and where hatches can open.
- *      Hatch masks should probably be a separate mesh.
+ *      Hatch masks should probably be a separate mesh - Add transparent windows to them while doing this?
  *      C:\Games\Kerbal Space Program\GameData\Squad\Spaces\OverlayMasks
  * - IVA crew transfer.
  * - Climbing, mobility etc.
- * - IVA to EVA.
+ * - IVA to EVA (open external hatches).
  * - IVAs for traversable stock parts.
+ * - Buckle/unbuckle sound effects.
+ * - Ladders/handles
+ * - Disable window zoom camera interaction (click and physics).
+ * - Collide with terrain or go on EVA when leaving the vessel (switch to world space physics).
+ * - Fix or disallow changing the active kerbal with V.
+ * - Persist hatch states.
+ * - Test in Editor (VAB/SPH)?
+ * - Key binding to toggle helmet. Visible helmet with animation?
+ * - Mesh switcher: Add doorways when external nodes have approprate parts attached.
  */
 
 // Assistance received from: egg
