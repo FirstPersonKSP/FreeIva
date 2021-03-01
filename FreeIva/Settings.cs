@@ -35,11 +35,11 @@ namespace FreeIva
 
         public static float JumpForce = 10f;
 
-        public static float KerbalHeight = 2f;
+        public static float KerbalHeight = 0.4f;
         public static float KerbalHeightWithHelmet = 2.5f;
 
         // The size of a kerbal's head collider when they're wearing their helmet.
-        public static float HelmetSize = 0.6f;
+        public static float HelmetSize = 0.45f;
         // Taking off the helmet may allow squeezing through tight spaces, with some risk (when pressurisation and injury are implemented).
         public static float NoHelmetSize = 0.4f;
 
