@@ -296,11 +296,11 @@ namespace FreeIva
 
             if (node.HasValue("HatchOpenSoundFile"))
             {
-                meshHatch.HatchOpenSoundFile = node.GetValue("HatchOpenSoundFile");
+                propHatch.HatchOpenSoundFile = node.GetValue("HatchOpenSoundFile");
             }
             if (node.HasValue("HatchCloseSoundFile"))
             {
-                meshHatch.HatchCloseSoundFile = node.GetValue("HatchCloseSoundFile");
+                propHatch.HatchCloseSoundFile = node.GetValue("HatchCloseSoundFile");
             }
 
             if (node.HasNode("HideWhenOpen"))
