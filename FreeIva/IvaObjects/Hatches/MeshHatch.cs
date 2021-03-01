@@ -68,9 +68,15 @@ namespace FreeIva.Hatches
                 Collider.Enable(!open);
 
             if (open)
-                HatchOpenSound.audio.Play();
+            {
+                if (HatchOpenSound != null && HatchOpenSound.audio != null)
+                    HatchOpenSound.audio.Play();
+            }
             else
-                HatchCloseSound.audio.Play();
+            {
+                if (HatchCloseSound != null && HatchCloseSound.audio != null)
+                    HatchCloseSound.audio.Play();
+            }
         }
 
         public static MeshHatch LoadMeshHatchFromCfg(ConfigNode node)
@@ -127,6 +133,15 @@ namespace FreeIva.Hatches
                 }
                 else
                     meshHatch.Rotation = Quaternion.Euler(float.Parse(s[0]), float.Parse(s[1]), float.Parse(s[2]));
+            }
+
+            if (node.HasValue("HatchOpenSoundFile"))
+            {
+                meshHatch.HatchOpenSoundFile = node.GetValue("HatchOpenSoundFile");
+            }
+            if (node.HasValue("HatchCloseSoundFile"))
+            {
+                meshHatch.HatchCloseSoundFile = node.GetValue("HatchCloseSoundFile");
             }
 
             if (node.HasNode("HideWhenOpen"))

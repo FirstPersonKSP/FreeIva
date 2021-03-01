@@ -36,72 +36,68 @@ namespace FreeIva
 
         public override void OnLoad(ConfigNode node)
         {
-            if (node.HasValue("openAnimationName"))
+            if (node.HasValue(nameof(openAnimationName)))
             {
-                openAnimationName = node.GetValue("openAnimationName");
+                node.TryGetValue("openAnimationName", ref openAnimationName);
             }
             else
             {
-                Debug.LogError("[FreeIVA] PropHatchAnimated: No openAnimationName found.");
-                return;
-            }
-            if (node.HasValue("unlockAnimationName"))
-            {
-                unlockAnimationName = node.GetValue("unlockAnimationName");
-            }
-            else
-            {
-                Debug.LogError("[FreeIVA] PropHatchAnimated: No unlockAnimationName found.");
+                Debug.LogError($"[FreeIVA] PropHatchAnimated: No {nameof(openAnimationName)} found.");
                 return;
             }
 
-            //if (node.HasValue("triggerTransform"))
-            //{
-            //    triggerTransform = node.GetValue("triggerTransform");
-            //}
-            //else
-            //{
-            //    Debug.LogError("[FreeIVA] PropHatchAnimated: No activateTransform found.");
-            //    return;
-            //}
-
-            if (node.HasValue("unlockTriggerTransform"))
+            if (node.HasValue(nameof(unlockAnimationName)))
             {
-                unlockTriggerTransform = node.GetValue("unlockTriggerTransform");
+                node.TryGetValue(nameof(unlockAnimationName), ref unlockAnimationName);
             }
             else
             {
-                Debug.LogError("[FreeIVA] PropHatchAnimated: No unlockTriggerTransform found.");
-            }
-
-            if (node.HasValue("openTriggerTransform"))
-            {
-                openTriggerTransform = node.GetValue("openTriggerTransform");
-            }
-            else
-            {
-                Debug.LogError("[FreeIVA] PropHatchAnimated: No openTriggerTransform found.");
+                Debug.LogError($"[FreeIVA] PropHatchAnimated: No {nameof(unlockAnimationName)} found.");
                 return;
             }
 
-            if (node.HasValue("animationStartsOpened"))
+            if (node.HasValue(nameof(openTriggerTransform)))
             {
-                node.TryGetValue("animationStartsOpened", ref animationStartsOpened);
+                node.TryGetValue(nameof(openTriggerTransform), ref openTriggerTransform);
+            }
+            else
+            {
+                Debug.LogError($"[FreeIVA] PropHatchAnimated: No {nameof(openTriggerTransform)} found.");
+                return;
             }
 
-            if (node.HasValue("animationStartsUnlocked"))
+            if (node.HasValue(nameof(unlockTriggerTransform)))
             {
-                node.TryGetValue("animationStartsUnlocked", ref animationStartsUnlocked);
+                unlockTriggerTransform = node.GetValue(nameof(unlockTriggerTransform));
             }
 
-            if (node.HasValue("invertOpenState"))
+            if (node.HasValue(nameof(animationStartsOpened)))
             {
-                node.TryGetValue("invertOpenState", ref invertOpenState);
+                node.TryGetValue(nameof(animationStartsOpened), ref animationStartsOpened);
             }
 
-            if (node.HasValue("invertLockedState"))
+            if (node.HasValue(nameof(animationStartsUnlocked)))
             {
-                node.TryGetValue("invertLockedState", ref invertLockedState);
+                node.TryGetValue(nameof(animationStartsUnlocked), ref animationStartsUnlocked);
+            }
+
+            if (node.HasValue(nameof(invertOpenState)))
+            {
+                node.TryGetValue(nameof(invertOpenState), ref invertOpenState);
+            }
+
+            if (node.HasValue(nameof(invertLockedState)))
+            {
+                node.TryGetValue(nameof(invertLockedState), ref invertLockedState);
+            }
+
+            if (node.HasValue(nameof(HatchOpenSoundFile)))
+            {
+                node.TryGetValue(nameof(HatchOpenSoundFile), ref HatchCloseSoundFile);
+            }
+            if (node.HasValue(nameof(HatchCloseSoundFile)))
+            {
+                node.TryGetValue(nameof(HatchCloseSoundFile), ref HatchCloseSoundFile);
             }
 
             if (node.HasNode("depthMask"))

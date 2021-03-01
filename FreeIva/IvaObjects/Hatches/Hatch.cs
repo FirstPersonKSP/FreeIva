@@ -77,8 +77,8 @@ namespace FreeIva
             }
         }
 
-        public string HatchOpenSoundFile = "FreeIva/Sounds/HatchOpen";
-        public string HatchCloseSoundFile = "FreeIva/Sounds/HatchClose";
+        public string HatchOpenSoundFile { get; set; } = "FreeIva/Sounds/HatchOpen";
+        public string HatchCloseSoundFile { get; set; } = "FreeIva/Sounds/HatchClose";
         public FXGroup HatchOpenSound = null;
         public FXGroup HatchCloseSound = null;
 
@@ -271,19 +271,25 @@ namespace FreeIva
 
         public void SetupAudio()
         {
-            HatchOpenSound = new FXGroup("HatchOpen");
-            HatchOpenSound.audio = IvaGameObject.AddComponent<AudioSource>();
-            HatchOpenSound.audio.dopplerLevel = 0f;
-            HatchOpenSound.audio.Stop();
-            HatchOpenSound.audio.clip = GameDatabase.Instance.GetAudioClip(HatchOpenSoundFile);
-            HatchOpenSound.audio.loop = false;
+            if (!string.IsNullOrEmpty(HatchOpenSoundFile))
+            {
+                HatchOpenSound = new FXGroup("HatchOpen");
+                HatchOpenSound.audio = IvaGameObject.AddComponent<AudioSource>();
+                HatchOpenSound.audio.dopplerLevel = 0f;
+                HatchOpenSound.audio.Stop();
+                HatchOpenSound.audio.clip = GameDatabase.Instance.GetAudioClip(HatchOpenSoundFile);
+                HatchOpenSound.audio.loop = false;
+            }
 
-            HatchCloseSound = new FXGroup("HatchClose");
-            HatchCloseSound.audio = IvaGameObject.AddComponent<AudioSource>();
-            HatchCloseSound.audio.dopplerLevel = 0f;
-            HatchCloseSound.audio.Stop();
-            HatchCloseSound.audio.clip = GameDatabase.Instance.GetAudioClip(HatchCloseSoundFile);
-            HatchCloseSound.audio.loop = false;
+            if (!string.IsNullOrEmpty(HatchCloseSoundFile))
+            {
+                HatchCloseSound = new FXGroup("HatchClose");
+                HatchCloseSound.audio = IvaGameObject.AddComponent<AudioSource>();
+                HatchCloseSound.audio.dopplerLevel = 0f;
+                HatchCloseSound.audio.Stop();
+                HatchCloseSound.audio.clip = GameDatabase.Instance.GetAudioClip(HatchCloseSoundFile);
+                HatchCloseSound.audio.loop = false;
+            }
         }
 
         public void ToggleHatch()
@@ -305,9 +311,15 @@ namespace FreeIva
                 Collider.Enable(!open);
 
             if (open)
-                HatchOpenSound.audio.Play();
+            {
+                if (HatchOpenSound != null && HatchOpenSound.audio != null)
+                    HatchOpenSound.audio.Play();
+            }
             else
-                HatchCloseSound.audio.Play();
+            {
+                if (HatchCloseSound != null && HatchCloseSound.audio != null)
+                    HatchCloseSound.audio.Play();
+            }
         }
 
         public virtual void HideOnOpen(bool open)
@@ -424,6 +436,15 @@ namespace FreeIva
             {
                 Debug.LogWarning("[FreeIVA] Hatch rotation not found: Skipping hatch.");
                 return null;
+            }
+
+            if (node.HasValue("HatchOpenSoundFile"))
+            {
+                hatch.HatchOpenSoundFile = node.GetValue("HatchOpenSoundFile");
+            }
+            if (node.HasValue("HatchCloseSoundFile"))
+            {
+                hatch.HatchCloseSoundFile = node.GetValue("HatchCloseSoundFile");
             }
 
             if (node.HasNode("HideWhenOpen"))

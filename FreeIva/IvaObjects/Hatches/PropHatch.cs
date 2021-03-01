@@ -294,6 +294,15 @@ namespace FreeIva
                     propHatch.Rotation = Quaternion.Euler(float.Parse(s[0]), float.Parse(s[1]), float.Parse(s[2]));
             }
 
+            if (node.HasValue("HatchOpenSoundFile"))
+            {
+                meshHatch.HatchOpenSoundFile = node.GetValue("HatchOpenSoundFile");
+            }
+            if (node.HasValue("HatchCloseSoundFile"))
+            {
+                meshHatch.HatchCloseSoundFile = node.GetValue("HatchCloseSoundFile");
+            }
+
             if (node.HasNode("HideWhenOpen"))
             {
                 ConfigNode[] hideNodes = node.GetNodes("HideWhenOpen");

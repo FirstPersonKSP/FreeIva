@@ -13,6 +13,8 @@ namespace FreeIva
         IHatch ConnectedHatch { get; }
         Part HatchPart { get; }
         AttachNode HatchNode { get; }
+        string HatchOpenSoundFile { get; set;  }
+        string HatchCloseSoundFile { get; set; }
 
         void Open(bool open);
         void ToggleHatch();
