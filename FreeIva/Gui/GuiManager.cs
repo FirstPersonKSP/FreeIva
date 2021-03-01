@@ -237,14 +237,21 @@ namespace FreeIva
             }
             if (c != null)
             {
+                GUILayout.BeginHorizontal();
                 if (GUILayout.Button("Destroy collider"))
                 {
                     FreeIva.CurrentModuleFreeIva.InternalColliders.Remove(c);
                     c.IvaGameObject.DestroyGameObject();
                 }
+                if (GUILayout.Button("Copy to clipboard"))
+                {
+                    GUIUtility.systemCopyBuffer = PrintCollider(c);
+                    ScreenMessages.PostScreenMessage("Copied to clipboard.", 1f, ScreenMessageStyle.LOWER_CENTER);
+                }
+                GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal();
-                c.IvaGameObject.GetComponentCached<Collider>(ref c.IvaGameObjectCollider);
+                c.IvaGameObject.GetComponentCached(ref c.IvaGameObjectCollider);
                 c.IvaGameObjectCollider.enabled = GUILayout.Toggle(c.IvaGameObjectCollider.enabled, "Enabled");
                 bool wasVisible = c.Visible;
                 bool v = GUILayout.Toggle(wasVisible, "Visible");
@@ -990,6 +997,21 @@ namespace FreeIva
                     }
                 }
             }
+        }
+
+        private static string PrintCollider(InternalCollider c)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("InternalCollider");
+            sb.AppendLine("{");
+            sb.AppendLine($"\tname = {c.Name}");
+            sb.AppendLine($"\ttype = {c.ColliderType}");
+            sb.AppendLine($"\tposition = {c.LocalPosition.x}, {c.LocalPosition.y}, {c.LocalPosition.z}");
+            sb.AppendLine($"\tscale = {c.Scale.x}, {c.Scale.y}, {c.Scale.z}");
+            sb.AppendLine($"\trotation = {c.Rotation.eulerAngles.x}, {c.Rotation.eulerAngles.y}, {c.Rotation.eulerAngles.z}");
+            sb.AppendLine("}");
+
+            return sb.ToString();
         }
     }
 }
