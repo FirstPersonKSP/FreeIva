@@ -13,15 +13,15 @@ namespace FreeIva
         public static Collider KerbalColliderCollider;
         public static PhysicMaterial KerbalColliderPhysics;
         public static Rigidbody KerbalColliderRigidbody;
-        // TODO: Vary this by kerbal stats and equipment carried.
-        public static float KerbalMass = 0.03125f; // From persistent file for EVA kerbal.
+        // TODO: Vary this by kerbal stats and equipment carried: 45kg for a kerbal, 94kg with full jetpack and parachute.
+        public static float KerbalMass = 0.03125f; // From persistent file for EVA kerbal. Use PhysicsGlobals.KerbalCrewMass instead?
         public static Renderer KerbalColliderRenderer;
 
-        public static GameObject KerbalFeet;
+        /*public static GameObject KerbalFeet;
         public static Collider KerbalFeetCollider;
         public static PhysicMaterial KerbalFeetPhysics;
         public static Rigidbody KerbalFeetRigidbody;
-        public static Renderer KerbalFeetRenderer;
+        public static Renderer KerbalFeetRenderer;*/
 
 #if Experimental
         public static GameObject KerbalWorldSpace;
@@ -134,10 +134,12 @@ namespace FreeIva
                     ReturnToSeat();
                 }
             }
+#if Experimental
             if (cameraMode == CameraManager.CameraMode.IVA)
             {
                 //KerbalWorldSpaceCollider.enabled = true;
             }
+#endif
             _previousCameraMode = cameraMode;
         }
 
@@ -193,7 +195,7 @@ namespace FreeIva
 
         private void CreateCameraCollider()
         {
-            KerbalCollider = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            KerbalCollider = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             KerbalCollider.name = "Kerbal collider";
             KerbalCollider.GetComponentCached<Collider>(ref KerbalColliderCollider);
             KerbalColliderCollider.enabled = false;
@@ -208,11 +210,11 @@ namespace FreeIva
 #endif
             KerbalColliderCollider.isTrigger = false;
             KerbalCollider.layer = (int)Layers.InternalSpace; //KerbalCollider.layer = (int)Layers.Kerbals; 2021-02-26
-            KerbalCollider.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.NoHelmetSize, Settings.NoHelmetSize);
+            KerbalCollider.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.KerbalHeight, Settings.NoHelmetSize);
             KerbalCollider.GetComponentCached<Renderer>(ref KerbalColliderRenderer);
             KerbalColliderRenderer.enabled = false;
 
-            KerbalFeet = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            /*KerbalFeet = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             KerbalFeet.name = "Kerbal feet collider";
             KerbalFeet.GetComponentCached<Collider>(ref KerbalFeetCollider);
             KerbalFeetCollider.enabled = false;
@@ -226,7 +228,7 @@ namespace FreeIva
             KerbalFeet.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.NoHelmetSize, Settings.NoHelmetSize);
             KerbalFeet.transform.localPosition = new Vector3(0, 0, 0.2f);
             KerbalFeet.GetComponentCached<Renderer>(ref KerbalFeetRenderer);
-            KerbalFeetRenderer.enabled = false;
+            KerbalFeetRenderer.enabled = false;*/
 
 #if Experimental
             KerbalWorldSpace = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -890,7 +892,8 @@ namespace FreeIva
 
             // Jump. TODO: Detect when not in contact with the ground to prevent jetpacking.
             if (Input.GetKey(Settings.JumpKey))
-                KerbalColliderRigidbody.AddForce(-InternalSpace.WorldToInternal(GetFlightForcesWorldSpace()) * Settings.JumpForce);
+                // Jump in the opposite direction to gravity.
+                KerbalColliderRigidbody.AddForce(-InternalSpace.WorldToInternal(GetFlightForcesWorldSpace()) * Settings.JumpForce * Time.deltaTime);
 
             FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
 
@@ -951,13 +954,13 @@ namespace FreeIva
         public static void HelmetOn()
         {
             WearingHelmet = true;
-            KerbalCollider.transform.localScale = new Vector3(Settings.HelmetSize, Settings.HelmetSize, Settings.HelmetSize);
+            KerbalCollider.transform.localScale = new Vector3(Settings.HelmetSize, Settings.KerbalHeightWithHelmet, Settings.HelmetSize);
         }
 
         public static void HelmetOff()
         {
             WearingHelmet = false;
-            KerbalCollider.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.NoHelmetSize, Settings.NoHelmetSize);
+            KerbalCollider.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.KerbalHeight, Settings.NoHelmetSize);
         }
     }
 }

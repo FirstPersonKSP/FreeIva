@@ -14,12 +14,12 @@ namespace FreeIva
         public Collider IvaGameObjectCollider;
         private Renderer _ivaGameObjectRenderer;
         public Renderer IvaGameObjectRenderer {
-            get => IvaGameObject.GetComponentCached(ref _ivaGameObjectRenderer);
+            get => IvaGameObject?.GetComponentCached(ref _ivaGameObjectRenderer);
             set => _ivaGameObjectRenderer = value;
         }
         private Rigidbody _ivaGameObjectRigidbody;
         public Rigidbody IvaGameObjectRigidbody {
-            get => IvaGameObject.GetComponentCached(ref _ivaGameObjectRigidbody);
+            get => IvaGameObject?.GetComponentCached(ref _ivaGameObjectRigidbody);
             set => _ivaGameObjectRigidbody = value;
         }
         private Vector3 _scale = Vector3.zero;

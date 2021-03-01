@@ -33,7 +33,10 @@ namespace FreeIva
         public static float YawSensitivity = 0.5f;
         public static float PitchSensitivity = 0.5f;
 
-        public static float JumpForce = 0.5f;
+        public static float JumpForce = 10f;
+
+        public static float KerbalHeight = 2f;
+        public static float KerbalHeightWithHelmet = 2.5f;
 
         // The size of a kerbal's head collider when they're wearing their helmet.
         public static float HelmetSize = 0.6f;

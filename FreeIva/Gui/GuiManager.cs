@@ -102,29 +102,29 @@ namespace FreeIva
             KerbalIva.KerbalCollider.GetComponentCached<Collider>(ref KerbalIva.KerbalColliderCollider);
             KerbalIva.KerbalColliderCollider.enabled = !GUILayout.Toggle(!KerbalIva.KerbalColliderCollider.enabled, "NoClip");
             KerbalIva.Gravity = GUILayout.Toggle(KerbalIva.Gravity, "Gravity");
-            KerbalIva.KerbalFeetCollider.enabled = !GUILayout.Toggle(!KerbalIva.KerbalColliderCollider.enabled, "Feet") && KerbalIva.KerbalColliderCollider.enabled;
+            //KerbalIva.KerbalFeetCollider.enabled = !GUILayout.Toggle(!KerbalIva.KerbalColliderCollider.enabled, "Feet") && KerbalIva.KerbalColliderCollider.enabled;
 #if Experimental
             KerbalIva.CanHoldItems = GUILayout.Toggle(KerbalIva.CanHoldItems, "Can move objects");
 #endif
             bool helmet = GUILayout.Toggle(KerbalIva.WearingHelmet, "Helmet");
-            if (helmet != KerbalIva.WearingHelmet)
-            {
+            //if (helmet != KerbalIva.WearingHelmet)
+            //{
                 if (helmet)
                     KerbalIva.HelmetOn();
                 else
                     KerbalIva.HelmetOff();
-            }
+            //}
             GUILayout.EndHorizontal();
 
-
-            GUILayout.BeginHorizontal();
-
+            Settings.KerbalHeight = GuiUtils.editFloat("Kerbal height", Settings.KerbalHeight);
+            Settings.KerbalHeightWithHelmet = GuiUtils.editFloat("Kerbal height with helmet", Settings.KerbalHeightWithHelmet);
+            /*GUILayout.BeginHorizontal();
             GUILayout.Label("Feet height");
             float yPos = float.Parse(GUILayout.TextField(KerbalIva.KerbalFeet.transform.localPosition.y.ToString()));
             KerbalIva.KerbalFeet.transform.localPosition = new Vector3(KerbalIva.KerbalFeet.transform.localPosition.x,
                 yPos,
                 KerbalIva.KerbalFeet.transform.localPosition.z);
-            GUILayout.EndHorizontal();
+            GUILayout.EndHorizontal();*/
         }
 
         private static bool showColliderGui = false;
@@ -890,7 +890,7 @@ namespace FreeIva
                 KerbalIva.KerbalColliderRigidbody.mass = mass;
 
                 GuiUtils.slider("ForwardSpeed", ref Settings.ForwardSpeed, 0, 50);
-                GuiUtils.slider("JumpForce", ref Settings.JumpForce, 0, 2);
+                GuiUtils.slider("JumpForce", ref Settings.JumpForce, 0, 20);
 
                 GUILayout.Label("Flight Forces (World space)");
                 GUILayout.BeginHorizontal();
