@@ -7,15 +7,13 @@ namespace FreeIva
     /// Character controller for IVA movement.
     /// </summary>
     [KSPAddon(KSPAddon.Startup.Flight, false)]
-    public class KerbalIva : MonoBehaviour
+    public class KerbalIvaController : MonoBehaviour
     {
-        public static GameObject KerbalCollider;
-        public static Collider KerbalColliderCollider;
-        public static PhysicMaterial KerbalColliderPhysics;
-        public static Rigidbody KerbalColliderRigidbody;
+        public static GameObject KerbalIva;
+        public static Collider KerbalCollider;
+        public static Rigidbody KerbalRigidbody;
         // TODO: Vary this by kerbal stats and equipment carried: 45kg for a kerbal, 94kg with full jetpack and parachute.
         public static float KerbalMass = 0.03125f; // From persistent file for EVA kerbal. Use PhysicsGlobals.KerbalCrewMass instead?
-        public static Renderer KerbalColliderRenderer;
 
         /*public static GameObject KerbalFeet;
         public static Collider KerbalFeetCollider;
@@ -50,17 +48,12 @@ namespace FreeIva
         private Vector3 _previousPos = Vector3.zero;
         private bool _changingCurrentIvaCrew = false;
 
-        public static KerbalIva _instance;
-        public static KerbalIva Instance { get { return _instance; } }
+        public static KerbalIvaController _instance;
+        public static KerbalIvaController Instance { get { return _instance; } }
 
         public void Start()
         {
             CreateCameraCollider();
-            //cameraCollider.renderer.enabled = false;
-            //cameraCollider.transform.parent = transform;
-            //transform.parent = FlightCamera.fetch.transform; ?
-
-            //cameraCollider.transform.parent = InternalCamera.Instance.transform;//FlightCamera.fetch.transform;
             SetCameraToSeat();
 
             GameEvents.OnCameraChange.Add(OnCameraChange);
@@ -84,7 +77,6 @@ namespace FreeIva
             else
             {
                 // In IVA.
-
                 if (_lastCameraMode != CameraManager.CameraMode.IVA)
                 {
                     // Switching to IVA.
@@ -146,8 +138,8 @@ namespace FreeIva
         // Returns (8.018946, 0.0083341, -5.557827) while clamped to the runway.
         public Vector3 GetFlightForcesWorldSpace()
         {
-            Vector3 gForce = FlightGlobals.getGeeForceAtPosition(KerbalCollider.transform.position);
-            Vector3 centrifugalForce = FlightGlobals.getCentrifugalAcc(KerbalCollider.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
+            Vector3 gForce = FlightGlobals.getGeeForceAtPosition(KerbalIva.transform.position);
+            Vector3 centrifugalForce = FlightGlobals.getCentrifugalAcc(KerbalIva.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
             Vector3 coriolisForce = FlightGlobals.getCoriolisAcc(FreeIva.CurrentPart.vessel.rb_velocity + Krakensbane.GetFrameVelocityV3f(), FreeIva.CurrentPart.orbit.referenceBody);
 
             return gForce + centrifugalForce + coriolisForce;
@@ -160,11 +152,11 @@ namespace FreeIva
 
         private void ApplyGravity()
         {
-            KerbalCollider.GetComponentCached(ref KerbalColliderRigidbody);
+            KerbalIva.GetComponentCached(ref KerbalRigidbody);
             if (Gravity)
             {
-                Vector3 gForce = FlightGlobals.getGeeForceAtPosition(KerbalCollider.transform.position);
-                Vector3 centrifugalForce = FlightGlobals.getCentrifugalAcc(KerbalCollider.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
+                Vector3 gForce = FlightGlobals.getGeeForceAtPosition(KerbalIva.transform.position);
+                Vector3 centrifugalForce = FlightGlobals.getCentrifugalAcc(KerbalIva.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
                 Vector3 coriolisForce = FlightGlobals.getCoriolisAcc(FreeIva.CurrentPart.vessel.rb_velocity + Krakensbane.GetFrameVelocityV3f(), FreeIva.CurrentPart.orbit.referenceBody);
 
                 gForce = InternalSpace.WorldToInternal(gForce);
@@ -172,10 +164,10 @@ namespace FreeIva
                 coriolisForce = InternalSpace.WorldToInternal(coriolisForce);
                 flightForces = gForce + centrifugalForce + coriolisForce;
 
-                KerbalColliderRigidbody.AddForce(gForce, ForceMode.Acceleration);
-                KerbalColliderRigidbody.AddForce(centrifugalForce, ForceMode.Acceleration);
-                KerbalColliderRigidbody.AddForce(coriolisForce, ForceMode.Acceleration);
-                KerbalColliderRigidbody.AddForce(Krakensbane.GetLastCorrection(), ForceMode.VelocityChange);
+                KerbalRigidbody.AddForce(gForce, ForceMode.Acceleration);
+                KerbalRigidbody.AddForce(centrifugalForce, ForceMode.Acceleration);
+                KerbalRigidbody.AddForce(coriolisForce, ForceMode.Acceleration);
+                KerbalRigidbody.AddForce(Krakensbane.GetLastCorrection(), ForceMode.VelocityChange);
 
                 if (FreeIva.SelectedObject != null)
                 {
@@ -189,31 +181,30 @@ namespace FreeIva
             }
             else
             {
-                KerbalColliderRigidbody.velocity = Vector3.zero;
+                KerbalRigidbody.velocity = Vector3.zero;
             }
         }
 
         private void CreateCameraCollider()
         {
-            KerbalCollider = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            KerbalCollider.name = "Kerbal collider";
-            KerbalCollider.GetComponentCached<Collider>(ref KerbalColliderCollider);
-            KerbalColliderCollider.enabled = false;
-            KerbalColliderPhysics = KerbalColliderCollider.material;
-            KerbalColliderRigidbody = KerbalCollider.AddComponent<Rigidbody>();
-            KerbalColliderRigidbody.useGravity = false;
-            KerbalColliderRigidbody.mass = KerbalMass;
+            KerbalIva = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            KerbalIva.name = "Kerbal collider";
+            KerbalIva.GetComponentCached<Collider>(ref KerbalCollider);
+            KerbalCollider.enabled = false;
+            KerbalRigidbody = KerbalIva.AddComponent<Rigidbody>();
+            KerbalRigidbody.useGravity = false;
+            KerbalRigidbody.mass = KerbalMass;
             // Rotating the object would offset the rotation of the controls from the camera position.
-            KerbalColliderRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+            KerbalRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
 #if DEBUG
             KerbalCollider.AddComponent<IvaCollisionPrinter>();
 #endif
-            KerbalColliderCollider.isTrigger = false;
-            KerbalCollider.layer = (int)Layers.InternalSpace; //KerbalCollider.layer = (int)Layers.Kerbals; 2021-02-26
-            KerbalCollider.GetComponentCached(ref KerbalColliderRenderer);
-            KerbalColliderRenderer.enabled = false;
+            KerbalCollider.isTrigger = false;
+            KerbalIva.layer = (int)Layers.InternalSpace; //KerbalCollider.layer = (int)Layers.Kerbals; 2021-02-26
+            var renderer = KerbalIva.GetComponent<Renderer>();
+            renderer.enabled = false;
 
-            KerbalCollider.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.KerbalHeight, Settings.NoHelmetSize);
+            KerbalIva.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.KerbalHeight, Settings.NoHelmetSize);
 
 
             /*KerbalFeet = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -268,7 +259,7 @@ namespace FreeIva
                 Debug.Log("Searching for camera: " + InternalCamera.FindObjectOfType<Camera>());
                 return;
             }
-            KerbalCollider.transform.position = InternalCamera.Instance.transform.position; //forward;// FlightCamera.fetch.transform.forward;
+            KerbalIva.transform.position = InternalCamera.Instance.transform.position; //forward;// FlightCamera.fetch.transform.forward;
             //previousRotation = InternalCamera.Instance.transform.rotation;// *Quaternion.AngleAxis(-90, InternalCamera.Instance.transform.right);
             previousRotation = Quaternion.AngleAxis(-90, InternalCamera.Instance.transform.right) * InternalCamera.Instance.transform.localRotation; // Fixes "unbuckling looking at feet"
         }
@@ -379,8 +370,8 @@ namespace FreeIva
                     InternalCamera.Instance.transform.parent = ActiveKerbal.KerbalRef.eyeTransform;
                 }
             }*/
-            KerbalCollider.GetComponentCached<Collider>(ref KerbalColliderCollider);
-            KerbalColliderCollider.enabled = false;
+            KerbalIva.GetComponentCached<Collider>(ref KerbalCollider);
+            KerbalCollider.enabled = false;
             HideCurrentKerbal(false);
             DisablePartHighlighting(false);
             InputLockManager.RemoveControlLock("FreeIVA");
@@ -412,7 +403,7 @@ namespace FreeIva
             ActiveKerbal.KerbalRef.eyeInitialPos = _initialEyePosition;
             CameraManager.Instance.SetCameraIVA(ActiveKerbal.KerbalRef, false);
             InternalCamera.Instance.transform.position += TargetedSeat.kerbalEyeOffset;
-            KerbalCollider.transform.position = InternalCamera.Instance.transform.position;
+            KerbalIva.transform.position = InternalCamera.Instance.transform.position;
         }
 
         //Transform _internalCameraParent = null;
@@ -427,14 +418,14 @@ namespace FreeIva
 
             HideCurrentKerbal(true);
 
-            KerbalCollider.transform.position = InternalCamera.Instance.transform.position;
+            KerbalIva.transform.position = InternalCamera.Instance.transform.position;
             // The Kerbal's eye transform is the InternalCamera's parent normally, not InternalSpace.Instance as previously thought.
-            InternalCamera.Instance.transform.parent = KerbalCollider.transform;
+            InternalCamera.Instance.transform.parent = KerbalIva.transform;
 
             InputLockManager.SetControlLock(ControlTypes.ALL_SHIP_CONTROLS, "FreeIVA");
             //ActiveKerbal.flightLog.AddEntry("Unbuckled");
             ScreenMessages.PostScreenMessage("Unbuckled", 1f, ScreenMessageStyle.LOWER_CENTER);
-            KerbalCollider.GetComponentCached<Collider>(ref KerbalColliderCollider).enabled = true;
+            KerbalIva.GetComponentCached<Collider>(ref KerbalCollider).enabled = true;
             buckled = false;
 
             InitialiseFpsControls();
@@ -852,7 +843,7 @@ namespace FreeIva
                 // Find the absolute mouse movement value from point zero.
                 _mouseAbsolute += _smoothMouse;
             }
-            Vector3 totalForce = KerbalColliderRigidbody.velocity; /*new Vector3(0f, 0f, -9.81f);*/ //GetFlightForces();
+            Vector3 totalForce = KerbalRigidbody.velocity; /*new Vector3(0f, 0f, -9.81f);*/ //GetFlightForces();
             var targetOrientation = Quaternion.Euler(totalForce);
 
             // Clamp and apply the local x value first, so as not to be affected by world transforms.
@@ -886,16 +877,16 @@ namespace FreeIva
             Vector3 movement = new Vector3(moveRight, moveUp, moveForward);
 
             // Make the movement relative to the camera rotation.
-            Vector3 newPos = KerbalCollider.transform.localPosition + (InternalCamera.Instance.transform.localRotation * movement);
+            Vector3 newPos = KerbalIva.transform.localPosition + (InternalCamera.Instance.transform.localRotation * movement);
 
             //KerbalCollider.rigidbody.velocity = new Vector3(0, 0, 0);
-            KerbalCollider.GetComponentCached<Rigidbody>(ref KerbalColliderRigidbody);
-            KerbalColliderRigidbody.MovePosition(newPos);
+            KerbalIva.GetComponentCached<Rigidbody>(ref KerbalRigidbody);
+            KerbalRigidbody.MovePosition(newPos);
 
             // Jump. TODO: Detect when not in contact with the ground to prevent jetpacking.
             if (Input.GetKey(Settings.JumpKey))
                 // Jump in the opposite direction to gravity.
-                KerbalColliderRigidbody.AddForce(-InternalSpace.WorldToInternal(GetFlightForcesWorldSpace()) * Settings.JumpForce * Time.deltaTime);
+                KerbalRigidbody.AddForce(-InternalSpace.WorldToInternal(GetFlightForcesWorldSpace()) * Settings.JumpForce * Time.deltaTime);
 
             FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
 
@@ -956,13 +947,13 @@ namespace FreeIva
         public static void HelmetOn()
         {
             WearingHelmet = true;
-            KerbalCollider.transform.localScale = new Vector3(Settings.HelmetSize, Settings.KerbalHeightWithHelmet, Settings.HelmetSize);
+            KerbalIva.transform.localScale = new Vector3(Settings.HelmetSize, Settings.KerbalHeightWithHelmet, Settings.HelmetSize);
         }
 
         public static void HelmetOff()
         {
             WearingHelmet = false;
-            KerbalCollider.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.KerbalHeight, Settings.NoHelmetSize);
+            KerbalIva.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.KerbalHeight, Settings.NoHelmetSize);
         }
     }
 }
