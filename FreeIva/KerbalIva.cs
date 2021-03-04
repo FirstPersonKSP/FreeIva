@@ -210,9 +210,11 @@ namespace FreeIva
 #endif
             KerbalColliderCollider.isTrigger = false;
             KerbalCollider.layer = (int)Layers.InternalSpace; //KerbalCollider.layer = (int)Layers.Kerbals; 2021-02-26
-            KerbalCollider.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.KerbalHeight, Settings.NoHelmetSize);
-            KerbalCollider.GetComponentCached<Renderer>(ref KerbalColliderRenderer);
+            KerbalCollider.GetComponentCached(ref KerbalColliderRenderer);
             KerbalColliderRenderer.enabled = false;
+
+            KerbalCollider.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.KerbalHeight, Settings.NoHelmetSize);
+
 
             /*KerbalFeet = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             KerbalFeet.name = "Kerbal feet collider";

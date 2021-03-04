@@ -25,6 +25,9 @@ using EditorGizmos;
  * 
  * Roadmap:
  * 1. Get gravity working, with legs.
+ *      Some drifting of vertical over time?
+ *      Capsule collider needs to be oriented correctly (freeze axes) and replaced with sphere for zero-gravity.
+ *      Canera height needs to be raised from centre of capsule.
  * 2. Get multiple instances of the same part working.
  * 3. Get hatches and colliders set up for the stock parts.
  * 4. Documentation for users and modellers.
@@ -56,13 +59,7 @@ namespace FreeIva
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class FreeIva : MonoBehaviour
     {
-        //public delegate void EventHandler();
-        //public static event EventHandler OnIvaPartChanged;
         public static EventData<Part> OnIvaPartChanged = new EventData<Part>("OnIvaPartChanged");
-
-        //private GameObject sphere;
-        //private GameObject capsule;
-        //private ScreenMessage screenMessage;
         public static Part InitialPart;
         public static Part CurrentPart;
         public static GameObject SelectedObject = null;
@@ -85,35 +82,15 @@ namespace FreeIva
             CurrentPart = FlightGlobals.ActiveVessel.rootPart;
             GuiUtils.DrawGui = true;
 
-            //Utils.line = Utils.CreateLine(Color.white, Color.red, 0.5f, 0.5f);
-            /*forwardLine = CreateLine(Color.white, Color.red, 0.05f, 0.05f);
-            upLine = CreateLine(Color.white, Color.green, 0.05f, 0.05f);
-            rightLine = CreateLine(Color.white, Color.blue, 0.05f, 0.05f);*/
-
             Paused = false;
             GameEvents.onGamePause.Add(OnPause);
             GameEvents.onGameUnpause.Add(OnUnPause);
 
-            /*screenMessage = new ScreenMessage(string.Empty, 3f, ScreenMessageStyle.UPPER_CENTER);
-            //screenMessage.message = "Starting Free IVA...";
-            ScreenMessages.PostScreenMessage(screenMessage, false);*/
-
-            // Per-frame screen message, as used during EVA:
-            //ScreenMessages.PostScreenMessage("[" + GameSettings.EVA_Board.name + "]: Board", 0.1f, ScreenMessageStyle.LOWER_CENTER);
             Settings.LoadSettings();
             OnIvaPartChanged.Add(IvaPartChanged);
             SetRenderQueues(FlightGlobals.ActiveVessel.rootPart);
             SetCollisionLayers();
-
-
-            /*xLine = Utils.CreateLine(Color.white, Color.red, 0.1f, 0.1f);
-            yLine = Utils.CreateLine(Color.white, Color.green, 0.1f, 0.1f);
-            zLine = Utils.CreateLine(Color.white, Color.blue, 0.1f, 0.1f);*/
         }
-
-        /*static LineRenderer xLine;
-        static LineRenderer yLine;
-        static LineRenderer zLine;*/
 
         public static bool Paused = false;
         public void OnPause()
@@ -461,166 +438,5 @@ namespace FreeIva
                 Debug.LogError("[FreeIVA] Error enabling internals: " + ex.Message + ", " + ex.StackTrace);
             }
         }
-
-        /*public static float DoCollisions()
-        {
-            Part p = FlightGlobals.ActiveVessel.rootPart;
-            if (p != null && p.collider != null)
-            {
-                /*
-                Vector3 closestPoint = p.collider.ClosestPointOnBounds(InternalSpace.InternalToWorld(InternalCamera.Instance.transform.localPosition));
-                float distance = Vector3.Distance(InternalSpace.InternalToWorld(InternalCamera.Instance.transform.localPosition), closestPoint);
-                Debug.Log("Distance: " + distance + ", closest point: " + closestPoint);
-
-                Vector3 closestPointExt = p.collider.ClosestPointOnBounds(InternalSpace.InternalToWorld(InternalCamera.Instance.transform.localPosition));
-                float distanceExt = Vector3.Distance(InternalCamera.Instance.transform.localPosition, closestPoint);
-                Debug.Log("DistanceExt: " + distanceExt + ", closest pointExt: " + closestPointExt);
-                * /
-
-                Vector3 camPosWorld = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.forward) * 10;
-
-                //line.SetPosition(0, InternalSpace.InternalToWorld(InternalCamera.Instance.transform.localPosition));
-                //line.SetPosition(1, FlightGlobals.ActiveVessel.rootPart.transform.localPosition);
-                RaycastHit hit;
-
-                if (Physics.Linecast(InternalSpace.InternalToWorld(InternalCamera.Instance.transform.localPosition), camPosWorld, out hit)) // Progressively move the point forward, stopping everytime we see a new plane in the way.
-                {
-                    float distance = Vector3.Distance(InternalCamera.Instance.transform.localPosition, hit.point);
-                    //Debug.Log("Distance: " + distance + ", hit point: " + hit.point);
-                    return distance;
-                }
-                /*else
-                {
-                    Debug.Log("No hit");
-                }* /
-
-                //sphere.transform.position = InternalSpace.WorldToInternal(closestPoint);
-            }
-            return 0;
-        }*/
-
-
-        public static void PositionIvaObject(IIvaObject o)
-        {
-            GUILayout.BeginHorizontal();
-            if (o.IvaGameObject != null)
-                o.IvaGameObjectRigidbody = o.IvaGameObject.GetComponent<Rigidbody>();
-
-            GUILayout.Label("Position X");
-            float xPos = float.Parse(GUILayout.TextField(o.LocalPosition.x.ToString()));
-            GUILayout.Label("Position Y");
-            float yPos = float.Parse(GUILayout.TextField(o.LocalPosition.y.ToString()));
-            GUILayout.Label("Position Z");
-            float zPos = float.Parse(GUILayout.TextField(o.LocalPosition.z.ToString()));
-            if (xPos != o.LocalPosition.x || yPos != o.LocalPosition.y || zPos != o.LocalPosition.z)
-            {
-                //currentJoint = c.IvaGameObject.GetComponent<FixedJoint>();
-                //if (currentJoint != null) Destroy(currentJoint);
-                o.LocalPosition = new Vector3(xPos, yPos, zPos);
-                //currentJoint = c.IvaGameObject.AddComponent<FixedJoint>();
-                //currentJoint.connectedBody = CurrentPart.collider.rigidbody;
-                if (o.IvaGameObjectRigidbody != null)
-                {
-                    o.IvaGameObjectRigidbody.velocity = Vector3.zero;
-                    o.IvaGameObjectRigidbody.angularVelocity = Vector3.zero;
-                }
-            }
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Scale X");
-            float xSc = float.Parse(GUILayout.TextField(o.Scale.x.ToString()));
-            GUILayout.Label("Scale Y");
-            float ySc = float.Parse(GUILayout.TextField(o.Scale.y.ToString()));
-            GUILayout.Label("Scale Z");
-            float zSc = float.Parse(GUILayout.TextField(o.Scale.z.ToString()));
-            if (xSc != o.Scale.x || ySc != o.Scale.y || zSc != o.Scale.z)
-            {
-                //currentJoint = c.IvaGameObject.GetComponent<FixedJoint>();
-                //if (currentJoint != null) Destroy(currentJoint);
-                o.Scale = new Vector3(xSc, ySc, zSc);
-                //currentJoint = c.IvaGameObject.AddComponent<FixedJoint>();
-                //currentJoint.connectedBody = CurrentPart.collider.rigidbody;
-                if (o.IvaGameObjectRigidbody != null)
-                {
-                    o.IvaGameObjectRigidbody.velocity = Vector3.zero;
-                    o.IvaGameObjectRigidbody.angularVelocity = Vector3.zero;
-                }
-            }
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Rotation X");
-            float xRot = float.Parse(GUILayout.TextField(o.Rotation.eulerAngles.x.ToString()));
-            GUILayout.Label("Rotation Y");
-            float yRot = float.Parse(GUILayout.TextField(o.Rotation.eulerAngles.y.ToString()));
-            GUILayout.Label("Rotation Z");
-            float zRot = float.Parse(GUILayout.TextField(o.Rotation.eulerAngles.z.ToString()));
-            if (xRot != o.Rotation.eulerAngles.x || yRot != o.Rotation.eulerAngles.y || zRot != o.Rotation.eulerAngles.z)
-            {
-                //currentJoint = c.IvaGameObject.GetComponent<FixedJoint>();
-                //if (currentJoint != null) Destroy(currentJoint);
-                o.Rotation = Quaternion.Euler(xRot, yRot, zRot);
-                //currentJoint = c.IvaGameObject.AddComponent<FixedJoint>();
-                //currentJoint.connectedBody = CurrentPart.collider.rigidbody;
-                if (o.IvaGameObjectRigidbody != null)
-                {
-                    o.IvaGameObjectRigidbody.velocity = Vector3.zero;
-                    o.IvaGameObjectRigidbody.angularVelocity = Vector3.zero;
-                }
-            }
-            GUILayout.EndHorizontal();
-
-
-            /*Vector3 tmpPos = InternalSpace.InternalToWorld(o.LocalPosition);
-            xLine.SetPosition(0, Vector3.zero);
-            xLine.SetPosition(1, new Vector3(tmpPos.x, 0, 0));
-
-            yLine.SetPosition(0, new Vector3(tmpPos.x, 0, 0));
-            yLine.SetPosition(1, new Vector3(tmpPos.x, -tmpPos.y, 0));
-
-            zLine.SetPosition(0, new Vector3(tmpPos.x, -tmpPos.y, 0));
-            zLine.SetPosition(1, new Vector3(tmpPos.x, -tmpPos.y, -tmpPos.z));*/
-
-            /*Vector3 invPos = -o.LocalPosition;
-            GUILayout.Label("Position forward");
-            float forward = float.Parse(GUILayout.TextField(o.LocalPosition.x.ToString()));
-            GUILayout.Label("Position right");
-            float right = float.Parse(GUILayout.TextField(o.LocalPosition.x.ToString()));
-            GUILayout.Label("Position up");
-            float up = float.Parse(GUILayout.TextField(o.LocalPosition.x.ToString()));*/
-        }
-
-        public void TestGizmos()
-        {
-
-            GizmoOffset gizmoOffset = new GizmoOffset();
-            /*GizmoOffsetHandle.Setup(gizmoOffset, Callback<GizmoOffsetHandle,
-                Vector3> onHandleDragStart,
-            Callback<GizmoOffsetHandle,Vector3, float> onHandleDrag,
-            Callback<GizmoOffsetHandle, Vector3, float> onHandleDragEnd,
-            Camera referenceCamera);*/
-            //Gizmos
-        }
-    } // End of class FreeIva
-
-    /*[KSPAddon(KSPAddon.Startup.MainMenu, false)]
-    class AutoStartup : UnityEngine.MonoBehaviour
-    {
-        public static bool first = true;
-        public void Start()
-        {
-            //only do it on the first entry to the menu
-            if (first)
-            {
-                first = false;
-                HighLogic.SaveFolder = "test";
-                var game = GamePersistence.LoadGame("persistent", HighLogic.SaveFolder, true, false);
-                if (game != null && game.flightState != null && game.compatible)
-                    FlightDriver.StartAndFocusVessel(game, game.flightState.activeVesselIdx);
-                CheatOptions.InfinitePropellant = true;
-                CheatOptions.InfiniteElectricity = true;
-            }
-        }
-    }*/
+    }
 }

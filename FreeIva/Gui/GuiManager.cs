@@ -999,6 +999,97 @@ namespace FreeIva
             }
         }
 
+        public static void PositionIvaObject(IIvaObject o)
+        {
+            GUILayout.BeginHorizontal();
+            if (o.IvaGameObject != null)
+                o.IvaGameObjectRigidbody = o.IvaGameObject.GetComponent<Rigidbody>();
+
+            GUILayout.Label("Position X");
+            float xPos = float.Parse(GUILayout.TextField(o.LocalPosition.x.ToString()));
+            GUILayout.Label("Position Y");
+            float yPos = float.Parse(GUILayout.TextField(o.LocalPosition.y.ToString()));
+            GUILayout.Label("Position Z");
+            float zPos = float.Parse(GUILayout.TextField(o.LocalPosition.z.ToString()));
+            if (xPos != o.LocalPosition.x || yPos != o.LocalPosition.y || zPos != o.LocalPosition.z)
+            {
+                //currentJoint = c.IvaGameObject.GetComponent<FixedJoint>();
+                //if (currentJoint != null) Destroy(currentJoint);
+                o.LocalPosition = new Vector3(xPos, yPos, zPos);
+                //currentJoint = c.IvaGameObject.AddComponent<FixedJoint>();
+                //currentJoint.connectedBody = CurrentPart.collider.rigidbody;
+                if (o.IvaGameObjectRigidbody != null)
+                {
+                    o.IvaGameObjectRigidbody.velocity = Vector3.zero;
+                    o.IvaGameObjectRigidbody.angularVelocity = Vector3.zero;
+                }
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Scale X");
+            float xSc = float.Parse(GUILayout.TextField(o.Scale.x.ToString()));
+            GUILayout.Label("Scale Y");
+            float ySc = float.Parse(GUILayout.TextField(o.Scale.y.ToString()));
+            GUILayout.Label("Scale Z");
+            float zSc = float.Parse(GUILayout.TextField(o.Scale.z.ToString()));
+            if (xSc != o.Scale.x || ySc != o.Scale.y || zSc != o.Scale.z)
+            {
+                //currentJoint = c.IvaGameObject.GetComponent<FixedJoint>();
+                //if (currentJoint != null) Destroy(currentJoint);
+                o.Scale = new Vector3(xSc, ySc, zSc);
+                //currentJoint = c.IvaGameObject.AddComponent<FixedJoint>();
+                //currentJoint.connectedBody = CurrentPart.collider.rigidbody;
+                if (o.IvaGameObjectRigidbody != null)
+                {
+                    o.IvaGameObjectRigidbody.velocity = Vector3.zero;
+                    o.IvaGameObjectRigidbody.angularVelocity = Vector3.zero;
+                }
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Rotation X");
+            float xRot = float.Parse(GUILayout.TextField(o.Rotation.eulerAngles.x.ToString()));
+            GUILayout.Label("Rotation Y");
+            float yRot = float.Parse(GUILayout.TextField(o.Rotation.eulerAngles.y.ToString()));
+            GUILayout.Label("Rotation Z");
+            float zRot = float.Parse(GUILayout.TextField(o.Rotation.eulerAngles.z.ToString()));
+            if (xRot != o.Rotation.eulerAngles.x || yRot != o.Rotation.eulerAngles.y || zRot != o.Rotation.eulerAngles.z)
+            {
+                //currentJoint = c.IvaGameObject.GetComponent<FixedJoint>();
+                //if (currentJoint != null) Destroy(currentJoint);
+                o.Rotation = Quaternion.Euler(xRot, yRot, zRot);
+                //currentJoint = c.IvaGameObject.AddComponent<FixedJoint>();
+                //currentJoint.connectedBody = CurrentPart.collider.rigidbody;
+                if (o.IvaGameObjectRigidbody != null)
+                {
+                    o.IvaGameObjectRigidbody.velocity = Vector3.zero;
+                    o.IvaGameObjectRigidbody.angularVelocity = Vector3.zero;
+                }
+            }
+            GUILayout.EndHorizontal();
+
+
+            /*Vector3 tmpPos = InternalSpace.InternalToWorld(o.LocalPosition);
+            xLine.SetPosition(0, Vector3.zero);
+            xLine.SetPosition(1, new Vector3(tmpPos.x, 0, 0));
+
+            yLine.SetPosition(0, new Vector3(tmpPos.x, 0, 0));
+            yLine.SetPosition(1, new Vector3(tmpPos.x, -tmpPos.y, 0));
+
+            zLine.SetPosition(0, new Vector3(tmpPos.x, -tmpPos.y, 0));
+            zLine.SetPosition(1, new Vector3(tmpPos.x, -tmpPos.y, -tmpPos.z));*/
+
+            /*Vector3 invPos = -o.LocalPosition;
+            GUILayout.Label("Position forward");
+            float forward = float.Parse(GUILayout.TextField(o.LocalPosition.x.ToString()));
+            GUILayout.Label("Position right");
+            float right = float.Parse(GUILayout.TextField(o.LocalPosition.x.ToString()));
+            GUILayout.Label("Position up");
+            float up = float.Parse(GUILayout.TextField(o.LocalPosition.x.ToString()));*/
+        }
+
         private static string PrintCollider(InternalCollider c)
         {
             var sb = new StringBuilder();
