@@ -92,11 +92,15 @@ namespace FreeIva
         private static bool showKerbalColliderGui = false;
         private static void KerbalColliderGui()
         {
-            if (GUILayout.Button((showColliderGui ? "Hide" : "Show") + " kerbal collider configuration"))
+            if (GUILayout.Button((showKerbalColliderGui ? "Hide" : "Show") + " kerbal collider configuration"))
                 showKerbalColliderGui = !showKerbalColliderGui;
 
             if (!showKerbalColliderGui)
                 return;
+
+
+            var distance = InternalCamera.Instance.transform.position - KerbalIvaController.KerbalRigidbody.transform.position;
+            GuiUtils.label("Distance from camera to Kerbal IVA", distance);
 
             GUILayout.BeginHorizontal();
             KerbalIvaController.KerbalIva.GetComponentCached<Collider>(ref KerbalIvaController.KerbalCollider);
@@ -109,10 +113,10 @@ namespace FreeIva
             bool helmet = GUILayout.Toggle(KerbalIvaController.WearingHelmet, "Helmet");
             //if (helmet != KerbalIva.WearingHelmet)
             //{
-                if (helmet)
-                    KerbalIvaController.HelmetOn();
-                else
-                    KerbalIvaController.HelmetOff();
+            if (helmet)
+                KerbalIvaController.HelmetOn();
+            else
+                KerbalIvaController.HelmetOff();
             //}
             GUILayout.EndHorizontal();
 
@@ -186,16 +190,24 @@ namespace FreeIva
             GUILayout.EndHorizontal();
 
             int colCount = 0;
+            Collider[] colliders = null;
             if (FreeIva.CurrentPart != null)
             {
-                Collider[] colliders = FreeIva.CurrentPart.GetComponentsInChildren<Collider>();
+                colliders = FreeIva.CurrentPart.GetComponentsInChildren<Collider>();
+            }
+            else if (FlightGlobals.ActiveVessel.rootPart != null)
+            {
+                colliders = FlightGlobals.ActiveVessel.rootPart.GetComponentsInChildren<Collider>();
+            }
+            if (colliders != null)
+            {
                 colCount = colliders.Length;
                 if (colCount > 0)
                 {
                     GuiUtils.label("Collider0 layer", colliders[0].gameObject.layer);
                 }
+                GuiUtils.label("Colliders in current part", colCount);
             }
-            GuiUtils.label("Colliders in current part", colCount);
 
             GUILayout.BeginHorizontal();
             if (GUILayout.Toggle(_primitiveType == PrimitiveType.Sphere, "Sphere"))
@@ -232,13 +244,14 @@ namespace FreeIva
                 GuiUtils.label("Current collider", _internalColliderIndex + 1);
                 c = FreeIva.CurrentModuleFreeIva.InternalColliders[_internalColliderIndex];
                 GuiUtils.label("Collider (" + (_internalColliderIndex + 1) + "/" + FreeIva.CurrentModuleFreeIva.InternalColliders.Count + ")", c.Name);
-                if (InternalCamera.Instance.transform.position != null) // On vessel destruction while in IVA
+                if (InternalCamera.Instance != null && InternalCamera.Instance.transform.position != null && // On vessel destruction while in IVA
+                    c.IvaGameObject != null && c.IvaGameObject.transform != null)
                     GuiUtils.label("Range", Vector3.Distance(c.IvaGameObject.transform.position, InternalCamera.Instance.transform.position));
             }
             if (c != null)
             {
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("Destroy collider"))
+                if (c.IvaGameObject != null && GUILayout.Button("Destroy collider"))
                 {
                     FreeIva.CurrentModuleFreeIva.InternalColliders.Remove(c);
                     c.IvaGameObject.DestroyGameObject();
@@ -250,36 +263,42 @@ namespace FreeIva
                 }
                 GUILayout.EndHorizontal();
 
-                GUILayout.BeginHorizontal();
-                c.IvaGameObject.GetComponentCached(ref c.IvaGameObjectCollider);
-                c.IvaGameObjectCollider.enabled = GUILayout.Toggle(c.IvaGameObjectCollider.enabled, "Enabled");
-                bool wasVisible = c.Visible;
-                bool v = GUILayout.Toggle(wasVisible, "Visible");
-                if (v != wasVisible)
-                    c.Visible = v;
-                if (GUILayout.Button("Show All"))
+                if (c.IvaGameObject != null)
                 {
-                    for (int i = 0; i < FreeIva.CurrentModuleFreeIva.InternalColliders.Count; i++)
+                    GUILayout.BeginHorizontal();
+                    c.IvaGameObject.GetComponentCached(ref c.IvaGameObjectCollider);
+                    c.IvaGameObjectCollider.enabled = GUILayout.Toggle(c.IvaGameObjectCollider.enabled, "Enabled");
+                    bool wasVisible = c.Visible;
+                    bool v = GUILayout.Toggle(wasVisible, "Visible");
+                    if (v != wasVisible)
+                        c.Visible = v;
+                    if (GUILayout.Button("Show All"))
                     {
-                        FreeIva.CurrentModuleFreeIva.InternalColliders[i].Visible = true;
+                        for (int i = 0; i < FreeIva.CurrentModuleFreeIva.InternalColliders.Count; i++)
+                        {
+                            FreeIva.CurrentModuleFreeIva.InternalColliders[i].Visible = true;
+                        }
                     }
-                }
-                if (GUILayout.Button("Hide All"))
-                {
-                    for (int i = 0; i < FreeIva.CurrentModuleFreeIva.InternalColliders.Count; i++)
+                    if (GUILayout.Button("Hide All"))
                     {
-                        FreeIva.CurrentModuleFreeIva.InternalColliders[i].Visible = false;
+                        for (int i = 0; i < FreeIva.CurrentModuleFreeIva.InternalColliders.Count; i++)
+                        {
+                            FreeIva.CurrentModuleFreeIva.InternalColliders[i].Visible = false;
+                        }
                     }
+                    GUILayout.EndHorizontal();
                 }
-                GUILayout.EndHorizontal();
 
                 if (c != null)
                     PositionIvaObject(c);
 
-                GUILayout.BeginHorizontal();
-                GuiUtils.label("Velocity", c.IvaGameObjectRigidbody.velocity.magnitude);
-                GuiUtils.label("Angular velocity", c.IvaGameObjectRigidbody.angularVelocity.magnitude);
-                GUILayout.EndHorizontal();
+                if (c.IvaGameObjectRigidbody != null)
+                {
+                    GUILayout.BeginHorizontal();
+                    GuiUtils.label("Velocity", c.IvaGameObjectRigidbody.velocity.magnitude);
+                    GuiUtils.label("Angular velocity", c.IvaGameObjectRigidbody.angularVelocity.magnitude);
+                    GUILayout.EndHorizontal();
+                }
             }
 
             if (FreeIva.CurrentPart.internalModel == null)
@@ -422,14 +441,14 @@ namespace FreeIva
             if (GUILayout.Button((showSeatGui ? "Hide" : "Show") + " seat controls"))
                 showSeatGui = !showSeatGui;
 
-            if (FreeIva.CurrentPart.internalModel == null)
-            {
-                GUILayout.Label("No internal model found.");
-                return;
-            }
-
             if (showSeatGui)
             {
+                if (FreeIva.CurrentPart.internalModel == null)
+                {
+                    GUILayout.Label("No internal model found.");
+                    return;
+                }
+
                 GUILayout.Label("<b>Seats</b>");
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("<b>Name</b>");
@@ -647,15 +666,23 @@ namespace FreeIva
             if (GUILayout.Button((showMRGui ? "Hide" : "Show") + " MeshRenderer controls"))
                 showMRGui = !showMRGui;
 
-            if (FreeIva.CurrentPart.internalModel == null)
-            {
-                GUILayout.Label("No internal model found.");
-                return;
-            }
-
             if (showMRGui)
             {
-                MeshRenderer[] meshRenderers = FreeIva.CurrentPart.internalModel.GetComponentsInChildren<MeshRenderer>();
+                if (FreeIva.CurrentPart.internalModel == null)
+                {
+                    GUILayout.Label("No internal model found.");
+                    return;
+                }
+
+                MeshRenderer[] meshRenderers = null;
+                if (FreeIva.CurrentPart.internalModel != null)
+                {
+                    meshRenderers = FreeIva.CurrentPart.internalModel.GetComponentsInChildren<MeshRenderer>();
+                }
+                else if (FlightGlobals.ActiveVessel.rootPart != null)
+                {
+                    meshRenderers = FlightGlobals.ActiveVessel.rootPart.GetComponentsInChildren<MeshRenderer>();
+                }
                 if (meshRenderers.Length == 0)
                 {
                     GUILayout.Label("No MeshRenderers");
@@ -719,7 +746,7 @@ namespace FreeIva
                     }
                 }
                 GUILayout.Label("Part Internal Model Transform");
-                GUILayout.Label(FreeIva.CurrentPart.internalModel.transform == null ? "null" : FreeIva.CurrentPart.internalModel.transform.ToString());
+                GUILayout.Label(FreeIva.CurrentPart?.internalModel?.transform == null ? "null" : FreeIva.CurrentPart.internalModel.transform.ToString());
 
                 if (GUILayout.Button("Select current MeshRenderer"))
                     FreeIva.SelectedObject = mr.gameObject;
@@ -735,14 +762,14 @@ namespace FreeIva
             if (GUILayout.Button((showSMRGui ? "Hide" : "Show") + " SkinnedMeshRenderer controls"))
                 showSMRGui = !showSMRGui;
 
-            if (FreeIva.CurrentPart.internalModel == null)
-            {
-                GUILayout.Label("No internal model found.");
-                return;
-            }
-
             if (showSMRGui)
             {
+                if (FreeIva.CurrentPart.internalModel == null)
+                {
+                    GUILayout.Label("No internal model found.");
+                    return;
+                }
+
                 SkinnedMeshRenderer[] skinnedMeshRenderers = FreeIva.CurrentPart.internalModel.GetComponentsInChildren<SkinnedMeshRenderer>();
                 if (skinnedMeshRenderers.Length == 0)
                 {
@@ -802,15 +829,23 @@ namespace FreeIva
             if (GUILayout.Button((showTransformGui ? "Hide" : "Show") + " Transform controls"))
                 showTransformGui = !showTransformGui;
 
-            if (FreeIva.CurrentPart.internalModel == null)
-            {
-                GUILayout.Label("No internal model found.");
-                return;
-            }
-
             if (showTransformGui)
             {
-                Transform[] transforms = FreeIva.CurrentPart.internalModel.GetComponentsInChildren<Transform>();
+                if (FreeIva.CurrentPart.internalModel == null)
+                {
+                    GUILayout.Label("No internal model found.");
+                    return;
+                }
+
+                Transform[] transforms = null;
+                if (FreeIva.CurrentPart.internalModel != null)
+                {
+                    transforms = FreeIva.CurrentPart.internalModel.GetComponentsInChildren<Transform>();
+                }
+                else if (FlightGlobals.ActiveVessel?.rootPart != null)
+                {
+                    transforms = FlightGlobals.ActiveVessel.rootPart.GetComponentsInChildren<Transform>();
+                }
                 if (transforms.Length == 0)
                 {
                     GUILayout.Label("No Transforms");
@@ -846,7 +881,7 @@ namespace FreeIva
         private static bool showLookGui = false;
         public static void LookGui()
         {
-            if (GUILayout.Button((showSMRGui ? "Hide" : "Show") + " View controls"))
+            if (GUILayout.Button((showLookGui ? "Hide" : "Show") + " View controls"))
                 showLookGui = !showLookGui;
 
             if (showLookGui)
