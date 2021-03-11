@@ -14,10 +14,18 @@ namespace FreeIva.Hatches
         {
             get
             {
-                if (_closedRenderer == null && IvaGameObject != null)
+                if (_closedRenderer == null)
                 {
                     Debug.Log("# Getting ClosedRenderer...");
-                    _closedRenderer = IvaGameObject.GetComponentInChildren<MeshRenderer>();
+                    var renderers = Part.internalModel.GetComponentsInChildren<MeshRenderer>();
+                    foreach (var renderer in renderers)
+                    {
+                        if (renderer.name == ClosedMeshName)
+                        {
+                            _closedRenderer = renderer;
+                            break;
+                        }
+                    }
                 }
                 return _closedRenderer;
             }
