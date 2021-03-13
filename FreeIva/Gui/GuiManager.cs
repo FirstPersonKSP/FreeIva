@@ -362,10 +362,13 @@ namespace FreeIva
                     hat.Init(CurrentPart);
             }*/
 
+            GUILayout.BeginHorizontal();
             if (GUILayout.Button("Previous Hatch"))
                 _hatchIndex--;
             if (GUILayout.Button("Next Hatch"))
                 _hatchIndex++;
+            GUILayout.EndHorizontal();
+
             if (_hatchIndex >= FreeIva.CurrentModuleFreeIva.Hatches.Count)
                 _hatchIndex = 0;
             if (_hatchIndex < 0)
@@ -683,7 +686,7 @@ namespace FreeIva
                 {
                     meshRenderers = FlightGlobals.ActiveVessel.rootPart.GetComponentsInChildren<MeshRenderer>();
                 }
-                if (meshRenderers.Length == 0)
+                if (meshRenderers == null || meshRenderers.Length == 0)
                 {
                     GUILayout.Label("No MeshRenderers");
                     return;
@@ -745,8 +748,16 @@ namespace FreeIva
                         GUILayout.Label(mr.transform.parent.parent == null ? "null" : mr.transform.parent.parent.ToString());
                     }
                 }
+
                 GUILayout.Label("Part Internal Model Transform");
-                GUILayout.Label(FreeIva.CurrentPart?.internalModel?.transform == null ? "null" : FreeIva.CurrentPart.internalModel.transform.ToString());
+                if (FreeIva.CurrentPart != null && FreeIva.CurrentPart.internalModel != null)
+                {
+                    GUILayout.Label(FreeIva.CurrentPart.internalModel.transform.ToString());
+                }
+                else
+                {
+                    GUILayout.Label("null");
+                }
 
                 if (GUILayout.Button("Select current MeshRenderer"))
                     FreeIva.SelectedObject = mr.gameObject;
@@ -764,14 +775,18 @@ namespace FreeIva
 
             if (showSMRGui)
             {
-                if (FreeIva.CurrentPart.internalModel == null)
-                {
-                    GUILayout.Label("No internal model found.");
-                    return;
-                }
 
-                SkinnedMeshRenderer[] skinnedMeshRenderers = FreeIva.CurrentPart.internalModel.GetComponentsInChildren<SkinnedMeshRenderer>();
-                if (skinnedMeshRenderers.Length == 0)
+                SkinnedMeshRenderer[] skinnedMeshRenderers = null;
+                if (FreeIva.CurrentPart.internalModel != null)
+                {
+                    skinnedMeshRenderers = FreeIva.CurrentPart.internalModel.GetComponentsInChildren<SkinnedMeshRenderer>();
+                }
+                else if (FlightGlobals.ActiveVessel.rootPart != null)
+                {
+                    skinnedMeshRenderers = FlightGlobals.ActiveVessel.rootPart.GetComponentsInChildren<SkinnedMeshRenderer>();
+                }
+                
+                if (skinnedMeshRenderers == null || skinnedMeshRenderers.Length == 0)
                 {
                     GUILayout.Label("No SkinnedMeshRenderers");
                     return;
@@ -806,13 +821,23 @@ namespace FreeIva
                 GUILayout.Label(smr == null ? "null" : smr.ToString());
                 GUILayout.Label("<b>Material</b>");
                 GUILayout.Label(smr.material == null ? "null" : smr.material.ToString());
+                if (smr.material != null)
+                {
+                    GUILayout.Label("<b>Render Queue</b>");
+                    GUILayout.Label(smr.material.renderQueue.ToString());
+                    smr.material.renderQueue = GUIUtil.EditableIntField("Edit Material Render Queue", smr.material.renderQueue, null);
+                    GUILayout.Label("<b>Shader</b>");
+                    GUILayout.Label(smr.material.shader.name + ", " + smr.material.shader.renderQueue);
+                    smr.material.renderQueue = GUIUtil.EditableIntField("Edit Shader Render Queue", smr.material.shader.renderQueue, null);
+                }
+
                 GUILayout.Label("<b>Transform</b>");
                 GUILayout.Label(smr.transform == null ? "null" : smr.transform.ToString());
                 //GUILayout.Label("SkinnedMeshRenderer");
                 //GuiUtils.label("SkinnedMeshRenderer", smr);
                 //GuiUtils.label("Material", smr.material);
                 //GuiUtils.label("Transform", smr.transform);
-                //if (smr.transform != null)
+                if (smr.transform != null)
                 {
                     GuiUtils.label("Transform position", smr.transform.position);
                     GuiUtils.label("Range", Vector3.Distance(smr.transform.position, InternalCamera.Instance.transform.position));
