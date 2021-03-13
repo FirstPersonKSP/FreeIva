@@ -52,14 +52,28 @@ namespace FreeIva.Hatches
                 Debug.LogError("[FreeIVA] Hatch has already been instantiated.");
                 return;
             }
-            
+
+            // These values will be cleared on creating the object.
+            Vector3 scale = Scale;
+            Vector3 localPosition = LocalPosition;
+            Quaternion rotation = Rotation;
+
             IvaGameObject = new GameObject();
             if (p.internalModel == null)
                 p.CreateInternalModel(); // TODO: Detect this in an event instead.
             IvaGameObject.transform.parent = p.internalModel.transform;
             IvaGameObject.layer = (int)Layers.InternalSpace;
-            
+            IvaGameObject.transform.localPosition = LocalPosition;
+
+            // Restore cleared values.
+            Scale = scale;
+            LocalPosition = localPosition;
+            Rotation = rotation;
+            IvaGameObject.transform.localScale = scale;
+            IvaGameObject.transform.localPosition = localPosition;
+            IvaGameObject.transform.localRotation = rotation;
             IvaGameObject.name = Name;
+
             SetupAudio();
         }
 
@@ -89,8 +103,6 @@ namespace FreeIva.Hatches
 
         public static MeshHatch LoadMeshHatchFromCfg(ConfigNode node)
         {
-            Vector3 position = Vector3.zero;
-            Vector3 scale = Vector3.one;
             MeshHatch meshHatch = new MeshHatch();
 
             if (node.HasValue("meshName"))
