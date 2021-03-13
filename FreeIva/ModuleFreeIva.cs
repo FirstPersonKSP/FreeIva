@@ -139,6 +139,11 @@ namespace FreeIva
                 PersistenceManager.instance.AddInternalColliders(part.name, InternalColliders);
                 Debug.Log("# Internal colliders loaded from config for part " + part.name + ": " + InternalColliders.Count);
             }
+            else if (InternalColliders != null && InternalColliders.Count > 0)
+            {
+                PersistenceManager.instance.AddInternalColliders(part.name, InternalColliders);
+                Debug.Log("# Internal colliders loaded from config for part " + part.name + ": " + InternalColliders.Count);
+            }
         }
 
         /*public void OnDestroy()
