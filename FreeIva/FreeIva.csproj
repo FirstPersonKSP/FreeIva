@@ -270,7 +270,7 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="IvaObjects\InternalCollider.cs" />
     <Compile Include="KerbalIvaController.cs" />
-    <Compile Include="Experimental\IvaCollisionPrinter.cs" />
+    <Compile Include="IvaCollisionPrinter.cs" />
     <Compile Include="FreeIva.cs" />
     <Compile Include="Gui\GuiUtils.cs" />
     <Compile Include="IvaObjects\Hatches\Hatch.cs" />
