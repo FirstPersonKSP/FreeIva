@@ -49,6 +49,10 @@ namespace FreeIva
         // The maximum range from an object at which interaction prompts will appear.
         public static float MaxInteractDistance = 1f;
 
+        // The velocity of the IVA kerbal relative to the part that it is in which, if exceeded,
+        // should force the kerbal back to their seat to recover from falling through the part.
+        public static float MaxVelocityRelativeToPart = 20f;
+
         public static void LoadSettings()
         {
             Debug.Log("[FreeIVA] Loading settings...");

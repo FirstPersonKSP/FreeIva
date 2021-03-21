@@ -159,6 +159,7 @@ namespace FreeIva
         public void FixedUpdate()
         {
             ApplyGravity();
+            FallthroughCheck();
         }
 
         private void ApplyGravity()
@@ -193,6 +194,29 @@ namespace FreeIva
             else
             {
                 KerbalRigidbody.velocity = Vector3.zero;
+            }
+        }
+
+        private void FallthroughCheck()
+        {
+            if (FreeIva.CurrentPart != null && FreeIva.CurrentPart.Rigidbody != null)
+            {
+                var velocityRelativeToPart = (FreeIva.CurrentPart.Rigidbody.velocity - KerbalRigidbody.velocity).magnitude;
+                if (velocityRelativeToPart > Settings.MaxVelocityRelativeToPart)
+                {
+                    buckled = true;
+                    InternalCamera.Instance.transform.parent = ActiveKerbal.KerbalRef.eyeTransform;
+                    CameraManager.Instance.SetCameraFlight();
+                    KerbalIva.GetComponentCached<Collider>(ref KerbalCollider);
+                    KerbalCollider.enabled = false;
+                    HideCurrentKerbal(false);
+                    DisablePartHighlighting(false);
+                    InputLockManager.RemoveControlLock("FreeIVA");
+
+                    Gravity = false;
+                    KerbalCollider.enabled = true;
+                    ScreenMessages.PostScreenMessage("It was all just a dream...", 3f, ScreenMessageStyle.LOWER_CENTER);
+                }
             }
         }
 
