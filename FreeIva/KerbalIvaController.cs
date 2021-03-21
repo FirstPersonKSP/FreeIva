@@ -3,6 +3,15 @@ using UnityEngine;
 
 namespace FreeIva
 {
+    /* Stock EVA setup:
+        KerbalEVA is on layer 17 (EVA).
+        capsuleCollider:
+	        height 0.47
+	        radius: 0.12
+        helmetAndHeadCollider: Sphere
+	        radius: 0.27
+    */
+
     /// <summary>
     /// Character controller for IVA movement.
     /// </summary>
@@ -64,10 +73,10 @@ namespace FreeIva
         {
             if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)
             {
-                if (_lastCameraMode == CameraManager.CameraMode.IVA)
+                if (_lastCameraMode == CameraManager.CameraMode.IVA) // Switching away from IVA.
                 {
-                    // Switching away from IVA.
-                    //InputLockManager.RemoveControlLock("FreeIVA");
+                    InputLockManager.RemoveControlLock("FreeIVA");
+
                     // Return the kerbal to its original seat.
                     TargetedSeat = ActiveKerbal.seat;
                     if (!buckled)
@@ -98,6 +107,8 @@ namespace FreeIva
                     }
                 }
 
+                // TODO: Doesn't get mouse input when in FixedUpdate.
+                // Split this out to flags set in Update and acted upon in FixedUpdate.
                 GetInput();
 
                 /*FreeIva.InitialPart.Events.Clear();
@@ -187,7 +198,7 @@ namespace FreeIva
 
         private void CreateCameraCollider()
         {
-            KerbalIva = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            KerbalIva = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             KerbalIva.name = "Kerbal collider";
             KerbalIva.GetComponentCached<Collider>(ref KerbalCollider);
             KerbalCollider.enabled = false;
@@ -197,10 +208,10 @@ namespace FreeIva
             // Rotating the object would offset the rotation of the controls from the camera position.
             KerbalRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
 #if DEBUG
-            KerbalCollider.AddComponent<IvaCollisionPrinter>();
+            KerbalIva.AddComponent<IvaCollisionPrinter>();
 #endif
             KerbalCollider.isTrigger = false;
-            KerbalIva.layer = (int)Layers.InternalSpace; //KerbalCollider.layer = (int)Layers.Kerbals; 2021-02-26
+            KerbalIva.layer = (int)Layers.Kerbals; //KerbalCollider.layer = (int)Layers.Kerbals; 2021-02-26
             var renderer = KerbalIva.GetComponent<Renderer>();
             renderer.enabled = false;
 
@@ -234,11 +245,9 @@ namespace FreeIva
             KerbalWorldSpaceRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
 
             WorldCollisionTracker KerbalWorldCollisionTracker = KerbalWorldSpace.AddComponent<WorldCollisionTracker>();
-#endif
 #if DEBUG
             KerbalWorldSpace.AddComponent<IvaCollisionPrinter>();
 #endif
-#if Experimental
             KerbalWorldCollisionTracker.Initialise(KerbalColliderRigidbody);
 
             KerbalWorldSpaceCollider.isTrigger = false;
@@ -307,56 +316,56 @@ namespace FreeIva
 
             /*TargetedSeat.part.AddCrewmemberAt(ActiveKerbal, TargetedSeatIndex);
             CurrentPart.SpawnCrew();*/
-        /*HideCurrentKerbal(false);
+            /*HideCurrentKerbal(false);
 
-        FreeIva.InitialPart.RemoveCrewmember(ActiveKerbal);
-        FreeIva.CurrentPart.AddCrewmemberAt(ActiveKerbal, TargetedSeatIndex);
-        HideCurrentKerbal(false);
-
-        if (FreeIva.InitialPart != FreeIva.CurrentPart)
-        {
-            GameEvents.onCrewTransferred.Fire(new GameEvents.HostedFromToAction<ProtoCrewMember, Part>(ActiveKerbal, FreeIva.InitialPart, FreeIva.CurrentPart));
-            GameEvents.onVesselChange.Fire(FlightGlobals.ActiveVessel);
-            /*InitialPart.SpawnCrew();
-            CurrentPart.SpawnCrew();
-            InitialPart.RegisterCrew();
-            CurrentPart.RegisterCrew();
-            FlightGlobals.ActiveVessel.SpawnCrew();* /
-        }
-        //_reseatingCrew = true;
-        FreeIva.EnableInternals();*/
-
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        /*if (FreeIva.InitialPart != null && FreeIva.InitialPart != FreeIva.CurrentPart)
-        {*/
-        //TransferCrewTest(ActiveKerbal, FreeIva.InitialPart, FreeIva.CurrentPart);
-        //FreeIva.InitialPart.RemoveCrewmember(ActiveKerbal); - This part kills the InternalCamera.Instance by calling internalModel.UnseatKerbal
-        /*if (FreeIva.InitialPart.protoModuleCrew.Contains(ActiveKerbal))
-        {
-            ActiveKerbal.UnregisterExperienceTraits(FreeIva.InitialPart);
-            ActiveKerbal.rosterStatus = ProtoCrewMember.RosterStatus.Available;
-            FreeIva.InitialPart.protoModuleCrew.Remove(ActiveKerbal);
-            if (FreeIva.InitialPart.internalModel)
-            {
-                OriginalSeat.crew.seatIdx = -1;
-                OriginalSeat.crew.seat = null;
-                OriginalSeat.crew = null;
-                OriginalSeat.taken = false;
-                if (OriginalSeat.kerbalRef)
-                {
-                    //OriginalSeat.DespawnCrew();
-                }
-            }
+            FreeIva.InitialPart.RemoveCrewmember(ActiveKerbal);
             FreeIva.CurrentPart.AddCrewmemberAt(ActiveKerbal, TargetedSeatIndex);
-        }*/
-        //OriginalSeat.kerbalRef = null;
-        //TargetedSeat.kerbalRef = ActiveKerbal.KerbalRef;
-        //FreeIva.CurrentPart.AddCrewmember(ActiveKerbal);
-        //if (ActiveKerbal.seat != null)
-        //ActiveKerbal.seat.SpawnCrew();
-        //FreeIva.InitialPart = FreeIva.CurrentPart;
+            HideCurrentKerbal(false);
 
-        InternalCamera.Instance.transform.parent = ActiveKerbal.KerbalRef.eyeTransform;
+            if (FreeIva.InitialPart != FreeIva.CurrentPart)
+            {
+                GameEvents.onCrewTransferred.Fire(new GameEvents.HostedFromToAction<ProtoCrewMember, Part>(ActiveKerbal, FreeIva.InitialPart, FreeIva.CurrentPart));
+                GameEvents.onVesselChange.Fire(FlightGlobals.ActiveVessel);
+                /*InitialPart.SpawnCrew();
+                CurrentPart.SpawnCrew();
+                InitialPart.RegisterCrew();
+                CurrentPart.RegisterCrew();
+                FlightGlobals.ActiveVessel.SpawnCrew();* /
+            }
+            //_reseatingCrew = true;
+            FreeIva.EnableInternals();*/
+
+            //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            /*if (FreeIva.InitialPart != null && FreeIva.InitialPart != FreeIva.CurrentPart)
+            {*/
+            //TransferCrewTest(ActiveKerbal, FreeIva.InitialPart, FreeIva.CurrentPart);
+            //FreeIva.InitialPart.RemoveCrewmember(ActiveKerbal); - This part kills the InternalCamera.Instance by calling internalModel.UnseatKerbal
+            /*if (FreeIva.InitialPart.protoModuleCrew.Contains(ActiveKerbal))
+            {
+                ActiveKerbal.UnregisterExperienceTraits(FreeIva.InitialPart);
+                ActiveKerbal.rosterStatus = ProtoCrewMember.RosterStatus.Available;
+                FreeIva.InitialPart.protoModuleCrew.Remove(ActiveKerbal);
+                if (FreeIva.InitialPart.internalModel)
+                {
+                    OriginalSeat.crew.seatIdx = -1;
+                    OriginalSeat.crew.seat = null;
+                    OriginalSeat.crew = null;
+                    OriginalSeat.taken = false;
+                    if (OriginalSeat.kerbalRef)
+                    {
+                        //OriginalSeat.DespawnCrew();
+                    }
+                }
+                FreeIva.CurrentPart.AddCrewmemberAt(ActiveKerbal, TargetedSeatIndex);
+            }*/
+            //OriginalSeat.kerbalRef = null;
+            //TargetedSeat.kerbalRef = ActiveKerbal.KerbalRef;
+            //FreeIva.CurrentPart.AddCrewmember(ActiveKerbal);
+            //if (ActiveKerbal.seat != null)
+            //ActiveKerbal.seat.SpawnCrew();
+            //FreeIva.InitialPart = FreeIva.CurrentPart;
+
+            InternalCamera.Instance.transform.parent = ActiveKerbal.KerbalRef.eyeTransform;
             CameraManager.Instance.SetCameraFlight();
             buckled = true;
             CrewTransfer_MoveCrewTo();
@@ -883,7 +892,7 @@ namespace FreeIva
             KerbalIva.GetComponentCached<Rigidbody>(ref KerbalRigidbody);
             KerbalRigidbody.MovePosition(newPos);
 
-            // Jump. TODO: Detect when not in contact with the ground to prevent jetpacking.
+            // Jump. TODO: Detect when not in contact with the ground to prevent jetpacking (Physics.CapsuleCast).
             if (Input.GetKey(Settings.JumpKey))
                 // Jump in the opposite direction to gravity.
                 KerbalRigidbody.AddForce(-InternalSpace.WorldToInternal(GetFlightForcesWorldSpace()) * Settings.JumpForce * Time.deltaTime);

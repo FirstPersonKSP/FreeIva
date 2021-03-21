@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
@@ -106,6 +107,7 @@ namespace FreeIva
             KerbalIvaController.KerbalIva.GetComponentCached<Collider>(ref KerbalIvaController.KerbalCollider);
             KerbalIvaController.KerbalCollider.enabled = !GUILayout.Toggle(!KerbalIvaController.KerbalCollider.enabled, "NoClip");
             KerbalIvaController.Gravity = GUILayout.Toggle(KerbalIvaController.Gravity, "Gravity");
+            IvaCollisionPrinter.Enabled = GUILayout.Toggle(IvaCollisionPrinter.Enabled, "Print collisions");
             //KerbalIva.KerbalFeetCollider.enabled = !GUILayout.Toggle(!KerbalIva.KerbalColliderCollider.enabled, "Feet") && KerbalIva.KerbalColliderCollider.enabled;
 #if Experimental
             KerbalIva.CanHoldItems = GUILayout.Toggle(KerbalIva.CanHoldItems, "Can move objects");
@@ -139,7 +141,6 @@ namespace FreeIva
         private static void ColliderGui()
         {
             // TODO: Automatically add colliders to selected props using renderer bounds?
-
             if (GUILayout.Button((showColliderGui ? "Hide" : "Show") + " collider configuration"))
                 showColliderGui = !showColliderGui;
             if (!showColliderGui || FreeIva.CurrentModuleFreeIva == null)
@@ -152,14 +153,14 @@ namespace FreeIva
             if (GUILayout.Button("Print collision layers"))
             {
                 StringBuilder sb = new StringBuilder();
-                sb.Append("                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3");
-                sb.Append("0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1");
+                sb.Append("3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1                    ");
+                sb.Append("1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0");
                 for (int i = 0; i < 32; i++)
                 {
                     sb.Append("\r\n");
                     if (i < 10) sb.Append(" ");
                     sb.Append(i).Append("\t");
-                    for (int j = 0; j < 32; j++)
+                    for (int j = 31 - i; j >= 0; j--)
                         sb.Append(Physics.GetIgnoreLayerCollision(i, j) ? "T " : "F ");
                 }
                 Debug.Log(sb.ToString());
@@ -664,6 +665,7 @@ namespace FreeIva
         }
 
         private static bool showMRGui = false;
+        private static string mrFilter = string.Empty;
         private static void MeshRendererGui()
         {
             if (GUILayout.Button((showMRGui ? "Hide" : "Show") + " MeshRenderer controls"))
@@ -678,6 +680,7 @@ namespace FreeIva
                 }
 
                 MeshRenderer[] meshRenderers = null;
+                mrFilter = GuiUtils.editText("Filter", mrFilter);
                 if (FreeIva.CurrentPart.internalModel != null)
                 {
                     meshRenderers = FreeIva.CurrentPart.internalModel.GetComponentsInChildren<MeshRenderer>();
@@ -690,6 +693,21 @@ namespace FreeIva
                 {
                     GUILayout.Label("No MeshRenderers");
                     return;
+                }
+                if (mrFilter.Length > 0)
+                {
+                    var filteredMeshRenderers = new List<MeshRenderer>();
+                    foreach (var m in meshRenderers)
+                    {
+                        if (m.name.IndexOf(mrFilter, StringComparison.OrdinalIgnoreCase) >= 0)
+                            filteredMeshRenderers.Add(m);
+                    }
+                    meshRenderers = filteredMeshRenderers.ToArray();
+                    if (meshRenderers.Length == 0)
+                    {
+                        GUILayout.Label($"No MeshRenderers matching filter \"{mrFilter}\".");
+                        return;
+                    }
                 }
                 GuiUtils.label("MeshRenderers", meshRenderers.Length);
                 if (_meshRendererIndex >= meshRenderers.Length)

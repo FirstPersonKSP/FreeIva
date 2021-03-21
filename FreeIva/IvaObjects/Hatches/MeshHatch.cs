@@ -5,7 +5,7 @@ using UnityEngine;
 namespace FreeIva.Hatches
 {
     /// <summary>
-    /// A hatch with a custom mesh.
+    /// A hatch with a custom hatch mesh that is hidden when the hatch is open.
     /// </summary>
     public class MeshHatch : Hatch
     {
@@ -14,7 +14,7 @@ namespace FreeIva.Hatches
         {
             get
             {
-                if (_closedRenderer == null)
+                if (_closedRenderer == null && Part != null)
                 {
                     Debug.Log("# Getting ClosedRenderer...");
                     var renderers = Part.internalModel.GetComponentsInChildren<MeshRenderer>();
@@ -42,6 +42,21 @@ namespace FreeIva.Hatches
             }
         }
         public string ClosedMeshName { get; set; }
+
+        public MeshHatch() { }
+
+        public MeshHatch(string name, string attachNodeId, Vector3 localPosition, Vector3 scale, Quaternion rotation,
+            List<KeyValuePair<Vector3, string>> hideWhenOpen, InternalCollider collider, string closedMeshName)
+        {
+            Name = name;
+            AttachNodeId = attachNodeId;
+            LocalPosition = localPosition;
+            Scale = scale;
+            Rotation = rotation;
+            HideWhenOpen = hideWhenOpen;
+            Collider = collider;
+            ClosedMeshName = closedMeshName;
+        }
 
         public override void Instantiate(Part p)
         {
@@ -73,10 +88,24 @@ namespace FreeIva.Hatches
             IvaGameObject.transform.localPosition = localPosition;
             IvaGameObject.transform.localRotation = rotation;
             IvaGameObject.name = Name;
+            if (Collider != null)
+            {
+                Collider.Instantiate(p);
+                ModuleFreeIva mfi = p.GetModule<ModuleFreeIva>();
+                if (mfi != null)
+                {
+                    mfi.InternalColliders.Add(Collider);
+                }
+            }
 
             SetupAudio();
         }
 
+        public override IHatch Clone()
+        {
+            return new MeshHatch(Name, AttachNodeId, LocalPosition, Scale, Rotation, new List<KeyValuePair<Vector3, string>>(HideWhenOpen), Collider?.Clone(),
+                ClosedMeshName);
+        }
 
         public override void Open(bool open)
         {

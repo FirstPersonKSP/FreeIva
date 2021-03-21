@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FreeIva
@@ -14,7 +13,7 @@ namespace FreeIva
         public static PersistenceManager instance { get; private set; }
 
         private static Dictionary<string, List<IHatch>> _hatches = new Dictionary<string, List<IHatch>>();
-        private static Dictionary<string, List<InternalCollider>> _internalColliders = new Dictionary<string, List<InternalCollider>>();
+        private static Dictionary<string, List<InternalCollider>> _internalColliderTemplates = new Dictionary<string, List<InternalCollider>>();
         private static Dictionary<Type, Dictionary<string, ConfigNode>> nodes = new Dictionary<Type, Dictionary<string, ConfigNode>>();
 
         private void Awake()
@@ -39,39 +38,49 @@ namespace FreeIva
 
         public void AddInternalColliders(string partName, List<InternalCollider> colliders)
         {
-            if (!_internalColliders.ContainsKey(partName))
+            if (!_internalColliderTemplates.ContainsKey(partName))
             {
                 Debug.Log("[FreeIVA] Adding " + colliders.Count + " internal colldiers for part " + partName);
-                _internalColliders.Add(partName, colliders);
+                _internalColliderTemplates.Add(partName, colliders);
             }
             else
             {
                 Debug.Log("# NOT adding duplicate " + colliders.Count + " internal colldier for part " + partName);
-                Debug.Log("# Dictionary entries: " + _internalColliders.Count());
+                Debug.Log("# Dictionary entries: " + _internalColliderTemplates.Count());
             }
         }
 
-        public List<IHatch> GetPartHatches(string partName)
+        public List<IHatch> GetHatchesForPartInstance(string partName)
         {
             //string n = partName.Replace("(Clone)", String.Empty);
-            List<IHatch> list;
-            if (_hatches.TryGetValue(partName, out list))
+            List<IHatch> hatchTemplates;
+            if (_hatches.TryGetValue(partName, out hatchTemplates))
             {
                 Debug.Log("# Hatch FOUND for part " + partName);
-                return list;
+                var hatchInstances = new List<IHatch>();
+                foreach (var hatchTemplate in hatchTemplates)
+                {
+                    hatchInstances.Add(hatchTemplate.Clone());
+                }
+                return hatchInstances;
             }
             else
                 Debug.Log("# Hatch not found in dictionary for part " + partName);
             return new List<IHatch>();
         }
 
-        public List<InternalCollider> GetPartColliders(string partName)
+        public List<InternalCollider> GetCollidersForPartInstance(string partName)
         {
-            List<InternalCollider> list;
-            if (_internalColliders.TryGetValue(partName, out list))
+            List<InternalCollider> partColliderTemplates;
+            if (_internalColliderTemplates.TryGetValue(partName, out partColliderTemplates))
             {
                 Debug.Log("# Internal collider FOUND for part " + partName);
-                return list;
+                var colliderInstances = new List<InternalCollider>();
+                foreach (var colliderTemplate in partColliderTemplates)
+                {
+                    colliderInstances.Add(colliderTemplate.Clone());
+                }
+                return colliderInstances;
             }
             else
                 Debug.Log("# Internal collider not found in dictionary for part " + partName);

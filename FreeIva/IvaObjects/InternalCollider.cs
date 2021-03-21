@@ -10,20 +10,6 @@ namespace FreeIva
     {
         public PrimitiveType ColliderType = PrimitiveType.Cube;
 
-        private Rigidbody _rigidbody = null;
-        private Rigidbody Rigidbody
-        {
-            get
-            {
-                if (_rigidbody == null)
-                {
-                    _rigidbody = IvaGameObject.GetComponent<Rigidbody>();
-                    return _rigidbody;
-                }
-                return _rigidbody;
-            }
-        }
-
         public bool Visible
         {
             get
@@ -114,7 +100,6 @@ namespace FreeIva
             Quaternion rotation = Rotation;
 
             IvaGameObject = GameObject.CreatePrimitive(colliderType);
-            IvaGameObject.layer = (int)Layers.InternalSpace;
             IvaGameObject.GetComponentCached(ref IvaGameObjectCollider).enabled = true;
             //IvaGameObject.collider.isTrigger = true;
             if (p.internalModel == null)
@@ -124,7 +109,7 @@ namespace FreeIva
             }
 
             if (p.internalModel != null)
-                IvaGameObject.transform.parent = p?.internalModel?.transform;
+                IvaGameObject.transform.parent = p.internalModel.transform;
             IvaGameObject.layer = (int)Layers.InternalSpace;
             IvaGameObject.transform.localScale = scale;
             IvaGameObject.transform.localPosition = localPosition;
@@ -132,7 +117,6 @@ namespace FreeIva
             IvaGameObject.name = Name;
             PhysicMaterial physMat = IvaGameObjectCollider.material;
             physMat.bounciness = 0;
-            //IvaGameObject.AddComponent<IvaCollisionPrinter>();
             //FixedJoint joint = IvaGameObject.AddComponent<FixedJoint>();
             //joint.connectedBody = p.collider.rigidbody;
             if (IvaGameObject.GetComponent<Rigidbody>() == null)

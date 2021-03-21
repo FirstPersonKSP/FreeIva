@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using EditorGizmos;
 
 /* Quick list
  * 
@@ -27,7 +26,7 @@ using EditorGizmos;
  * 1. Get gravity working, with legs.
  *      Some drifting of vertical over time?
  *      Capsule collider needs to be oriented correctly (freeze axes) and replaced with sphere for zero-gravity.
- *      Canera height needs to be raised from centre of capsule.
+ *      Camera height needs to be raised from centre of capsule.
  * 2. Get multiple instances of the same part working.
  * 3. Get hatches and colliders set up for the stock parts.
  * 4. Documentation for users and modellers.
@@ -185,57 +184,11 @@ namespace FreeIva
         {
             for (int i = 0; i < 32; i++)
             {
-                /*if (i == 20)
-                {
-                    Physics.IgnoreLayerCollision(20, i, false);
-                    continue;
-                }
-                Physics.IgnoreLayerCollision(20, i, true);*/
-                //Physics.IgnoreLayerCollision((int)Layers.Kerbals, i, true);
-                //Physics.IgnoreLayerCollision(i, (int)Layers.Kerbals, true);
-                //Physics.IgnoreLayerCollision((int)Layers.InternalSpace, i, true);
-                //Physics.IgnoreLayerCollision(i, (int)Layers.InternalSpace, true);
                 Physics.IgnoreLayerCollision((int)Layers.InternalSpace, i, true);
-                Physics.IgnoreLayerCollision(i, (int)Layers.InternalSpace, true);
+                Physics.IgnoreLayerCollision((int)Layers.Kerbals, i, true);
             }
-
-            /* 2021-02-26: Change kerbals from Kerbals to InternalSpace
-            Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.Kerbals, false);
-            Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.InternalSpace, false);
             Physics.IgnoreLayerCollision((int)Layers.InternalSpace, (int)Layers.Kerbals, false);
-            Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.LocalScenery, false);
-            Physics.IgnoreLayerCollision((int)Layers.LocalScenery, (int)Layers.Kerbals, false);
-            */
-            Physics.IgnoreLayerCollision((int)Layers.InternalSpace, (int)Layers.InternalSpace, false);
-
-            //Physics.IgnoreLayerCollision((int)Layers.InternalSpace, (int)Layers.Kerbals, false);
-            /*Physics.IgnoreLayerCollision((int)Layers.InternalSpace, (int)Layers.InternalSpace, false);
-            Physics.IgnoreLayerCollision((int)Layers.InternalSpace, (int)Layers.PhysicalObjects, false);
-            Physics.IgnoreLayerCollision((int)Layers.PhysicalObjects, (int)Layers.InternalSpace, false);
-            Physics.IgnoreLayerCollision((int)Layers.InternalSpace, (int)Layers.TerrainColliders, false);
-            Physics.IgnoreLayerCollision((int)Layers.TerrainColliders, (int)Layers.InternalSpace, false);
-            Physics.IgnoreLayerCollision((int)Layers.InternalSpace, (int)Layers.TerrainColliders, false);
-            Physics.IgnoreLayerCollision((int)Layers.TerrainColliders, (int)Layers.InternalSpace, false);*/
-            //Physics.IgnoreLayerCollision((int)Layers.InternalSpace, (int)Layers.Default, false);
-            //Physics.IgnoreLayerCollision((int)Layers.Default, (int)Layers.InternalSpace, false);
-            //Physics.IgnoreLayerCollision((int)Layers.InternalSpace, (int)Layers.LocalScenery, false);
-            //Physics.IgnoreLayerCollision((int)Layers.LocalScenery, (int)Layers.InternalSpace, false);
-
-            //Physics.IgnoreLayerCollision((int)Layers.InternalSpace, (int)Layers.InternalSpace, true);
-            //Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.Kerbals, true);
         }
-
-        //private void DisableCollisionLayers()
-        //{
-        //    for (int i = 0; i < 32; i++)
-        //    {
-        //        Physics.IgnoreLayerCollision((int)Layers.Kerbals, i, true);
-        //        Physics.IgnoreLayerCollision(i, (int)Layers.Kerbals, true);
-        //        Physics.IgnoreLayerCollision((int)Layers.InternalSpace, i, true);
-        //        Physics.IgnoreLayerCollision(i, (int)Layers.InternalSpace, true);
-        //    }
-        //    Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.InternalSpace, true);
-        //}
 
         Vector3 _previousCameraPosition = Vector3.zero;
         public void UpdateCurrentPart()

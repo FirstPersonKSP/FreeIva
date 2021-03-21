@@ -128,8 +128,7 @@ namespace FreeIva
             Quaternion rotation = Rotation;
 
             IvaGameObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            MonoBehaviour.Destroy(IvaGameObject.GetComponentCached<Collider>(ref IvaGameObjectCollider));
-            //IvaGameObject.collider.isTrigger = true;
+            UnityEngine.Object.Destroy(IvaGameObject.GetComponentCached(ref IvaGameObjectCollider));
             if (p.internalModel == null)
                 p.CreateInternalModel(); // TODO: Detect this in an event instead.
             IvaGameObject.transform.parent = p.internalModel.transform;
@@ -143,11 +142,15 @@ namespace FreeIva
             IvaGameObject.transform.localPosition = localPosition;
             IvaGameObject.transform.localRotation = rotation;
             IvaGameObject.name = Name;
-            /*if (Collider != null)
+            if (Collider != null)
             {
-                Debug.Log("#Initialising hatch collider");
-                Collider.Init(p);
-            }*/
+                Collider.Instantiate(p);
+                ModuleFreeIva mfi = p.GetModule<ModuleFreeIva>();
+                if (mfi != null)
+                {
+                    mfi.InternalColliders.Add(Collider);
+                }
+            }
 
             Shader depthMask = Utils.GetDepthMask();
             if (depthMask != null)
@@ -159,9 +162,9 @@ namespace FreeIva
             //IvaGameObject.renderer.enabled = false; Gets reenabled by EnableInternals.
         }
 
-        public Hatch Clone()
+        public virtual IHatch Clone()
         {
-            return new Hatch(Name, AttachNodeId, LocalPosition, Scale, Rotation, new List<KeyValuePair<Vector3, string>>(HideWhenOpen), Collider.Clone());
+            return new Hatch(Name, AttachNodeId, LocalPosition, Scale, Rotation, new List<KeyValuePair<Vector3, string>>(HideWhenOpen), Collider?.Clone());
         }
 
         private void GetConnectedHatch()
@@ -211,33 +214,6 @@ namespace FreeIva
             return nodeName;
         }
 
-        /* Didn't work. Caused slowdown.
-        public void SetRenderQueues(Part activePart)
-        {
-            SortedList<float, Part> partRanges = new SortedList<float, Part>();
-            foreach (Part p in FlightGlobals.ActiveVessel.Parts)
-            {
-                if (p.internalModel == null) continue;
-                partRanges.Add(Vector3.Distance(p.collider.bounds.center, activePart.collider.bounds.center), p);
-            }
-
-            int queue = 2000;
-            foreach (var pr in partRanges)
-            {
-                if (pr.Value.internalModel == null) continue;
-                Renderer[] renderers = pr.Value.internalModel.GetComponentsInChildren<Renderer>();
-                foreach (var r in renderers)
-                {
-                    foreach (var m in r.materials)
-                    {
-                        m.renderQueue = queue;
-                        if (queue == 2000) queue--;
-                        queue--;
-                    }
-                }
-            }
-        }*/
-
         public static void ChangeMesh(GameObject original)
         {
             try
@@ -255,7 +231,7 @@ namespace FreeIva
                     }
                     else
                     {
-                        Mesh m = FreeIva.Instantiate(mfM.mesh) as Mesh;
+                        Mesh m = UnityEngine.Object.Instantiate(mfM.mesh);
                         mfC.mesh = m;
                         Debug.Log("#Changed mesh");
                     }
@@ -280,7 +256,6 @@ namespace FreeIva
                 HatchOpenSound.audio.clip = GameDatabase.Instance.GetAudioClip(HatchOpenSoundFile);
                 HatchOpenSound.audio.loop = false;
             }
-
             if (!string.IsNullOrEmpty(HatchCloseSoundFile))
             {
                 HatchCloseSound = new FXGroup("HatchClose");

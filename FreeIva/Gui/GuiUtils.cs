@@ -8,18 +8,18 @@ namespace FreeIva
     /// </summary>
     public static class GuiUtils
     {
-        public static void label(string text, object obj)
+        public static void label(string displayText, object obj)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(text);
+            GUILayout.Label(displayText);
             GUILayout.FlexibleSpace();
             GUILayout.Label(obj == null ? "null" : obj.ToString(), GUILayout.Width(100));
             GUILayout.EndHorizontal();
         }
-        public static float editFloat(string text, float value)
+        public static float editFloat(string displayText, float value)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(text);
+            GUILayout.Label(displayText);
             GUILayout.FlexibleSpace();
             string oldVal = value.ToString();
             if (!oldVal.Contains("."))
@@ -32,10 +32,10 @@ namespace FreeIva
             GUILayout.EndHorizontal();
             return f;
         }
-        public static int editInt(string text, int value)
+        public static int editInt(string displayText, int value)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(text);
+            GUILayout.Label(displayText);
             GUILayout.FlexibleSpace();
             string oldVal = value.ToString();
             string newVal = GUILayout.TextField(oldVal);
@@ -43,6 +43,15 @@ namespace FreeIva
             int.TryParse(newVal, out i);
             GUILayout.EndHorizontal();
             return i;
+        }
+        public static string editText(string displayText, string value)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(displayText);
+            GUILayout.FlexibleSpace();
+            string newVal = GUILayout.TextField(value, GUILayout.Width(200));
+            GUILayout.EndHorizontal();
+            return newVal;
         }
 
         public static void slider(string label, ref float variable, float from, float to)

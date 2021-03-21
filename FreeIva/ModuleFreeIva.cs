@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Assistance received from: blowfish, stupid_chris
 namespace FreeIva
 {
     /// <summary>
@@ -14,48 +13,28 @@ namespace FreeIva
         public List<IHatch> Hatches = new List<IHatch>();
         public List<InternalCollider> InternalColliders = new List<InternalCollider>();
 
+        // OnAwake should always occur before Start.
+        public override void OnAwake()
+        {
+            if (HighLogic.LoadedScene != GameScenes.FLIGHT) return;
+
+            Hatches = new List<IHatch>(PersistenceManager.instance.GetHatchesForPartInstance(part.partInfo.name));
+            InternalColliders = new List<InternalCollider>(PersistenceManager.instance.GetCollidersForPartInstance(part.partInfo.name));
+        }
+
         public void Start()
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT || !vessel.isActiveVessel) return; // TODO: Instantiate on vessel switch.
             if (Hatches == null)
                 Debug.LogError("[FreeIVA] Startup error: Hatches null");
-            foreach (Hatch h in Hatches)
-                h.Instantiate(part);
 
             foreach (InternalCollider c in InternalColliders)
                 c.Instantiate(part);
-        }
 
-        public override void OnAwake()
-        {
-            if (HighLogic.LoadedScene != GameScenes.FLIGHT) return;
-            //Debug.Log("# PartInfo name " + part.partInfo.name);
-
-            var hatchTemplates = PersistenceManager.instance.GetPartHatches(part.partInfo.name);
-            Hatches = new List<IHatch>();
-            foreach (var hatch in hatchTemplates)
-            {
-                Hatches.Add(hatch);//.Clone());
-            }
-            InternalColliders = new List<InternalCollider>(PersistenceManager.instance.GetPartColliders(part.partInfo.name));
-        }
-
-        /*public override void OnSave(ConfigNode node)
-        {
-            Debug.Log("# OnSave " + node);
-            return;
-            base.OnSave(node);
-            Debug.Log("# Saving hatches");
-            ConfigNode hatchNode = new ConfigNode("Hatch");
+            // Instantiate internal colliders first as hatches will be instantiating their own colliders.
             foreach (Hatch h in Hatches)
-            {
-                hatchNode.AddValue("attachNodeId", h.AttachNodeId);
-                hatchNode.AddValue("position", h.Position.x + ", " +  h.Position.y + ", " + h.Position.z);
-                hatchNode.AddValue("scale", h.Scale.x + ", " + h.Scale.y + ", " + h.Scale.z);
-            }
-            Debug.Log("# Adding hatch node " + hatchNode);
-            node.AddNode(hatchNode);
-        }*/
+                h.Instantiate(part);
+        }
 
         public override void OnLoad(ConfigNode node)
         {
@@ -71,8 +50,6 @@ namespace FreeIva
                     if (h != null)
                     {
                         Hatches.Add(h);
-                        if (h.Collider != null)
-                            InternalColliders.Add(h.Collider);
                     }
                 }
                 PersistenceManager.instance.AddHatches(part.name, Hatches);
@@ -88,8 +65,6 @@ namespace FreeIva
                     if (ph != null)
                     {
                         Hatches.Add(ph);
-                        if (ph.Collider != null)
-                            InternalColliders.Add(ph.Collider);
                     }
                 }
                 PersistenceManager.instance.AddHatches(part.name, Hatches);
@@ -104,8 +79,6 @@ namespace FreeIva
                     if (mh != null)
                     {
                         Hatches.Add(mh);
-                        if (mh.Collider != null)
-                            InternalColliders.Add(mh.Collider);
                     }
                 }
                 PersistenceManager.instance.AddHatches(part.name, Hatches);

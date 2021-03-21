@@ -5,7 +5,7 @@ using UnityEngine;
 namespace FreeIva
 {
     /// <summary>
-    /// A hatch which is based on one or more IVA prop objects.
+    /// A hatch which is based on one or more IVA prop objects. Assumes the prop for the hatch in the closed state is already present.
     /// </summary>
     public class PropHatch : Hatch
     {
@@ -62,7 +62,25 @@ namespace FreeIva
 
         public string ClosedPropName { get; set; }
         public string OpenPropName { get; set; }
-        public int PropIndex { get; set; }
+        public int ClosedPropIndex { get; set; }
+
+        public PropHatch() { }
+
+        public PropHatch(string name, string attachNodeId, Vector3 localPosition, Vector3 scale, Quaternion rotation,
+            List<KeyValuePair<Vector3, string>> hideWhenOpen, InternalCollider collider,
+            string closedPropName, string openPropName, int closedPropIndex)
+        {
+            Name = name;
+            AttachNodeId = attachNodeId;
+            LocalPosition = localPosition;
+            Scale = scale;
+            Rotation = rotation;
+            HideWhenOpen = hideWhenOpen;
+            Collider = collider;
+            ClosedPropName = closedPropName;
+            OpenPropName = openPropName;
+            ClosedPropIndex = closedPropIndex;
+        }
 
         public override void Instantiate(Part p)
         {
@@ -78,23 +96,33 @@ namespace FreeIva
             IvaGameObject = ClosedProp.gameObject;
             IvaGameObject.layer = (int)Layers.InternalSpace;
             PropHatches.Add(this);
+            if (Collider != null)
+            {
+                Collider.Instantiate(p);
+                ModuleFreeIva mfi = p.GetModule<ModuleFreeIva>();
+                if (mfi != null)
+                {
+                    mfi.InternalColliders.Add(Collider);
+                }
+            }
 
             SetupAudio();
         }
 
-        //public PropHatch Clone()
-        //{
-            //return new PropHatch(Name, AttachNodeId, LocalPosition, Scale, Rotation, new List<KeyValuePair<Vector3, string>>(HideWhenOpen), Collider.Clone());
-        //}
+        public override IHatch Clone()
+        {
+            return new PropHatch(Name, AttachNodeId, LocalPosition, Scale, Rotation, new List<KeyValuePair<Vector3, string>>(HideWhenOpen), Collider?.Clone(),
+                ClosedPropName, OpenPropName, ClosedPropIndex);
+        }
 
         // Find the prop in the IVA. If not present, spawn it.
         private void GetProp()
         {
             // Find the existing prop.
-            InternalProp closedHatch = this.Part.internalModel.props[PropIndex];
+            InternalProp closedHatch = this.Part.internalModel.props[ClosedPropIndex];
             if (closedHatch == null)
             {
-                // Spawn a new propr.
+                // Spawn a new prop.
                 closedHatch = PartLoader.GetInternalProp(this.ClosedPropName);
                 if (closedHatch == null)
                 {
@@ -111,6 +139,10 @@ namespace FreeIva
                     closedHatch.transform.localRotation = this.Rotation;
                     closedHatch.transform.localPosition = this.LocalPosition;
                 }
+            }
+            else if (closedHatch.name != ClosedPropName)
+            {
+                Debug.LogError($"[FreeIVA] Prop at closedPropIndex {ClosedPropIndex} didn't match expected closedPropName {ClosedPropName}.");
             }
             MeshRenderer mrC = closedHatch.GetComponentInChildren<MeshRenderer>();
             mrC.enabled = true;
@@ -228,18 +260,15 @@ namespace FreeIva
 
         public static PropHatch LoadPropHatchFromCfg(ConfigNode node)
         {
-            // TODO
-            Debug.Log("# Loading PropHatch CFG");
-
             Vector3 position = Vector3.zero;
             Vector3 scale = Vector3.one;
-            if (!node.HasValue("propIndex"))
+            if (!node.HasValue("closedPropIndex"))
             {
-                Debug.LogWarning("[FreeIVA] Prop hatch propIndex not found: Skipping hatch.");
+                Debug.LogWarning("[FreeIVA] Prop hatch closedPropIndex not found: Skipping hatch.");
                 return null;
             }
             PropHatch propHatch = new PropHatch();
-            propHatch.PropIndex = int.Parse(node.GetValue("propIndex"));
+            propHatch.ClosedPropIndex = int.Parse(node.GetValue("closedPropIndex"));
 
             if (node.HasValue("closedPropName"))
                 propHatch.ClosedPropName = node.GetValue("closedPropName");
