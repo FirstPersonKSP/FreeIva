@@ -16,6 +16,8 @@ namespace FreeIva
         private static int _skinnedMeshRendererIndex = 0;
         private static int _transformIndex = 0;
 
+        private static bool _advancedMode = false;
+
         public static void Gui()
         {
             if (GUILayout.Button("Hide GUI until next launch"))
@@ -44,22 +46,19 @@ namespace FreeIva
                 //return;
             }
 
+            GUILayout.BeginHorizontal();
             KerbalIvaController.MouseLook = GUILayout.Toggle(KerbalIvaController.MouseLook, "Mouse look");
+            KerbalIvaController.KerbalIva.GetComponentCached<Collider>(ref KerbalIvaController.KerbalCollider);
+            KerbalIvaController.KerbalCollider.enabled = !GUILayout.Toggle(!KerbalIvaController.KerbalCollider.enabled, "Disable collisions");
+            KerbalIvaController.Gravity = GUILayout.Toggle(KerbalIvaController.Gravity, "Gravity");
+            GUILayout.EndHorizontal();
+
+            _advancedMode = GUILayout.Toggle(_advancedMode, "Advanced mode");
+
+            if (!_advancedMode)
+                return;
 
             GuiUtils.label("Selected object", FreeIva.SelectedObject);
-
-            /*GuiUtils.label("ship_acceleration x", FlightGlobals.ship_acceleration.x);
-            GuiUtils.label("ship_acceleration y", FlightGlobals.ship_acceleration.y);
-            GuiUtils.label("ship_acceleration z", FlightGlobals.ship_acceleration.z);
-
-            var fcp = FlightGlobals.getGeeForceAtPosition(FlightCamera.fetch.transform.position);
-            GuiUtils.label("getGeeForceAtPosition x", fcp.x);
-            GuiUtils.label("getGeeForceAtPosition y", fcp.y);
-            GuiUtils.label("getGeeForceAtPosition z", fcp.z);
-
-            GuiUtils.label("gForce x", FlightGlobals.ActiveVessel.gForce.x);
-            GuiUtils.label("gForce y", FlightGlobals.ActiveVessel.gForce.y);
-            GuiUtils.label("gForce z", FlightGlobals.ActiveVessel.gForce.z);*/
 
 #if Experimental
             if (ColliderManipulator.MovingObject) return;
@@ -105,7 +104,7 @@ namespace FreeIva
 
             GUILayout.BeginHorizontal();
             KerbalIvaController.KerbalIva.GetComponentCached<Collider>(ref KerbalIvaController.KerbalCollider);
-            KerbalIvaController.KerbalCollider.enabled = !GUILayout.Toggle(!KerbalIvaController.KerbalCollider.enabled, "NoClip");
+            KerbalIvaController.KerbalCollider.enabled = !GUILayout.Toggle(!KerbalIvaController.KerbalCollider.enabled, "Disable collisions");
             KerbalIvaController.Gravity = GUILayout.Toggle(KerbalIvaController.Gravity, "Gravity");
             IvaCollisionPrinter.Enabled = GUILayout.Toggle(IvaCollisionPrinter.Enabled, "Print collisions");
             //KerbalIva.KerbalFeetCollider.enabled = !GUILayout.Toggle(!KerbalIva.KerbalColliderCollider.enabled, "Feet") && KerbalIva.KerbalColliderCollider.enabled;
@@ -141,11 +140,22 @@ namespace FreeIva
         private static void ColliderGui()
         {
             // TODO: Automatically add colliders to selected props using renderer bounds?
+            bool changed = false;
             if (GUILayout.Button((showColliderGui ? "Hide" : "Show") + " collider configuration"))
-                showColliderGui = !showColliderGui;
-            if (!showColliderGui || FreeIva.CurrentModuleFreeIva == null)
             {
-                InternalCollider.HideAllColliders();
+                showColliderGui = !showColliderGui;
+                changed = true;
+            }
+            if (changed)
+            {
+                changed = false;
+                if (FreeIva.CurrentModuleFreeIva == null)
+                {
+                    InternalCollider.HideAllColliders();
+                }
+            }
+            if (!showColliderGui)
+            {
                 return;
             }
 
@@ -226,7 +236,11 @@ namespace FreeIva
             GUILayout.EndHorizontal();
 
             InternalCollider c = null;
-            if (FreeIva.CurrentModuleFreeIva.InternalColliders.Count == 0)
+            if (FreeIva.CurrentModuleFreeIva == null)
+            {
+                GUILayout.Label("No ModuleFreeIVA");
+            }
+            else if (FreeIva.CurrentModuleFreeIva.InternalColliders.Count == 0)
             {
                 GUILayout.Label("No colliders");
             }
@@ -970,22 +984,28 @@ namespace FreeIva
                 GuiUtils.slider("ForwardSpeed", ref Settings.ForwardSpeed, 0, 50);
                 GuiUtils.slider("JumpForce", ref Settings.JumpForce, 0, 20);
 
-                GUILayout.Label("Flight Forces (World space)");
+                GuiUtils.label("Velocity", KerbalIvaController.KerbalRigidbody.velocity);
+                if (FreeIva.CurrentPart != null && FreeIva.CurrentPart.Rigidbody != null)
+                {
+                    GuiUtils.label("Velocity relative to part", FreeIva.CurrentPart.Rigidbody.velocity - KerbalIvaController.KerbalRigidbody.velocity);
+                }
+
+                GUILayout.Label("Flight forces (world space)");
                 GUILayout.BeginHorizontal();
                 GuiUtils.label("X", KerbalIvaController.flightForces.x);
                 GuiUtils.label("Y", KerbalIvaController.flightForces.y);
                 GuiUtils.label("Z", KerbalIvaController.flightForces.z);
                 GUILayout.EndHorizontal();
-                GUILayout.Label("Flight Forces (IVA space)");
+                GUILayout.Label("Flight forces (IVA space)");
                 GUILayout.BeginHorizontal();
                 var ivaForces = InternalSpace.WorldToInternal(KerbalIvaController.flightForces);
                 GuiUtils.label("X", ivaForces.x);
                 GuiUtils.label("Y", ivaForces.y);
                 GuiUtils.label("Z", ivaForces.z);
                 GUILayout.EndHorizontal();
-                GuiUtils.label("IVA Rot X", InternalSpace.WorldToInternal(Quaternion.identity).x);
-                GuiUtils.label("IVA Rot Y", InternalSpace.WorldToInternal(Quaternion.identity).y);
-                GuiUtils.label("IVA Rot Z", InternalSpace.WorldToInternal(Quaternion.identity).z);
+                GuiUtils.label("IVA rot X", InternalSpace.WorldToInternal(Quaternion.identity).x);
+                GuiUtils.label("IVA rot Y", InternalSpace.WorldToInternal(Quaternion.identity).y);
+                GuiUtils.label("IVA rot Z", InternalSpace.WorldToInternal(Quaternion.identity).z);
 
                 // Debug
                 Vector3 gForce = FlightGlobals.getGeeForceAtPosition(KerbalIvaController.KerbalIva.transform.position);
@@ -998,14 +1018,14 @@ namespace FreeIva
                 GuiUtils.label("Main G-Force Z", gForce.z);
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
-                GuiUtils.label("Centrifugal Force X", centrifugalForce.x);
-                GuiUtils.label("Centrifugal Force Y", centrifugalForce.y);
-                GuiUtils.label("Centrifugal Force Z", centrifugalForce.z);
+                GuiUtils.label("Centrifugal force X", centrifugalForce.x);
+                GuiUtils.label("Centrifugal force Y", centrifugalForce.y);
+                GuiUtils.label("Centrifugal force Z", centrifugalForce.z);
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
-                GuiUtils.label("Coriolis Force X", coriolisForce.x);
-                GuiUtils.label("Coriolis Force Y", coriolisForce.y);
-                GuiUtils.label("Coriolis Force Z", coriolisForce.z);
+                GuiUtils.label("Coriolis force X", coriolisForce.x);
+                GuiUtils.label("Coriolis force Y", coriolisForce.y);
+                GuiUtils.label("Coriolis force Z", coriolisForce.z);
                 GUILayout.EndHorizontal();
 
                 Vector3 gForceInt = InternalSpace.InternalToWorld(gForce);
