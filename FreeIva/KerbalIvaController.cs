@@ -159,7 +159,7 @@ namespace FreeIva
         public void FixedUpdate()
         {
             ApplyGravity();
-            FallthroughCheck();
+            //FallthroughCheck();
         }
 
         private void ApplyGravity()
