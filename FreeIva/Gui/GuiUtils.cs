@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace FreeIva
@@ -16,15 +17,20 @@ namespace FreeIva
             GUILayout.Label(obj == null ? "null" : obj.ToString(), GUILayout.Width(100));
             GUILayout.EndHorizontal();
         }
+
         public static float editFloat(string displayText, float value)
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label(displayText);
-            GUILayout.FlexibleSpace();
+            //GUILayout.FlexibleSpace();
             string oldVal = value.ToString();
             if (!oldVal.Contains("."))
             {
                 oldVal += ".0";
+            }
+            if (oldVal.Contains("E-"))
+            {
+                oldVal = "0";
             }
             string newVal = GUILayout.TextField(oldVal);
             float f = value;
@@ -32,6 +38,7 @@ namespace FreeIva
             GUILayout.EndHorizontal();
             return f;
         }
+
         public static int editInt(string displayText, int value)
         {
             GUILayout.BeginHorizontal();
@@ -44,6 +51,7 @@ namespace FreeIva
             GUILayout.EndHorizontal();
             return i;
         }
+
         public static string editText(string displayText, string value)
         {
             GUILayout.BeginHorizontal();
@@ -62,6 +70,7 @@ namespace FreeIva
             variable = GUILayout.HorizontalSlider(variable, from, to, GUILayout.Width(100));
             GUILayout.EndHorizontal();
         }
+
         public static Color rgbaSlider(string label, ref float r, ref float g, ref float b, ref float a, float from, float to)
         {
             GUILayout.Label(label);
@@ -73,6 +82,27 @@ namespace FreeIva
 
         }
 
+        public static int radioButtons(string[] options, int selectedIndex)
+        {
+            var optionCount = options.Length;
+            if (selectedIndex < 0 || selectedIndex >= optionCount)
+            {
+                throw new ArgumentException($"Index {selectedIndex} is not within the bounds of the options list.", nameof(selectedIndex));
+            }
+
+            int selectedItem = selectedIndex;
+            GUILayout.BeginHorizontal();
+            for (int i = 0; i < optionCount; i++)
+            {
+                var result = GUILayout.Toggle(i == selectedIndex, options[i]);
+                if (result != (i == selectedIndex))
+                {
+                    selectedItem = i;
+                }
+            }
+            GUILayout.EndHorizontal();
+            return selectedItem;
+        }
 
         static float x = 0;
         static float y = 0;

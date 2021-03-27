@@ -9,9 +9,13 @@ namespace FreeIva
     /// </summary>
     public class ModuleFreeIva : PartModule
     {
-        public bool CanIva = true;
+        [KSPField]
+        public bool CopyPartCollidersToInternalColliders = false;
+
         public List<IHatch> Hatches = new List<IHatch>();
         public List<InternalCollider> InternalColliders = new List<InternalCollider>();
+        public List<Collider> PartInternalColliders = new List<Collider>();
+        public List<GameObject> PartInternalColliderObjects = new List<GameObject>();
 
         // OnAwake should always occur before Start.
         public override void OnAwake()
@@ -34,13 +38,13 @@ namespace FreeIva
             // Instantiate internal colliders first as hatches will be instantiating their own colliders.
             foreach (Hatch h in Hatches)
                 h.Instantiate(part);
+
+            if (CopyPartCollidersToInternalColliders)
+                PartCollidersToInternal();
         }
 
         public override void OnLoad(ConfigNode node)
         {
-            if (node.HasValue("CanIva"))
-                CanIva = bool.Parse(node.GetValue("CanIva"));
-
             if (node.HasNode("Hatch"))
             {
                 ConfigNode[] hatchNodes = node.GetNodes("Hatch");
@@ -119,12 +123,38 @@ namespace FreeIva
             }
         }
 
-        /*public void OnDestroy()
+        private void PartCollidersToInternal()
         {
-            /*Debug.Log("#Destroying");
-            foreach (Hatch h in Hatches)
-                h.Destroy();
-            Hatches.Clear();* /
-        }*/
+            var partBoxColliders = GetComponentsInChildren<BoxCollider>();
+            foreach (var c in partBoxColliders)
+            {
+                if (c.isTrigger || c.tag != "Untagged")
+                {
+                    continue;
+                }
+
+                var go = Instantiate(c.gameObject);
+                go.transform.parent = c.gameObject.transform.parent;
+                go.layer = (int)Layers.InternalSpace;
+                go.transform.position = InternalSpace.WorldToInternal(c.transform.position);
+                go.transform.rotation = InternalSpace.WorldToInternal(c.transform.rotation);
+                PartInternalColliderObjects.Add(go);
+            }
+            /*
+             Structure:
+            Part
+                model
+                    BoxCOL x 12
+                        BoxCollider
+             */
+
+            /*public void OnDestroy()
+            {
+                /*Debug.Log("#Destroying");
+                foreach (Hatch h in Hatches)
+                    h.Destroy();
+                Hatches.Clear();* /
+            }*/
+        }
     }
 }

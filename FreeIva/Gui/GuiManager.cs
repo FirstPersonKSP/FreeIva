@@ -123,17 +123,11 @@ namespace FreeIva
 
             Settings.KerbalHeight = GuiUtils.editFloat("Kerbal height", Settings.KerbalHeight);
             Settings.KerbalHeightWithHelmet = GuiUtils.editFloat("Kerbal height with helmet", Settings.KerbalHeightWithHelmet);
-            /*GUILayout.BeginHorizontal();
-            GUILayout.Label("Feet height");
-            float yPos = float.Parse(GUILayout.TextField(KerbalIva.KerbalFeet.transform.localPosition.y.ToString()));
-            KerbalIva.KerbalFeet.transform.localPosition = new Vector3(KerbalIva.KerbalFeet.transform.localPosition.x,
-                yPos,
-                KerbalIva.KerbalFeet.transform.localPosition.z);
-            GUILayout.EndHorizontal();*/
         }
 
         private static bool showColliderGui = false;
         private static int _internalColliderIndex = 0;
+        private static int _selectedGuiRadioButton = 0;
         //private static GameObject currentCollider = null;
         //private static FixedJoint currentJoint = null;
         private static PrimitiveType _primitiveType = PrimitiveType.Cube;
@@ -148,7 +142,6 @@ namespace FreeIva
             }
             if (changed)
             {
-                changed = false;
                 if (FreeIva.CurrentModuleFreeIva == null)
                 {
                     InternalCollider.HideAllColliders();
@@ -160,6 +153,7 @@ namespace FreeIva
             }
 
             GUILayout.BeginHorizontal();
+#if DEBUG
             if (GUILayout.Button("Print collision layers"))
             {
                 StringBuilder sb = new StringBuilder();
@@ -175,6 +169,7 @@ namespace FreeIva
                 }
                 Debug.Log(sb.ToString());
             }
+#endif
 
             if (GUILayout.Button("Create new collider"))
             {
@@ -186,6 +181,7 @@ namespace FreeIva
                 FreeIva.CurrentModuleFreeIva.InternalColliders.Add(col);
                 _internalColliderIndex = FreeIva.CurrentModuleFreeIva.InternalColliders.Count - 1;
             }
+#if DEBUG
             if (GUILayout.Button("Stop all movement"))
             {
                 foreach (var col in FreeIva.CurrentModuleFreeIva.InternalColliders)
@@ -194,31 +190,12 @@ namespace FreeIva
                     col.IvaGameObjectRigidbody.angularVelocity = Vector3.zero;
                 }
             }
-            if (GUILayout.Button((ClickWatcher.Debug ? "Hide" : "Show") + " interaction"))
+            if (GUILayout.Button((ClickWatcher.Debug ? "Hide" : "Show") + " click interaction"))
             {
                 ClickWatcher.Debug = !ClickWatcher.Debug;
             }
+#endif
             GUILayout.EndHorizontal();
-
-            int colCount = 0;
-            Collider[] colliders = null;
-            if (FreeIva.CurrentPart != null)
-            {
-                colliders = FreeIva.CurrentPart.GetComponentsInChildren<Collider>();
-            }
-            else if (FlightGlobals.ActiveVessel.rootPart != null)
-            {
-                colliders = FlightGlobals.ActiveVessel.rootPart.GetComponentsInChildren<Collider>();
-            }
-            if (colliders != null)
-            {
-                colCount = colliders.Length;
-                if (colCount > 0)
-                {
-                    GuiUtils.label("Collider0 layer", colliders[0].gameObject.layer);
-                }
-                GuiUtils.label("Colliders in current part", colCount);
-            }
 
             GUILayout.BeginHorizontal();
             if (GUILayout.Toggle(_primitiveType == PrimitiveType.Sphere, "Sphere"))
@@ -314,48 +291,71 @@ namespace FreeIva
                     GuiUtils.label("Angular velocity", c.IvaGameObjectRigidbody.angularVelocity.magnitude);
                     GUILayout.EndHorizontal();
                 }
-            }
-
-            if (FreeIva.CurrentPart.internalModel == null)
-            {
-                GUILayout.Label("No internal model");
-            }
-            else
-            {
-                Collider[] imColliders = FreeIva.CurrentPart.internalModel.GetComponentsInChildren<Collider>();
-                if (imColliders.Length == 0)
-                {
-                    GUILayout.Label("No Colliders");
-                    return;
-                }
-                GuiUtils.label("Colliders", imColliders.Length);
-                if (_colliderIndex >= imColliders.Length)
-                    _colliderIndex = 0;
-                if (_colliderIndex < 0)
-                    _colliderIndex = imColliders.Length - 1;
-                GuiUtils.label("Current Collider", _colliderIndex + 1);
-                Collider collider = imColliders[_colliderIndex];
-
-                GUILayout.BeginHorizontal();
-                if (GUILayout.Button("Previous Collider"))
-                    _colliderIndex--;
-                if (GUILayout.Button("Next Collider"))
-                    _colliderIndex++;
-                GUILayout.EndHorizontal();
-
-                GUILayout.Label("<b>Name</b>");
-                GUILayout.Label(collider == null ? "null" : collider.ToString());
-                if (collider.transform != null)
-                {
-                    GuiUtils.label("Position", collider.transform.localPosition);
-                    GuiUtils.label("Range", Vector3.Distance(collider.transform.position, InternalCamera.Instance.transform.position));
-                }
-                GuiUtils.label("Layer", collider.gameObject.layer);
-                collider.gameObject.layer = GuiUtils.editInt("Layer", collider.gameObject.layer);
 
                 if (GUILayout.Button("Select current collider"))
                     FreeIva.SelectedObject = c.IvaGameObject;
             }
+
+            _selectedGuiRadioButton = GuiUtils.radioButtons(new string[] { "Part Collider GUI", "Internal Model Collider GUI" }, _selectedGuiRadioButton);
+
+            if (_selectedGuiRadioButton == 0)
+            {
+                Collider[] colliders = null;
+                if (FreeIva.CurrentPart != null)
+                {
+                    colliders = FreeIva.CurrentPart.GetComponentsInChildren<Collider>();
+                }
+                else if (FlightGlobals.ActiveVessel.rootPart != null)
+                {
+                    colliders = FlightGlobals.ActiveVessel.rootPart.GetComponentsInChildren<Collider>();
+                }
+                ColliderGui(colliders);
+            }
+            else
+            {
+                if (FreeIva.CurrentPart.internalModel == null)
+                {
+                    GUILayout.Label("No internal model");
+                }
+                else
+                {
+                    Collider[] imColliders = FreeIva.CurrentPart.internalModel.GetComponentsInChildren<Collider>();
+                    ColliderGui(imColliders);
+                }
+            }
+        }
+
+        private static void ColliderGui(Collider[] colliders)
+        {
+            if (colliders.Length == 0)
+            {
+                GUILayout.Label("No Colliders");
+                return;
+            }
+            GuiUtils.label("Colliders", colliders.Length);
+            if (_colliderIndex >= colliders.Length)
+                _colliderIndex = 0;
+            if (_colliderIndex < 0)
+                _colliderIndex = colliders.Length - 1;
+            GuiUtils.label("Current Collider", _colliderIndex + 1);
+            Collider collider = colliders[_colliderIndex];
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Previous Collider"))
+                _colliderIndex--;
+            if (GUILayout.Button("Next Collider"))
+                _colliderIndex++;
+            GUILayout.EndHorizontal();
+
+            GUILayout.Label("<b>Name</b>");
+            GUILayout.Label(collider == null ? "null" : collider.ToString());
+            if (collider.transform != null)
+            {
+                GuiUtils.label("Position", collider.transform.localPosition);
+                GuiUtils.label("Range", Vector3.Distance(collider.transform.position, InternalCamera.Instance.transform.position));
+            }
+            GuiUtils.label("Layer", collider.gameObject.layer);
+            collider.gameObject.layer = GuiUtils.editInt("Layer", collider.gameObject.layer);
         }
 
         private static bool showHatchGui = false;
@@ -406,19 +406,6 @@ namespace FreeIva
 
             if (GUILayout.Button("Select current hatch"))
                 FreeIva.SelectedObject = h.IvaGameObject;
-
-            /*GUILayout.Label("Rotation x");
-            hatchRotX = float.Parse(GUILayout.TextField(hatchRotX.ToString()));
-            GUILayout.Label("Rotation Y");
-            hatchRotY = float.Parse(GUILayout.TextField(hatchRotY.ToString()));
-            GUILayout.Label("Rotation Z");
-            hatchRotZ = float.Parse(GUILayout.TextField(hatchRotZ.ToString()));
-            GUILayout.Label("Scale X");
-            hatchScaleX = float.Parse(GUILayout.TextField(hatchScaleX.ToString()));
-            GUILayout.Label("Scale Y");
-            hatchScaleY = float.Parse(GUILayout.TextField(hatchScaleY.ToString()));
-            GUILayout.Label("Scale Z");
-            hatchScaleZ = float.Parse(GUILayout.TextField(hatchScaleZ.ToString()));*/
         }
 
 #if Experimental
@@ -587,20 +574,13 @@ namespace FreeIva
 
             // Prop movement.
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Position X");
-            float xPos = float.Parse(GUILayout.TextField(prop.transform.localPosition.x.ToString()));
-            GUILayout.Label("Position Y");
-            float yPos = float.Parse(GUILayout.TextField(prop.transform.localPosition.y.ToString()));
-            GUILayout.Label("Position Z");
-            float zPos = float.Parse(GUILayout.TextField(prop.transform.localPosition.z.ToString()));
+            float xPos = GuiUtils.editFloat("Position X", prop.transform.localPosition.x);
+            float yPos = GuiUtils.editFloat("Position Y", prop.transform.localPosition.y);
+            float zPos = GuiUtils.editFloat("Position Z", prop.transform.localPosition.z);
             prop.GetComponentCached<Rigidbody>(ref _propRigidbody);
             if (xPos != prop.transform.localPosition.x || yPos != prop.transform.localPosition.y || zPos != prop.transform.localPosition.z)
             {
-                //currentJoint = c.IvaGameObject.GetComponent<FixedJoint>();
-                //if (currentJoint != null) Destroy(currentJoint);
                 prop.transform.localPosition = new Vector3(xPos, yPos, zPos);
-                //currentJoint = c.IvaGameObject.AddComponent<FixedJoint>();
-                //currentJoint.connectedBody = CurrentPart.collider.rigidbody;
                 if (_propRigidbody != null)
                 {
                     _propRigidbody.velocity = Vector3.zero;
@@ -610,12 +590,9 @@ namespace FreeIva
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Scale X");
-            float xSc = float.Parse(GUILayout.TextField(prop.transform.localScale.x.ToString()));
-            GUILayout.Label("Scale Y");
-            float ySc = float.Parse(GUILayout.TextField(prop.transform.localScale.y.ToString()));
-            GUILayout.Label("Scale Z");
-            float zSc = float.Parse(GUILayout.TextField(prop.transform.localScale.z.ToString()));
+            float xSc = GuiUtils.editFloat("Scale X", prop.transform.localScale.x);
+            float ySc = GuiUtils.editFloat("Scale Y", prop.transform.localScale.x);
+            float zSc = GuiUtils.editFloat("Scale Z", prop.transform.localScale.x);
             if (xSc != prop.transform.localScale.x || ySc != prop.transform.localScale.y || zSc != prop.transform.localScale.z)
             {
                 //currentJoint = c.IvaGameObject.GetComponent<FixedJoint>();
@@ -632,36 +609,21 @@ namespace FreeIva
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Rotation X");
-            float xRot = float.Parse(GUILayout.TextField(prop.transform.rotation.eulerAngles.x.ToString()));
-            GUILayout.Label("Rotation Y");
-            float yRot = float.Parse(GUILayout.TextField(prop.transform.rotation.eulerAngles.y.ToString()));
-            GUILayout.Label("Rotation Z");
-            float zRot = float.Parse(GUILayout.TextField(prop.transform.rotation.eulerAngles.z.ToString()));
+            float xRot = GuiUtils.editFloat("Rotation X", prop.transform.rotation.eulerAngles.x);
+            float yRot = GuiUtils.editFloat("Rotation Y", prop.transform.rotation.eulerAngles.y);
+            float zRot = GuiUtils.editFloat("Rotation Z", prop.transform.rotation.eulerAngles.z);
             GUILayout.EndHorizontal();
 
             if (xRot != prop.transform.rotation.eulerAngles.x || yRot != prop.transform.rotation.eulerAngles.y || zRot != prop.transform.rotation.eulerAngles.z)
             {
-                //currentJoint = c.IvaGameObject.GetComponent<FixedJoint>();
-                //if (currentJoint != null) Destroy(currentJoint);
                 prop.transform.rotation = Quaternion.Euler(xRot, yRot, zRot);
-                //currentJoint = c.IvaGameObject.AddComponent<FixedJoint>();
-                //currentJoint.connectedBody = CurrentPart.collider.rigidbody;
-
-                /* Props don't have colliders.
-                prop.rigidbody.velocity = Vector3.zero;
-                prop.rigidbody.angularVelocity = Vector3.zero;*/
             }
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Rot X");
-            float rotx = float.Parse(GUILayout.TextField(prop.transform.localRotation.x.ToString()));
-            GUILayout.Label("Rot Y");
-            float roty = float.Parse(GUILayout.TextField(prop.transform.localRotation.y.ToString()));
-            GUILayout.Label("Rot Z");
-            float rotz = float.Parse(GUILayout.TextField(prop.transform.localRotation.z.ToString()));
-            GUILayout.Label("Rot W");
-            float rotw = float.Parse(GUILayout.TextField(prop.transform.localRotation.w.ToString()));
+            float rotw = GuiUtils.editFloat("Rot W", prop.transform.localRotation.w);
+            float rotx = GuiUtils.editFloat("Rot X", prop.transform.localRotation.x);
+            float roty = GuiUtils.editFloat("Rot Y", prop.transform.localRotation.y);
+            float rotz = GuiUtils.editFloat("Rot Z", prop.transform.localRotation.z);
             GUILayout.EndHorizontal();
             if (rotx != prop.transform.localRotation.x || roty != prop.transform.localRotation.y || rotz != prop.transform.localRotation.z || rotw != prop.transform.localRotation.w)
             {
@@ -1103,19 +1065,12 @@ namespace FreeIva
             if (o.IvaGameObject != null)
                 o.IvaGameObjectRigidbody = o.IvaGameObject.GetComponent<Rigidbody>();
 
-            GUILayout.Label("Position X");
-            float xPos = float.Parse(GUILayout.TextField(o.LocalPosition.x.ToString()));
-            GUILayout.Label("Position Y");
-            float yPos = float.Parse(GUILayout.TextField(o.LocalPosition.y.ToString()));
-            GUILayout.Label("Position Z");
-            float zPos = float.Parse(GUILayout.TextField(o.LocalPosition.z.ToString()));
+            float xPos = GuiUtils.editFloat("Position X", o.LocalPosition.x);
+            float yPos = GuiUtils.editFloat("Position Y", o.LocalPosition.y);
+            float zPos = GuiUtils.editFloat("Position Z", o.LocalPosition.z);
             if (xPos != o.LocalPosition.x || yPos != o.LocalPosition.y || zPos != o.LocalPosition.z)
             {
-                //currentJoint = c.IvaGameObject.GetComponent<FixedJoint>();
-                //if (currentJoint != null) Destroy(currentJoint);
                 o.LocalPosition = new Vector3(xPos, yPos, zPos);
-                //currentJoint = c.IvaGameObject.AddComponent<FixedJoint>();
-                //currentJoint.connectedBody = CurrentPart.collider.rigidbody;
                 if (o.IvaGameObjectRigidbody != null)
                 {
                     o.IvaGameObjectRigidbody.velocity = Vector3.zero;
@@ -1125,19 +1080,12 @@ namespace FreeIva
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Scale X");
-            float xSc = float.Parse(GUILayout.TextField(o.Scale.x.ToString()));
-            GUILayout.Label("Scale Y");
-            float ySc = float.Parse(GUILayout.TextField(o.Scale.y.ToString()));
-            GUILayout.Label("Scale Z");
-            float zSc = float.Parse(GUILayout.TextField(o.Scale.z.ToString()));
+            float xSc = GuiUtils.editFloat("Scale X", o.Scale.x);
+            float ySc = GuiUtils.editFloat("Scale Y", o.Scale.y);
+            float zSc = GuiUtils.editFloat("Scale Z", o.Scale.z);
             if (xSc != o.Scale.x || ySc != o.Scale.y || zSc != o.Scale.z)
             {
-                //currentJoint = c.IvaGameObject.GetComponent<FixedJoint>();
-                //if (currentJoint != null) Destroy(currentJoint);
                 o.Scale = new Vector3(xSc, ySc, zSc);
-                //currentJoint = c.IvaGameObject.AddComponent<FixedJoint>();
-                //currentJoint.connectedBody = CurrentPart.collider.rigidbody;
                 if (o.IvaGameObjectRigidbody != null)
                 {
                     o.IvaGameObjectRigidbody.velocity = Vector3.zero;
@@ -1147,19 +1095,12 @@ namespace FreeIva
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Rotation X");
-            float xRot = float.Parse(GUILayout.TextField(o.Rotation.eulerAngles.x.ToString()));
-            GUILayout.Label("Rotation Y");
-            float yRot = float.Parse(GUILayout.TextField(o.Rotation.eulerAngles.y.ToString()));
-            GUILayout.Label("Rotation Z");
-            float zRot = float.Parse(GUILayout.TextField(o.Rotation.eulerAngles.z.ToString()));
+            float xRot = GuiUtils.editFloat("Rotation X", o.Rotation.eulerAngles.x);
+            float yRot = GuiUtils.editFloat("Rotation Y", o.Rotation.eulerAngles.y);
+            float zRot = GuiUtils.editFloat("Rotation Z", o.Rotation.eulerAngles.z);
             if (xRot != o.Rotation.eulerAngles.x || yRot != o.Rotation.eulerAngles.y || zRot != o.Rotation.eulerAngles.z)
             {
-                //currentJoint = c.IvaGameObject.GetComponent<FixedJoint>();
-                //if (currentJoint != null) Destroy(currentJoint);
                 o.Rotation = Quaternion.Euler(xRot, yRot, zRot);
-                //currentJoint = c.IvaGameObject.AddComponent<FixedJoint>();
-                //currentJoint.connectedBody = CurrentPart.collider.rigidbody;
                 if (o.IvaGameObjectRigidbody != null)
                 {
                     o.IvaGameObjectRigidbody.velocity = Vector3.zero;
@@ -1167,25 +1108,6 @@ namespace FreeIva
                 }
             }
             GUILayout.EndHorizontal();
-
-
-            /*Vector3 tmpPos = InternalSpace.InternalToWorld(o.LocalPosition);
-            xLine.SetPosition(0, Vector3.zero);
-            xLine.SetPosition(1, new Vector3(tmpPos.x, 0, 0));
-
-            yLine.SetPosition(0, new Vector3(tmpPos.x, 0, 0));
-            yLine.SetPosition(1, new Vector3(tmpPos.x, -tmpPos.y, 0));
-
-            zLine.SetPosition(0, new Vector3(tmpPos.x, -tmpPos.y, 0));
-            zLine.SetPosition(1, new Vector3(tmpPos.x, -tmpPos.y, -tmpPos.z));*/
-
-            /*Vector3 invPos = -o.LocalPosition;
-            GUILayout.Label("Position forward");
-            float forward = float.Parse(GUILayout.TextField(o.LocalPosition.x.ToString()));
-            GUILayout.Label("Position right");
-            float right = float.Parse(GUILayout.TextField(o.LocalPosition.x.ToString()));
-            GUILayout.Label("Position up");
-            float up = float.Parse(GUILayout.TextField(o.LocalPosition.x.ToString()));*/
         }
 
         private static string PrintCollider(InternalCollider c)

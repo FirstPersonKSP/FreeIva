@@ -211,23 +211,26 @@ namespace FreeIva
             // Find which of the containing parts we're nearest to.
             List<Part> possibleParts = new List<Part>();
 
-            if (PartBoundsCamera(CurrentPart))
+            if (CurrentPart != null) // e.g. on part destroyed.
             {
-                //Debug.Log("# Adding previous currentpart.");
-                possibleParts.Add(CurrentPart);
-            }
-            // Check all attached parts.
-            if (CurrentPart.parent != null && PartBoundsCamera(CurrentPart.parent))
-            {
-                //Debug.Log("# Adding parent " + CurrentPart.parent);
-                possibleParts.Add(CurrentPart.parent);
-            }
+                if (PartBoundsCamera(CurrentPart))
+                {
+                    //Debug.Log("# Adding previous currentpart.");
+                    possibleParts.Add(CurrentPart);
+                }
+                // Check all attached parts.
+                if (CurrentPart.parent != null && PartBoundsCamera(CurrentPart.parent))
+                {
+                    //Debug.Log("# Adding parent " + CurrentPart.parent);
+                    possibleParts.Add(CurrentPart.parent);
+                }
             foreach (Part c in CurrentPart.children)
             {
                 if (PartBoundsCamera(c))
                 {
                     //Debug.Log("# Adding child " + c);
                     possibleParts.Add(c);
+                }
                 }
             }
             if (possibleParts.Count == 0)

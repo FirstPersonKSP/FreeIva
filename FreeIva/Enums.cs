@@ -55,7 +55,7 @@
         UI_Mask = 13,
         Screens = 14,
         LocalScenery = 15,
-        Kerbals = 16, // "kerbalCam", "pilotCam", "InternalCamera". Interaction colliders.
+        Kerbals = 16, // "kerbalCam", "pilotCam", "InternalCamera". Interaction colliders. Overlay masks.
         EVA = 17, // "FXCamera"
         SkySphere = 18, // "GalaxyCamera"
         PhysicalObjects = 19,
