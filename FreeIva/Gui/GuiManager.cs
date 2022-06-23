@@ -109,7 +109,7 @@ namespace FreeIva
             IvaCollisionPrinter.Enabled = GUILayout.Toggle(IvaCollisionPrinter.Enabled, "Print collisions");
             //KerbalIva.KerbalFeetCollider.enabled = !GUILayout.Toggle(!KerbalIva.KerbalColliderCollider.enabled, "Feet") && KerbalIva.KerbalColliderCollider.enabled;
 #if Experimental
-            KerbalIva.CanHoldItems = GUILayout.Toggle(KerbalIva.CanHoldItems, "Can move objects");
+            KerbalIvaController.CanHoldItems = GUILayout.Toggle(KerbalIvaController.CanHoldItems, "Can move objects");
 #endif
             bool helmet = GUILayout.Toggle(KerbalIvaController.WearingHelmet, "Helmet");
             //if (helmet != KerbalIva.WearingHelmet)
@@ -649,12 +649,6 @@ namespace FreeIva
 
             if (showMRGui)
             {
-                if (FreeIva.CurrentPart.internalModel == null)
-                {
-                    GUILayout.Label("No internal model found.");
-                    return;
-                }
-
                 MeshRenderer[] meshRenderers = null;
                 mrFilter = GuiUtils.editText("Filter", mrFilter);
                 if (FreeIva.CurrentPart.internalModel != null)
@@ -779,7 +773,7 @@ namespace FreeIva
                 {
                     skinnedMeshRenderers = FlightGlobals.ActiveVessel.rootPart.GetComponentsInChildren<SkinnedMeshRenderer>();
                 }
-                
+
                 if (skinnedMeshRenderers == null || skinnedMeshRenderers.Length == 0)
                 {
                     GUILayout.Label("No SkinnedMeshRenderers");
@@ -827,14 +821,17 @@ namespace FreeIva
 
                 GUILayout.Label("<b>Transform</b>");
                 GUILayout.Label(smr.transform == null ? "null" : smr.transform.ToString());
-                //GUILayout.Label("SkinnedMeshRenderer");
-                //GuiUtils.label("SkinnedMeshRenderer", smr);
-                //GuiUtils.label("Material", smr.material);
-                //GuiUtils.label("Transform", smr.transform);
                 if (smr.transform != null)
                 {
                     GuiUtils.label("Transform position", smr.transform.position);
                     GuiUtils.label("Range", Vector3.Distance(smr.transform.position, InternalCamera.Instance.transform.position));
+                }
+                GUILayout.Label("Transform Parent");
+                GUILayout.Label(smr.transform.parent == null ? "null" : smr.transform.parent.ToString());
+                if (smr.transform.parent != null)
+                {
+                    GUILayout.Label("Transform Parent Parent");
+                    GUILayout.Label(smr.transform.parent.parent == null ? "null" : smr.transform.parent.parent.ToString());
                 }
 
                 if (GUILayout.Button("Select current SkinnedMeshRenderer"))
@@ -1013,48 +1010,59 @@ namespace FreeIva
                 {
                     ivaAnimators = FreeIva.CurrentPart.internalModel.FindModelAnimators();
                 }
+
                 if (partAnimators != null)
-                    GUILayout.Label("Found " + partAnimators.Length + " part animators.");
-                if (ivaAnimators != null)
-                    GUILayout.Label("Found " + ivaAnimators.Length + " IVA animators.");
-
-                foreach (Animation anim in ivaAnimators)
                 {
-                    if (anim.gameObject != null)
-                    {
-                        if (anim.gameObject.transform != null)
-                            GUILayout.Label("Parent: " + anim.gameObject.transform.parent);
-                        else
-                            GUILayout.Label("No transform");
-                    }
-                    else
-                        GUILayout.Label("No game object");
+                    GUILayout.Label("Found " + partAnimators.Length + " part animator(s).");
+                    AnimationButtons(partAnimators);
+                }
 
-                    //AnimationState state = anim["openHatch"];
-                    foreach (AnimationState state in anim)
+                if (ivaAnimators != null)
+                {
+                    GUILayout.Label("Found " + ivaAnimators.Length + " IVA animator(s).");
+                    AnimationButtons(ivaAnimators);
+                }
+            }
+        }
+
+        private static void AnimationButtons(Animation[] animations)
+        {
+
+            foreach (Animation animation in animations)
+            {
+                if (animation.gameObject != null)
+                {
+                    if (animation.gameObject.transform != null)
+                        GUILayout.Label("Parent: " + animation.gameObject.transform.parent);
+                    else
+                        GUILayout.Label("No transform");
+                }
+                else
+                    GUILayout.Label("No game object");
+
+                foreach (AnimationState state in animation)
+                {
+                    GUILayout.BeginHorizontal();
+                    if (GUILayout.Button(state.name) && !animation.isPlaying)
                     {
-                        GUILayout.BeginHorizontal();
-                        if (GUILayout.Button(state.name) && !anim.isPlaying)
-                        {
-                            state.speed = -state.speed;
-                            if (state.speed > 0)
-                                state.normalizedTime = 0f;
-                            else
-                                state.normalizedTime = 1f;
-                            anim.enabled = true;
-                            anim.wrapMode = WrapMode.Once;
-                            anim.clip = state.clip;
-                            anim.Play();
-                        }
-                        if (state != null)
-                        {
-                            GUILayout.Label("time: " + state.time);
-                            GUILayout.Label("normalizedTime: " + state.normalizedTime);
-                            GUILayout.Label("speed: " + state.speed);
-                            GUILayout.Label("normalizedSpeed: " + state.normalizedSpeed);
-                        }
-                        GUILayout.EndHorizontal();
+                        state.speed = -state.speed;
+                        if (state.speed > 0)
+                            state.normalizedTime = 0f;
+                        else
+                            state.normalizedTime = 1f;
+                        animation.enabled = true;
+                        animation.wrapMode = WrapMode.Once;
+                        animation.clip = state.clip;
+                        animation.Play();
                     }
+                    if (state != null)
+                    {
+                        GUILayout.Label("time: " + state.time);
+                        GUILayout.Label("normalizedTime: " + state.normalizedTime);
+                        GUILayout.Label("speed: " + state.speed);
+                        GUILayout.Label("normalizedSpeed: " + state.normalizedSpeed);
+                    }
+                    GUILayout.EndHorizontal();
                 }
             }
         }

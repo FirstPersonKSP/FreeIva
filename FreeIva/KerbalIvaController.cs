@@ -272,7 +272,7 @@ namespace FreeIva
 #if DEBUG
             KerbalWorldSpace.AddComponent<IvaCollisionPrinter>();
 #endif
-            KerbalWorldCollisionTracker.Initialise(KerbalColliderRigidbody);
+            KerbalWorldCollisionTracker.Initialise(KerbalRigidbody);
 
             KerbalWorldSpaceCollider.isTrigger = false;
             KerbalWorldSpace.layer = (int)Layers.LocalScenery;

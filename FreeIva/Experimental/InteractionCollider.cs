@@ -53,7 +53,7 @@ namespace FreeIva
             ScreenMessages.PostScreenMessage("Interacted with collider " + triggerTransform + "!", 1f, ScreenMessageStyle.LOWER_CENTER);
             if (triggerObject != null)
             {
-                KerbalIva.HoldItem(triggerObject.transform.parent);
+                KerbalIvaController.HoldItem(triggerObject.transform.parent);
             }
             
         }
@@ -66,7 +66,7 @@ namespace FreeIva
         public void OnMouseUp()
         {
             ScreenMessages.PostScreenMessage("Mouse up from collider " + triggerTransform + "!", 1f, ScreenMessageStyle.LOWER_CENTER);
-            KerbalIva.DropHeldItem();
+            KerbalIvaController.DropHeldItem();
         }
     }
 }
