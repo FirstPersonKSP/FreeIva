@@ -8,7 +8,19 @@ namespace FreeIva
 {
     public class InternalCollider : IvaObject
     {
-        public PrimitiveType ColliderType = PrimitiveType.Cube;
+        public enum Type
+        {
+            Sphere,
+            Capsule,
+            Cylinder,
+            Cube,
+            Plane,
+            Quad,
+            Mesh
+        }
+
+        public Type ColliderType = Type.Cube;
+        public string Model = string.Empty;
 
         public bool Visible
         {
@@ -64,7 +76,7 @@ namespace FreeIva
 
         }
 
-        public InternalCollider(string name, PrimitiveType colliderType, bool alwaysVisible, Vector3 localPosition, Vector3 scale, Quaternion rotation)
+        public InternalCollider(string name, Type colliderType, bool alwaysVisible, Vector3 localPosition, Vector3 scale, Quaternion rotation, string model)
         {
             Name = name;
             ColliderType = colliderType;
@@ -72,19 +84,15 @@ namespace FreeIva
             LocalPosition = localPosition;
             Scale = scale;
             Rotation = rotation;
+            Model = model;
         }
 
         public InternalCollider Clone()
         {
-            return new InternalCollider(Name, ColliderType, AlwaysVisible, LocalPosition, Scale, Rotation);
+            return new InternalCollider(Name, ColliderType, AlwaysVisible, LocalPosition, Scale, Rotation, Model);
         }
 
         public override void Instantiate(Part p)
-        {
-            Instantiate(p, ColliderType);
-        }
-
-        public void Instantiate(Part p, PrimitiveType colliderType)
         {
             Debug.Log("# Creating internal collider " + Name + " for part " + p);
             if (IvaGameObject != null)
@@ -99,7 +107,17 @@ namespace FreeIva
             Vector3 localPosition = LocalPosition;
             Quaternion rotation = Rotation;
 
-            IvaGameObject = GameObject.CreatePrimitive(colliderType);
+            if (ColliderType == Type.Mesh)
+            {
+                var modelPrefab = GameDatabase.Instance.GetModelPrefab(Model);
+                modelPrefab.GetComponent<MeshCollider>().convex = false;
+                IvaGameObject = GameObject.Instantiate(modelPrefab);
+                IvaGameObject.SetActive(true);
+            }
+            else
+            {
+                IvaGameObject = GameObject.CreatePrimitive((PrimitiveType)ColliderType);
+            }
             IvaGameObject.GetComponentCached(ref IvaGameObjectCollider).enabled = true;
             //IvaGameObject.collider.isTrigger = true;
             if (p.internalModel == null)
@@ -123,6 +141,7 @@ namespace FreeIva
             {
                 Rigidbody rb = IvaGameObject.AddComponent<Rigidbody>();
                 rb.useGravity = false;
+                rb.isKinematic = true;
 
                 rb.constraints = RigidbodyConstraints.FreezeAll;
             }
@@ -171,7 +190,16 @@ namespace FreeIva
                 return null;
             }
             InternalCollider internalCollider = new InternalCollider();
-            internalCollider.ColliderType = (PrimitiveType)Enum.Parse(typeof(PrimitiveType), node.GetValue("type"));
+            string typeString = node.GetValue("type");
+            if (!Enum.TryParse(typeString, out internalCollider.ColliderType))
+            {
+                Debug.LogWarning($"[FreeIVA] invalid internal collider type {typeString}");
+            }
+
+            if (internalCollider.ColliderType == Type.Mesh)
+            {
+                internalCollider.Model = node.GetValue("model");
+            }
 
             if (node.HasValue("name"))
             {
@@ -240,7 +268,7 @@ namespace FreeIva
             else
             {
                 Debug.LogWarning("[FreeIVA] Collider rotation not found: Using defaults.");
-                internalCollider.Rotation = Quaternion.Euler(0, 0, 0);
+                internalCollider.Rotation = Quaternion.identity;
             }
             return internalCollider;
         }

@@ -130,7 +130,7 @@ namespace FreeIva
         private static int _selectedGuiRadioButton = 0;
         //private static GameObject currentCollider = null;
         //private static FixedJoint currentJoint = null;
-        private static PrimitiveType _primitiveType = PrimitiveType.Cube;
+        private static InternalCollider.Type _primitiveType = InternalCollider.Type.Cube;
         private static void ColliderGui()
         {
             // TODO: Automatically add colliders to selected props using renderer bounds?
@@ -175,7 +175,8 @@ namespace FreeIva
             {
                 InternalCollider col = new InternalCollider();
                 col.Scale = new Vector3(0.5f, 0.5f, 0.5f);
-                col.Instantiate(FreeIva.CurrentPart, _primitiveType);
+                col.ColliderType = _primitiveType;
+                col.Instantiate(FreeIva.CurrentPart);
                 col.IvaGameObject.name = "Test collider";
                 col.Visible = true;
                 FreeIva.CurrentModuleFreeIva.InternalColliders.Add(col);
@@ -198,18 +199,18 @@ namespace FreeIva
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Toggle(_primitiveType == PrimitiveType.Sphere, "Sphere"))
-                _primitiveType = PrimitiveType.Sphere;
-            if (GUILayout.Toggle(_primitiveType == PrimitiveType.Capsule, "Capsule"))
-                _primitiveType = PrimitiveType.Capsule;
-            if (GUILayout.Toggle(_primitiveType == PrimitiveType.Cylinder, "Cylinder"))
-                _primitiveType = PrimitiveType.Cylinder;
-            if (GUILayout.Toggle(_primitiveType == PrimitiveType.Cube, "Cube"))
-                _primitiveType = PrimitiveType.Cube;
-            if (GUILayout.Toggle(_primitiveType == PrimitiveType.Plane, "Plane"))
-                _primitiveType = PrimitiveType.Plane;
-            if (GUILayout.Toggle(_primitiveType == PrimitiveType.Quad, "Quad"))
-                _primitiveType = PrimitiveType.Quad;
+            if (GUILayout.Toggle(_primitiveType == InternalCollider.Type.Sphere, "Sphere"))
+                _primitiveType = InternalCollider.Type.Sphere;
+            if (GUILayout.Toggle(_primitiveType == InternalCollider.Type.Capsule, "Capsule"))
+                _primitiveType = InternalCollider.Type.Capsule;
+            if (GUILayout.Toggle(_primitiveType == InternalCollider.Type.Cylinder, "Cylinder"))
+                _primitiveType = InternalCollider.Type.Cylinder;
+            if (GUILayout.Toggle(_primitiveType == InternalCollider.Type.Cube, "Cube"))
+                _primitiveType = InternalCollider.Type.Cube;
+            if (GUILayout.Toggle(_primitiveType == InternalCollider.Type.Plane, "Plane"))
+                _primitiveType = InternalCollider.Type.Plane;
+            if (GUILayout.Toggle(_primitiveType == InternalCollider.Type.Quad, "Quad"))
+                _primitiveType = InternalCollider.Type.Quad;
             GUILayout.EndHorizontal();
 
             InternalCollider c = null;
