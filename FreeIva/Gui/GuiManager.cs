@@ -259,8 +259,7 @@ namespace FreeIva
                 if (c.IvaGameObject != null)
                 {
                     GUILayout.BeginHorizontal();
-                    c.IvaGameObject.GetComponentCached(ref c.IvaGameObjectCollider);
-                    c.IvaGameObjectCollider.enabled = GUILayout.Toggle(c.IvaGameObjectCollider.enabled, "Enabled");
+                    c.ColliderEnabled = GUILayout.Toggle(c.ColliderEnabled, "Enabled");
                     bool wasVisible = c.Visible;
                     bool v = GUILayout.Toggle(wasVisible, "Visible");
                     if (v != wasVisible)

@@ -128,7 +128,7 @@ namespace FreeIva
             Quaternion rotation = Rotation;
 
             IvaGameObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            UnityEngine.Object.Destroy(IvaGameObject.GetComponentCached(ref IvaGameObjectCollider));
+            UnityEngine.Object.Destroy(IvaGameObject.GetComponent<Collider>());
             if (p.internalModel == null)
                 p.CreateInternalModel(); // TODO: Detect this in an event instead.
             IvaGameObject.transform.parent = p.internalModel.transform;

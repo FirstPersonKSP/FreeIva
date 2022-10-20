@@ -22,6 +22,20 @@ namespace FreeIva
         public Type ColliderType = Type.Cube;
         public string Model = string.Empty;
 
+        public bool ColliderEnabled
+        {
+            get { return _colliderEnabled; }
+            set
+            {
+                _colliderEnabled = value;
+                foreach (var collider in IvaGameObjectColliders)
+                {
+                    collider.enabled = _colliderEnabled;
+                }
+            }
+        }
+        bool _colliderEnabled;
+
         public bool Visible
         {
             get
@@ -110,7 +124,10 @@ namespace FreeIva
             if (ColliderType == Type.Mesh)
             {
                 var modelPrefab = GameDatabase.Instance.GetModelPrefab(Model);
-                modelPrefab.GetComponent<MeshCollider>().convex = false;
+                foreach (var meshCollider in modelPrefab.GetComponentsInChildren<MeshCollider>())
+                {
+                    meshCollider.convex = false;
+                }
                 IvaGameObject = GameObject.Instantiate(modelPrefab);
                 IvaGameObject.SetActive(true);
             }
@@ -118,7 +135,9 @@ namespace FreeIva
             {
                 IvaGameObject = GameObject.CreatePrimitive((PrimitiveType)ColliderType);
             }
-            IvaGameObject.GetComponentCached(ref IvaGameObjectCollider).enabled = true;
+            IvaGameObjectColliders = IvaGameObject.GetComponentsInChildren<Collider>();
+            ColliderEnabled = true;
+
             //IvaGameObject.collider.isTrigger = true;
             if (p.internalModel == null)
             {
@@ -128,13 +147,15 @@ namespace FreeIva
 
             if (p.internalModel != null)
                 IvaGameObject.transform.parent = p.internalModel.transform;
-            IvaGameObject.layer = (int)Layers.InternalSpace;
+            IvaGameObject.SetLayerRecursive((int)Layers.InternalSpace);
             IvaGameObject.transform.localScale = scale;
             IvaGameObject.transform.localPosition = localPosition;
             IvaGameObject.transform.localRotation = rotation;
             IvaGameObject.name = Name;
-            PhysicMaterial physMat = IvaGameObjectCollider.material;
-            physMat.bounciness = 0;
+            foreach (var collider in IvaGameObjectColliders)
+            {
+                collider.material.bounciness = 0;
+            }
             //FixedJoint joint = IvaGameObject.AddComponent<FixedJoint>();
             //joint.connectedBody = p.collider.rigidbody;
             if (IvaGameObject.GetComponent<Rigidbody>() == null)
@@ -151,18 +172,21 @@ namespace FreeIva
                 // Change the colour from the default white.
                 IvaGameObjectRenderer.material.color = Color.grey;
             }
-            else
+            else if (IvaGameObjectRenderer != null)
+            {
                 IvaGameObjectRenderer.enabled = false;
+            }
         }
 
         public void Enable(bool enabled)
         {
             if (IvaGameObject != null)
             {
-                IvaGameObjectCollider = IvaGameObject.GetComponent<Collider>(); // Why get this every time?
+                foreach (var collider in IvaGameObjectColliders)
+                {
+                    collider.enabled = enabled;
+                }
             }
-            if (IvaGameObjectCollider != null)
-                IvaGameObjectCollider.enabled = enabled;
         }
 
         public static void HideAllColliders()

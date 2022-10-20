@@ -11,7 +11,7 @@ namespace FreeIva
         public string Name { get; set; }
 
         public GameObject IvaGameObject { get; protected set; } = null;
-        public Collider IvaGameObjectCollider;
+        public Collider[] IvaGameObjectColliders;
         private Renderer _ivaGameObjectRenderer;
         public Renderer IvaGameObjectRenderer {
             get
