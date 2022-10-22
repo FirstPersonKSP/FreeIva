@@ -22,16 +22,16 @@ namespace FreeIva
         public static KeyCode DownKey = KeyCode.LeftControl;
         public static KeyCode JumpKey = KeyCode.Space;
 
-        public static float ForwardSpeed = 1f;
-        public static float HorizontalSpeed = 1f;
+        public static float ForwardSpeed = 2f;
+        public static float HorizontalSpeed = 1.5f;
         public static float VerticalSpeed = 1f;
         // TODO: Free look
-        public static float YawSpeed = 7f;
-        public static float PitchSpeed = 7f;
-        public static float RollSpeed = 100f;
+        public static float YawSpeed = 360f; // deg/s at 1.0 input
+        public static float PitchSpeed = 360f;
+        public static float RollSpeed = 180f;
         // TODO: Gravity look
-        public static float YawSensitivity = 0.5f;
-        public static float PitchSensitivity = 0.5f;
+        public static float YawSensitivity = 1.0f;
+        public static float PitchSensitivity = 1.0f;
 
         public static float JumpForce = 10f;
 
