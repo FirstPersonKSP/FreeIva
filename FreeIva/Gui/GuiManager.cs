@@ -902,9 +902,6 @@ namespace FreeIva
 
             if (showLookGui)
             {
-                GuiUtils.label("Absolute X", KerbalIvaController._mouseAbsolute.x);
-                GuiUtils.label("Absolute Y", KerbalIvaController._mouseAbsolute.y);
-
                 GuiUtils.editFloat("Relative Vector X", KerbalIvaController.targetDirection.x);
                 GuiUtils.editFloat("Relative Vector Y", KerbalIvaController.targetDirection.y);
 

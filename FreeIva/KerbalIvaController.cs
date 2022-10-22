@@ -6,10 +6,10 @@ namespace FreeIva
     /* Stock EVA setup:
         KerbalEVA is on layer 17 (EVA).
         capsuleCollider:
-	        height 0.47
-	        radius: 0.12
+            height 0.47
+            radius: 0.12
         helmetAndHeadCollider: Sphere
-	        radius: 0.27
+            radius: 0.27
     */
 
     /// <summary>
@@ -60,6 +60,9 @@ namespace FreeIva
         public static KerbalIvaController _instance;
         public static KerbalIvaController Instance { get { return _instance; } }
 
+        public delegate void GetInputDelegate(ref IVAInput input);
+        public static GetInputDelegate GetInput = GetKeyboardInput;
+
         public void Start()
         {
             CreateCameraCollider();
@@ -109,7 +112,10 @@ namespace FreeIva
 
                 // TODO: Doesn't get mouse input when in FixedUpdate.
                 // Split this out to flags set in Update and acted upon in FixedUpdate.
-                GetInput();
+                // note from JonnyOThan: don't do that, because FixedUpdate happens before Update
+                IVAInput input = new IVAInput();
+                GetInput(ref input);
+                ApplyInput(input);
 
                 /*FreeIva.InitialPart.Events.Clear();
                 if (_transferStart != 0 && Planetarium.GetUniversalTime() > (0.25 + _transferStart))
@@ -297,32 +303,110 @@ namespace FreeIva
             previousRotation = Quaternion.AngleAxis(-90, InternalCamera.Instance.transform.right) * InternalCamera.Instance.transform.localRotation; // Fixes "unbuckling looking at feet"
         }
 
-        private void GetInput()
+        public struct IVAInput
         {
+            public Vector3 MovementThrottle;
+            public Vector3 RotationInputEuler;
+            public bool Unbuckle;
+            public bool Buckle;
+            public bool ToggleCameraLock;
+            public bool ToggleHatch;
+            public bool ToggleFarHatch;
+            public bool Jump;
+        }
 
+        private static float GetKeyInputAxis(KeyCode positive, KeyCode negative)
+        {
+            return (Input.GetKey(positive) ? 1.0f : 0.0f) + (Input.GetKey(negative) ? -1.0f : 0.0f);
+        }
+
+        private static void GetKeyboardInput(ref IVAInput input)
+        {
             if (Input.GetKeyDown(Settings.UnbuckleKey))
             {
                 if (Input.GetKey(Settings.ModifierKey))
                 {
-                    cameraPositionLocked = !cameraPositionLocked;
-                    ScreenMessages.PostScreenMessage(cameraPositionLocked ? "Camera locked" : "Camera unlocked",
-                        1f, ScreenMessageStyle.LOWER_CENTER);
+                    input.ToggleCameraLock = true;
                 }
                 else
                 {
-                    if (buckled)
-                        Unbuckle();
+                    if (Instance.buckled)
+                    {
+                        input.Unbuckle = true;
+                    }
                     else
-                        Buckle();
+                    {
+                        input.Buckle = true;
+                    }
                 }
             }
 
+            if (!Instance.buckled && !FreeIva.Paused)
+            {
+                if (!Instance.cameraPositionLocked)
+                {
+                    // rotation
+                    if (MouseLook)
+                    {
+                        // Get raw mouse input for a cleaner reading on more sensitive mice.
+                        Vector2 mouseDelta = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
+
+                        // Scale input against the sensitivity setting and multiply that against the smoothing value.
+                        mouseDelta = Vector2.Scale(mouseDelta, new Vector2(sensitivity.x * smoothing.x, sensitivity.y * smoothing.y));
+
+                        // Interpolate mouse movement over time to apply smoothing delta.
+                        _smoothMouse.x = Mathf.Lerp(_smoothMouse.x, mouseDelta.x, 1f / smoothing.x);
+                        _smoothMouse.y = Mathf.Lerp(_smoothMouse.y, mouseDelta.y, 1f / smoothing.y);
+
+                        // euler angles are pitch, yaw, roll
+                        input.RotationInputEuler.x = -_smoothMouse.y;
+                        input.RotationInputEuler.y = _smoothMouse.x;
+                    }
+                    // TODO: add key controls for turning
+                    input.RotationInputEuler.z = GetKeyInputAxis(Settings.RollCCWKey, Settings.RollCWKey);
+                }
+
+                // movement
+                {
+                    input.MovementThrottle.z = GetKeyInputAxis(Settings.ForwardKey, Settings.BackwardKey);
+                    input.MovementThrottle.x = GetKeyInputAxis(Settings.RightKey, Settings.LeftKey);
+                    input.MovementThrottle.y = GetKeyInputAxis(Settings.UpKey, Settings.DownKey);
+                }
+
+                input.Jump = Input.GetKeyDown(Settings.JumpKey);
+
+                if (Input.GetKeyDown(Settings.OpenHatchKey))
+                {
+                    input.ToggleFarHatch = Input.GetKey(Settings.ModifierKey);
+                    input.ToggleHatch = !input.ToggleFarHatch;
+                }
+            }
+        }
+
+        private void ApplyInput(IVAInput input)
+        {
+            if (input.ToggleCameraLock)
+            {
+                cameraPositionLocked = !cameraPositionLocked;
+                ScreenMessages.PostScreenMessage(cameraPositionLocked ? "Camera locked" : "Camera unlocked",
+                        1f, ScreenMessageStyle.LOWER_CENTER);
+            }
+
+            if (input.Unbuckle)
+            {
+                Unbuckle();
+            }
+            else if (input.Buckle)
+            {
+                Buckle();
+            }
+            
             if (!buckled && !FreeIva.Paused)
             {
-                UpdateOrientation();
-                UpdatePosition();
+                UpdateOrientation(input.RotationInputEuler);
+                UpdatePosition(input.MovementThrottle, input.Jump);
                 TargetSeats();
-                TargetHatches();
+                TargetHatches(input.ToggleHatch, input.ToggleFarHatch);
                 if (_lastCameraMode != CameraManager.CameraMode.IVA)
                     InputLockManager.SetControlLock(ControlTypes.ALL_SHIP_CONTROLS, "FreeIVA");
             }
@@ -613,7 +697,7 @@ namespace FreeIva
         }
 
         // TODO: Replace this with clickable interaction colliders.
-        public void TargetHatches()
+        public void TargetHatches(bool openHatch, bool openFarHatch)
         {
             if (FreeIva.CurrentModuleFreeIva == null) return;
 
@@ -682,7 +766,7 @@ namespace FreeIva
                 ScreenMessages.PostScreenMessage((targetedHatch.IsOpen ? "Close" : "Open") + " hatch [" + Settings.OpenHatchKey + "]",
                         0.1f, ScreenMessageStyle.LOWER_CENTER);
 
-                if (Input.GetKeyDown(Settings.OpenHatchKey) && !Input.GetKey(Settings.ModifierKey))
+                if (openHatch)
                     targetedHatch.ToggleHatch();
 
                 // Allow reaching through an open hatch to open or close the connected hatch.
@@ -693,7 +777,7 @@ namespace FreeIva
                     {
                         ScreenMessages.PostScreenMessage((targetedHatch.ConnectedHatch.IsOpen ? "Close" : "Open") + " far hatch [" + Settings.ModifierKey + " + " + Settings.OpenHatchKey + "]",
                                 0.1f, ScreenMessageStyle.LOWER_CENTER);
-                        if (Input.GetKeyDown(Settings.OpenHatchKey) && Input.GetKey(Settings.ModifierKey))
+                        if (openFarHatch)
                             targetedHatch.ConnectedHatch.ToggleHatch();
                     }
                 }
@@ -702,7 +786,7 @@ namespace FreeIva
 
         private bool _wasFreeControls = true;
 
-        public void UpdateOrientation()
+        public void UpdateOrientation(Vector3 rotationInput)
         {
             /*Vector3 gForce = FlightGlobals.getGeeForceAtPosition(FlightCamera.fetch.transform.position);
             Vector3 gForceInternal = InternalSpace.WorldToInternal(gForce);
@@ -719,54 +803,26 @@ namespace FreeIva
                 if (_wasFreeControls)
                     InitialiseFpsControls();
 
-                RelativeOrientation();
+                RelativeOrientation(rotationInput);
                 _wasFreeControls = false;
             }
             else
             {
-                FreeOrientation();
+                FreeOrientation(rotationInput);
                 _wasFreeControls = true;
             }
         }
 
         // Free movement with no "down".
-        private void FreeOrientation()
+        private void FreeOrientation(Vector3 rotationInput)
         {
-            float yaw = 0;
-            float pitch = 0;
-            float roll = 0;
+            Vector3 angularSpeed = Time.deltaTime * new Vector3(
+                rotationInput.x * Settings.PitchSpeed,
+                rotationInput.y * Settings.YawSpeed,
+                rotationInput.z * Settings.RollSpeed);
 
-            if (!cameraPositionLocked)
-            {
-                if (MouseLook)
-                {
-                    float mouseX = Input.GetAxis("Mouse X");
-                    yaw = mouseX * Settings.YawSpeed;
-                    float mouseY = Input.GetAxis("Mouse Y");
-                    pitch = -mouseY * Settings.PitchSpeed;
-                }
-                else
-                {
-                    yaw = 0;
-                    if (Input.GetKey(KeyCode.L))
-                        yaw = Settings.YawSpeed * Time.deltaTime * 10;
-                    else if (Input.GetKey(KeyCode.J))
-                        yaw = -Settings.YawSpeed * Time.deltaTime * 10;
-                    pitch = 0;
-                    if (Input.GetKey(KeyCode.I))
-                        pitch = Settings.PitchSpeed * Time.deltaTime * 10;
-                    else if (Input.GetKey(KeyCode.K))
-                        pitch = -Settings.PitchSpeed * Time.deltaTime * 10;
-                    roll = 0;
-                }
-            }
-            if (Input.GetKey(Settings.RollCCWKey))
-                roll = Settings.RollSpeed * Time.deltaTime;
-            else if (Input.GetKey(Settings.RollCWKey))
-                roll = -Settings.RollSpeed * Time.deltaTime;
-
-            Quaternion rotYaw = Quaternion.AngleAxis(yaw, previousRotation * Vector3.up);
-            Quaternion rotPitch = Quaternion.AngleAxis(pitch, previousRotation * Vector3.right);// *Quaternion.Euler(0, 90, 0);
+            Quaternion rotYaw = Quaternion.AngleAxis(angularSpeed.y, previousRotation * Vector3.up);
+            Quaternion rotPitch = Quaternion.AngleAxis(angularSpeed.x, previousRotation * Vector3.right);// *Quaternion.Euler(0, 90, 0);
 
 
             Transform cameraTransform = InternalCamera.Instance.transform;
@@ -785,7 +841,7 @@ namespace FreeIva
 
 
 
-            Quaternion rotRoll = Quaternion.AngleAxis(roll, previousRotation * Vector3.forward);
+            Quaternion rotRoll = Quaternion.AngleAxis(angularSpeed.z, previousRotation * Vector3.forward);
             /* new *
             if (Gravity)
             {
@@ -810,7 +866,6 @@ namespace FreeIva
         public static Vector2 smoothing = new Vector2(3, 3);
         public static Vector2 targetDirection;
         public static Vector2 targetCharacterDirection;
-        public static Vector2 _mouseAbsolute;
         private static Vector2 _smoothMouse;
 
         /*/ FPS-style movement relative to a downward force.
@@ -856,41 +911,23 @@ namespace FreeIva
             FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
         }*/
 
-        private void RelativeOrientation()
+        private void RelativeOrientation(Vector3 rotationInput)
         {
             // Allow the script to clamp based on a desired target value.
             //var targetOrientation = Quaternion.Euler(targetDirection);
 
-            if (!cameraPositionLocked)
-            {
-                // Get raw mouse input for a cleaner reading on more sensitive mice.
-                Vector2 mouseDelta = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
+            Vector3 angularSpeed = Time.deltaTime * new Vector3(
+                rotationInput.x * Settings.PitchSpeed,
+                rotationInput.y * Settings.YawSpeed,
+                rotationInput.z * Settings.RollSpeed);
 
-                // Scale input against the sensitivity setting and multiply that against the smoothing value.
-                mouseDelta = Vector2.Scale(mouseDelta, new Vector2(sensitivity.x * smoothing.x, sensitivity.y * smoothing.y));
-
-                // Interpolate mouse movement over time to apply smoothing delta.
-                _smoothMouse.x = Mathf.Lerp(_smoothMouse.x, mouseDelta.x, 1f / smoothing.x);
-                _smoothMouse.y = Mathf.Lerp(_smoothMouse.y, mouseDelta.y, 1f / smoothing.y);
-
-                // Find the absolute mouse movement value from point zero.
-                _mouseAbsolute += _smoothMouse;
-            }
             Vector3 totalForce = KerbalRigidbody.velocity; /*new Vector3(0f, 0f, -9.81f);*/ //GetFlightForces();
             var targetOrientation = Quaternion.Euler(totalForce);
 
-            // Clamp and apply the local x value first, so as not to be affected by world transforms.
-            if (clampInDegrees.x < 360)
-                _mouseAbsolute.x = Mathf.Clamp(_mouseAbsolute.x, -clampInDegrees.x * 0.5f, clampInDegrees.x * 0.5f);
-
-            // Then clamp and apply the global y value.
-            if (clampInDegrees.y < 360)
-                _mouseAbsolute.y = Mathf.Clamp(_mouseAbsolute.y, -clampInDegrees.y * 0.5f, clampInDegrees.y * 0.5f);
-
             //InternalCamera.Instance.transform.rotation *= targetOrientation;
 
-            InternalCamera.Instance.transform.localRotation = InternalSpace.WorldToInternal(Quaternion.AngleAxis(-_mouseAbsolute.y, targetOrientation * Vector3.up/*right*/) * targetOrientation); // Pitch
-            Quaternion yaw = Quaternion.AngleAxis(-_mouseAbsolute.x, /*-gForce);*/ InternalCamera.Instance.transform.InverseTransformDirection(totalForce));//Vector3.up));
+            InternalCamera.Instance.transform.localRotation = InternalSpace.WorldToInternal(Quaternion.AngleAxis(angularSpeed.x, targetOrientation * Vector3.up/*right*/) * targetOrientation); // Pitch
+            Quaternion yaw = Quaternion.AngleAxis(angularSpeed.y, /*-gForce);*/ InternalCamera.Instance.transform.InverseTransformDirection(totalForce));//Vector3.up));
             InternalCamera.Instance.transform.localRotation *= yaw;
 
             Quaternion roll = Quaternion.Euler(0, 0, 90);
@@ -899,15 +936,12 @@ namespace FreeIva
             FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
         }
 
-        private void UpdatePosition()
+        private void UpdatePosition(Vector3 movementThrottle, bool jump)
         {
-            float moveForward = Input.GetKey(Settings.ForwardKey) ? Settings.ForwardSpeed * Time.deltaTime : 0;
-            moveForward -= Input.GetKey(Settings.BackwardKey) ? Settings.ForwardSpeed * Time.deltaTime : 0;
-            float moveRight = Input.GetKey(Settings.RightKey) ? Settings.HorizontalSpeed * Time.deltaTime : 0;
-            moveRight -= Input.GetKey(Settings.LeftKey) ? Settings.HorizontalSpeed * Time.deltaTime : 0;
-            float moveUp = Input.GetKey(Settings.UpKey) ? Settings.VerticalSpeed * Time.deltaTime : 0;
-            moveUp -= Input.GetKey(Settings.DownKey) ? Settings.VerticalSpeed * Time.deltaTime : 0;
-            Vector3 movement = new Vector3(moveRight, moveUp, moveForward);
+            Vector3 movement = Time.deltaTime * new Vector3(
+                movementThrottle.x * Settings.HorizontalSpeed,
+                movementThrottle.y * Settings.VerticalSpeed,
+                movementThrottle.z * Settings.ForwardSpeed);
 
             // Make the movement relative to the camera rotation.
             Vector3 newPos = KerbalIva.transform.localPosition + (InternalCamera.Instance.transform.localRotation * movement);
@@ -917,7 +951,7 @@ namespace FreeIva
             KerbalRigidbody.MovePosition(newPos);
 
             // Jump. TODO: Detect when not in contact with the ground to prevent jetpacking (Physics.CapsuleCast).
-            if (Input.GetKey(Settings.JumpKey))
+            if (jump)
                 // Jump in the opposite direction to gravity.
                 KerbalRigidbody.AddForce(-InternalSpace.WorldToInternal(GetFlightForcesWorldSpace()) * Settings.JumpForce * Time.deltaTime);
 
