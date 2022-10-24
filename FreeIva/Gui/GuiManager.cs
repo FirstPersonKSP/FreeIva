@@ -48,7 +48,7 @@ namespace FreeIva
 
             GUILayout.BeginHorizontal();
             KerbalIvaController.MouseLook = GUILayout.Toggle(KerbalIvaController.MouseLook, "Mouse look");
-            KerbalIvaController.KerbalIva.GetComponentCached<Collider>(ref KerbalIvaController.KerbalCollider);
+            KerbalIvaController.KerbalIva.GetComponentCached<SphereCollider>(ref KerbalIvaController.KerbalCollider);
             KerbalIvaController.KerbalCollider.enabled = !GUILayout.Toggle(!KerbalIvaController.KerbalCollider.enabled, "Disable collisions");
             KerbalIvaController.Gravity = GUILayout.Toggle(KerbalIvaController.Gravity, "Gravity");
             GUILayout.EndHorizontal();
@@ -103,7 +103,7 @@ namespace FreeIva
             GuiUtils.label("Distance from camera to Kerbal IVA", distance);
 
             GUILayout.BeginHorizontal();
-            KerbalIvaController.KerbalIva.GetComponentCached<Collider>(ref KerbalIvaController.KerbalCollider);
+            KerbalIvaController.KerbalIva.GetComponentCached<SphereCollider>(ref KerbalIvaController.KerbalCollider);
             KerbalIvaController.KerbalCollider.enabled = !GUILayout.Toggle(!KerbalIvaController.KerbalCollider.enabled, "Disable collisions");
             KerbalIvaController.Gravity = GUILayout.Toggle(KerbalIvaController.Gravity, "Gravity");
             IvaCollisionPrinter.Enabled = GUILayout.Toggle(IvaCollisionPrinter.Enabled, "Print collisions");

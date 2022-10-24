@@ -19,7 +19,7 @@ namespace FreeIva
     public class KerbalIvaController : MonoBehaviour
     {
         public static GameObject KerbalIva;
-        public static Collider KerbalCollider;
+        public static SphereCollider KerbalCollider; // this may eventually change to a Capsule
         public static Rigidbody KerbalRigidbody;
         // TODO: Vary this by kerbal stats and equipment carried: 45kg for a kerbal, 94kg with full jetpack and parachute.
         public static float KerbalMass = 0.03125f; // From persistent file for EVA kerbal. Use PhysicsGlobals.KerbalCrewMass instead?
@@ -213,7 +213,7 @@ namespace FreeIva
                     buckled = true;
                     InternalCamera.Instance.transform.parent = ActiveKerbal.KerbalRef.eyeTransform;
                     CameraManager.Instance.SetCameraFlight();
-                    KerbalIva.GetComponentCached<Collider>(ref KerbalCollider);
+                    KerbalIva.GetComponentCached<SphereCollider>(ref KerbalCollider);
                     KerbalCollider.enabled = false;
                     HideCurrentKerbal(false);
                     DisablePartHighlighting(false);
@@ -230,7 +230,7 @@ namespace FreeIva
         {
             KerbalIva = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             KerbalIva.name = "Kerbal collider";
-            KerbalIva.GetComponentCached<Collider>(ref KerbalCollider);
+            KerbalIva.GetComponentCached<SphereCollider>(ref KerbalCollider);
             KerbalCollider.enabled = false;
             KerbalRigidbody = KerbalIva.AddComponent<Rigidbody>();
             KerbalRigidbody.useGravity = false;
@@ -245,7 +245,7 @@ namespace FreeIva
             var renderer = KerbalIva.GetComponent<Renderer>();
             renderer.enabled = false;
 
-            KerbalIva.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.KerbalHeight, Settings.NoHelmetSize);
+            KerbalCollider.radius = Settings.NoHelmetSize;
 
 
             /*KerbalFeet = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -487,7 +487,7 @@ namespace FreeIva
                     InternalCamera.Instance.transform.parent = ActiveKerbal.KerbalRef.eyeTransform;
                 }
             }*/
-            KerbalIva.GetComponentCached<Collider>(ref KerbalCollider);
+            KerbalIva.GetComponentCached<SphereCollider>(ref KerbalCollider);
             KerbalCollider.enabled = false;
             HideCurrentKerbal(false);
             DisablePartHighlighting(false);
@@ -536,16 +536,16 @@ namespace FreeIva
             HideCurrentKerbal(true);
 
             KerbalIva.transform.position = ActiveKerbal.KerbalRef.eyeTransform.position;
-			KerbalIva.transform.rotation = ActiveKerbal.KerbalRef.eyeTransform.rotation;
+            KerbalIva.transform.rotation = ActiveKerbal.KerbalRef.eyeTransform.rotation;
             // The Kerbal's eye transform is the InternalCamera's parent normally, not InternalSpace.Instance as previously thought.
             InternalCamera.Instance.transform.parent = KerbalIva.transform;
-			InternalCamera.Instance.transform.localPosition = Vector3.zero;
-			InternalCamera.Instance.transform.localRotation = Quaternion.identity;
+            InternalCamera.Instance.transform.localPosition = Vector3.zero;
+            InternalCamera.Instance.transform.localRotation = Quaternion.identity;
 
             InputLockManager.SetControlLock(ControlTypes.ALL_SHIP_CONTROLS, "FreeIVA");
             //ActiveKerbal.flightLog.AddEntry("Unbuckled");
             ScreenMessages.PostScreenMessage("Unbuckled", 1f, ScreenMessageStyle.LOWER_CENTER);
-            KerbalIva.GetComponentCached<Collider>(ref KerbalCollider).enabled = true;
+            KerbalIva.GetComponentCached<SphereCollider>(ref KerbalCollider).enabled = true;
             buckled = false;
 
             InitialiseFpsControls();
@@ -926,10 +926,10 @@ namespace FreeIva
 
             KerbalIva.transform.localRotation = InternalSpace.WorldToInternal(Quaternion.AngleAxis(angularSpeed.x, targetOrientation * Vector3.up/*right*/) * targetOrientation); // Pitch
             Quaternion yaw = Quaternion.AngleAxis(angularSpeed.y, /*-gForce);*/ InternalCamera.Instance.transform.InverseTransformDirection(totalForce));//Vector3.up));
-			KerbalIva.transform.localRotation *= yaw;
+            KerbalIva.transform.localRotation *= yaw;
 
             Quaternion roll = Quaternion.Euler(0, 0, 90);
-            InternalCamera.Instance.transform.localRotation *= roll;
+            KerbalIva.transform.localRotation *= roll;
         }
 
         private void UpdatePosition(Vector3 movementThrottle, bool jump)
@@ -1008,13 +1008,13 @@ namespace FreeIva
         public static void HelmetOn()
         {
             WearingHelmet = true;
-            KerbalIva.transform.localScale = new Vector3(Settings.HelmetSize, Settings.KerbalHeightWithHelmet, Settings.HelmetSize);
+            KerbalCollider.radius = Settings.HelmetSize;
         }
 
         public static void HelmetOff()
         {
             WearingHelmet = false;
-            KerbalIva.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.KerbalHeight, Settings.NoHelmetSize);
+            KerbalCollider.radius = Settings.NoHelmetSize;
         }
     }
 }

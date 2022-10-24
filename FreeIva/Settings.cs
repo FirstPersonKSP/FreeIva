@@ -38,10 +38,10 @@ namespace FreeIva
         public static float KerbalHeight = 0.4f;
         public static float KerbalHeightWithHelmet = 2.5f;
 
-        // The size of a kerbal's head collider when they're wearing their helmet.
-        public static float HelmetSize = 0.45f;
+        // The radius of a kerbal's head collider when they're wearing their helmet.
+        public static float HelmetSize = 0.225f;
         // Taking off the helmet may allow squeezing through tight spaces, with some risk (when pressurisation and injury are implemented).
-        public static float NoHelmetSize = 0.4f;
+        public static float NoHelmetSize = 0.2f;
 
         // The radius of the sphere which, when looked at, will trigger interaction prompts.
         // TODO: Replace this with interaction colliders.
