@@ -924,14 +924,12 @@ namespace FreeIva
 
             //InternalCamera.Instance.transform.rotation *= targetOrientation;
 
-            InternalCamera.Instance.transform.localRotation = InternalSpace.WorldToInternal(Quaternion.AngleAxis(angularSpeed.x, targetOrientation * Vector3.up/*right*/) * targetOrientation); // Pitch
+            KerbalIva.transform.localRotation = InternalSpace.WorldToInternal(Quaternion.AngleAxis(angularSpeed.x, targetOrientation * Vector3.up/*right*/) * targetOrientation); // Pitch
             Quaternion yaw = Quaternion.AngleAxis(angularSpeed.y, /*-gForce);*/ InternalCamera.Instance.transform.InverseTransformDirection(totalForce));//Vector3.up));
-            InternalCamera.Instance.transform.localRotation *= yaw;
+			KerbalIva.transform.localRotation *= yaw;
 
             Quaternion roll = Quaternion.Euler(0, 0, 90);
             InternalCamera.Instance.transform.localRotation *= roll;
-
-            FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
         }
 
         private void UpdatePosition(Vector3 movementThrottle, bool jump)
