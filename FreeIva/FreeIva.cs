@@ -88,7 +88,6 @@ namespace FreeIva
             Settings.LoadSettings();
             OnIvaPartChanged.Add(IvaPartChanged);
             SetRenderQueues(FlightGlobals.ActiveVessel.rootPart);
-            SetCollisionLayers();
         }
 
         public static bool Paused = false;
@@ -178,16 +177,6 @@ namespace FreeIva
             }
 
             return visibleParts;
-        }
-
-        private void SetCollisionLayers()
-        {
-            for (int i = 0; i < 32; i++)
-            {
-                Physics.IgnoreLayerCollision((int)Layers.InternalSpace, i, true);
-                Physics.IgnoreLayerCollision((int)Layers.Kerbals, i, true);
-            }
-            Physics.IgnoreLayerCollision((int)Layers.InternalSpace, (int)Layers.Kerbals, false);
         }
 
         Vector3 _previousCameraPosition = Vector3.zero;
