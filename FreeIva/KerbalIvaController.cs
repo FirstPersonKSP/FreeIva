@@ -527,6 +527,8 @@ namespace FreeIva
 
         public void Unbuckle()
         {
+            if (!buckled) return;
+
             _previousPos = Vector3.zero;
             FreeIva.EnableInternals();
             UpdateActiveKerbal();
