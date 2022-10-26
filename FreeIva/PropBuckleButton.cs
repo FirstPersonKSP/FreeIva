@@ -10,7 +10,7 @@ namespace FreeIva
     public class PropBuckleButton : InternalModule
     {
         [KSPField]
-        public string buttonTransformName;
+        public string transformName = string.Empty;
 
         public override void OnLoad(ConfigNode node)
         {
@@ -18,15 +18,30 @@ namespace FreeIva
 
             if (HighLogic.LoadedScene == GameScenes.LOADING)
             {
-                Transform buttonTransform = internalProp.FindModelTransform(buttonTransformName);
-                if (buttonTransform != null)
-                {
-                    var collider = buttonTransform.GetComponent<Collider>();
-                    if (collider == null)
-                    {
-                        collider = CreateCollider(buttonTransform, node);
-                    }
-                }
+				Transform buttonTransform = internalProp.FindModelTransform(transformName);
+				if (buttonTransform != null)
+				{
+					var collider = buttonTransform.GetComponent<Collider>();
+					if (collider == null)
+					{
+						var colliderNodes = node.GetNodes("Collider");
+						if (colliderNodes.Length > 0)
+						{
+							foreach (var colliderNode in colliderNodes)
+							{
+								CreateCollider(buttonTransform, colliderNode);
+							}
+						}
+						else
+						{
+							Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.name} does not have a collider on transform {transformName} and no procedural colliders");
+						}
+					}
+				}
+				else
+				{
+					Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.name} could not find a transform named {transformName}");
+				}
             }
         }
 
@@ -39,23 +54,23 @@ namespace FreeIva
 
         Collider CreateCollider(Transform t, ConfigNode cfg)
         {
-            Collider result = null;
+			Collider result = null;
             Vector3 center = Vector3.zero, boxDimensions = Vector3.zero;
             float radius = 0, height = 0;
             CapsuleAxis axis = CapsuleAxis.X;
             string colliderShape = string.Empty;
             
-            if (!cfg.TryGetValue("colliderShape", ref colliderShape))
+            if (!cfg.TryGetValue("shape", ref colliderShape))
             {
-                Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.name} does not have a collider in the model and does not have a colliderShape field");
+                Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.name} does not have a collider in the model and does not have a shape field");
             }
             else switch (colliderShape)
             {
                 case "Capsule":
-                    if (cfg.TryGetValue("colliderCenter", ref center) &&
-                        cfg.TryGetValue("colliderRadius", ref radius) &&
-                        cfg.TryGetValue("colliderHeight", ref height) &&
-                        cfg.TryGetEnum("colliderAxis", ref axis, CapsuleAxis.X))
+                    if (cfg.TryGetValue("center", ref center) &&
+                        cfg.TryGetValue("radius", ref radius) &&
+                        cfg.TryGetValue("height", ref height) &&
+                        cfg.TryGetEnum("axis", ref axis, CapsuleAxis.X))
                     {
                         var collider = t.gameObject.AddComponent<CapsuleCollider>();
                         collider.radius = radius;
@@ -66,12 +81,12 @@ namespace FreeIva
                     }
                     else
                     {
-                        Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName}: capsule shape requires colliderCenter, colliderRadius, colliderHeight, and colliderAxis fields");
+                        Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName}: capsule shape requires center, radius, height, and axis fields");
                     }
                     break;
                 case "Box":
-                    if (cfg.TryGetValue("colliderCenter", ref center) &&
-                        cfg.TryGetValue("colliderDimensions", ref boxDimensions))
+                    if (cfg.TryGetValue("center", ref center) &&
+                        cfg.TryGetValue("dimensions", ref boxDimensions))
                     {
                         var collider = t.gameObject.AddComponent<BoxCollider>();
                         collider.center = center;
@@ -80,12 +95,12 @@ namespace FreeIva
                     }
                     else
                     {
-                        Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName}: box shape requires colliderCenter and colliderDimensions fields");
+                        Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName}: box shape requires center and dimensions fields");
                     }
                     break;
                 case "Sphere":
-                    if (cfg.TryGetValue("colliderCenter", ref center) &&
-                        cfg.TryGetValue("colliderRadius", ref radius))
+                    if (cfg.TryGetValue("center", ref center) &&
+                        cfg.TryGetValue("radius", ref radius))
                     {
                         var collider = t.gameObject.AddComponent<SphereCollider>();
                         collider.center = center;
@@ -94,11 +109,11 @@ namespace FreeIva
                     }
                     else
                     {
-                        Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName}: sphere shape requires colliderCenter and colliderRadius fields");
+                        Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName}: sphere shape requires center and radius fields");
                     }
                     break;
                 default:
-                    Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName} has invalid colliderShape '{colliderShape}");
+                    Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName} has invalid collider shape '{colliderShape}");
                     break;
             }
 
@@ -109,16 +124,12 @@ namespace FreeIva
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
 
-            Transform buttonTransform = internalProp.FindModelTransform(buttonTransformName);
+            Transform buttonTransform = internalProp.FindModelTransform(transformName);
             if (buttonTransform != null)
             {
                 ClickWatcher clickWatcher = buttonTransform.gameObject.GetOrAddComponent<ClickWatcher>();
 
                 clickWatcher.AddMouseDownAction(OnClick);
-            }
-            else
-            {
-                Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName} could not find transform named {buttonTransformName}");
             }
         }
 
