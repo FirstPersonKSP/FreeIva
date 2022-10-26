@@ -18,30 +18,33 @@ namespace FreeIva
 
             if (HighLogic.LoadedScene == GameScenes.LOADING)
             {
-				Transform buttonTransform = internalProp.FindModelTransform(transformName);
-				if (buttonTransform != null)
-				{
-					var collider = buttonTransform.GetComponent<Collider>();
-					if (collider == null)
-					{
-						var colliderNodes = node.GetNodes("Collider");
-						if (colliderNodes.Length > 0)
-						{
-							foreach (var colliderNode in colliderNodes)
-							{
-								CreateCollider(buttonTransform, colliderNode);
-							}
-						}
-						else
-						{
-							Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.name} does not have a collider on transform {transformName} and no procedural colliders");
-						}
-					}
-				}
-				else
-				{
-					Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.name} could not find a transform named {transformName}");
-				}
+                Transform buttonTransform = internalProp.FindModelTransform(transformName);
+                if (buttonTransform != null)
+                {
+                    var collider = buttonTransform.GetComponent<Collider>();
+                    if (collider == null)
+                    {
+                        var colliderNodes = node.GetNodes("Collider");
+                        if (colliderNodes.Length > 0)
+                        {
+                            buttonTransform.gameObject.layer = (int)Layers.InternalSpace;
+
+                            foreach (var colliderNode in colliderNodes)
+                            {
+                                CreateCollider(buttonTransform, colliderNode);
+                            }
+                        }
+                        else
+                        {
+                            string dbgName = internalProp.hasModel ? internalProp.propName : internalModel.internalName;
+                            Debug.LogError($"[FreeIVA] PropBuckleButton on {dbgName} does not have a collider on transform {transformName} and no procedural colliders");
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.name} could not find a transform named {transformName}");
+                }
             }
         }
 
@@ -54,7 +57,7 @@ namespace FreeIva
 
         Collider CreateCollider(Transform t, ConfigNode cfg)
         {
-			Collider result = null;
+            Collider result = null;
             Vector3 center = Vector3.zero, boxDimensions = Vector3.zero;
             float radius = 0, height = 0;
             CapsuleAxis axis = CapsuleAxis.X;
@@ -92,6 +95,15 @@ namespace FreeIva
                         collider.center = center;
                         collider.size = boxDimensions;
                         result = collider;
+
+#if false
+                        var debugObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                        Component.Destroy(debugObject.GetComponent<Collider>());
+                        debugObject.transform.SetParent(t, false);
+                        debugObject.transform.localPosition = center;
+                        debugObject.transform.localScale = boxDimensions;
+                        debugObject.layer = 20;
+#endif
                     }
                     else
                     {
