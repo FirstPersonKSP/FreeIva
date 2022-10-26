@@ -31,7 +31,8 @@ namespace FreeIva
 
                             foreach (var colliderNode in colliderNodes)
                             {
-                                CreateCollider(buttonTransform, colliderNode);
+                                var c = CreateCollider(buttonTransform, colliderNode);
+                                AddColliderVisualizer(c);
                             }
                         }
                         else
@@ -39,6 +40,10 @@ namespace FreeIva
                             string dbgName = internalProp.hasModel ? internalProp.propName : internalModel.internalName;
                             Debug.LogError($"[FreeIVA] PropBuckleButton on {dbgName} does not have a collider on transform {transformName} and no procedural colliders");
                         }
+                    }
+                    else
+                    {
+                        AddColliderVisualizer(collider);
                     }
                 }
                 else
@@ -53,6 +58,22 @@ namespace FreeIva
             X = 0,
             Y = 1,
             Z = 2
+        }
+
+        void AddColliderVisualizer(Collider collider)
+        {
+#if false
+            if (collider is BoxCollider box)
+            {
+                var debugObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                Component.Destroy(debugObject.GetComponent<Collider>());
+                debugObject.transform.SetParent(collider.transform, false);
+                debugObject.transform.localPosition = box.center;
+                debugObject.transform.localScale = box.size;
+                debugObject.layer = 20;
+            }
+            // TODO:
+#endif
         }
 
         Collider CreateCollider(Transform t, ConfigNode cfg)
@@ -95,15 +116,6 @@ namespace FreeIva
                         collider.center = center;
                         collider.size = boxDimensions;
                         result = collider;
-
-#if false
-                        var debugObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                        Component.Destroy(debugObject.GetComponent<Collider>());
-                        debugObject.transform.SetParent(t, false);
-                        debugObject.transform.localPosition = center;
-                        debugObject.transform.localScale = boxDimensions;
-                        debugObject.layer = 20;
-#endif
                     }
                     else
                     {
