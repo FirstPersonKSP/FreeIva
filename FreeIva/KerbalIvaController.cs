@@ -46,7 +46,6 @@ namespace FreeIva
         public InternalSeat OriginalSeat = null;
         public InternalSeat TargetedSeat = null;
         public int TargetedSeatIndex = -1;
-        public static bool MouseLook = true;
         public static bool Gravity = false;
 #if Experimental
         public static bool CanHoldItems = false;
@@ -345,23 +344,6 @@ namespace FreeIva
             {
                 if (!Instance.cameraPositionLocked)
                 {
-                    // rotation
-                    if (MouseLook)
-                    {
-                        // Get raw mouse input for a cleaner reading on more sensitive mice.
-                        Vector2 mouseDelta = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
-
-                        // Scale input against the sensitivity setting and multiply that against the smoothing value.
-                        mouseDelta = Vector2.Scale(mouseDelta, new Vector2(sensitivity.x * smoothing.x, sensitivity.y * smoothing.y));
-
-                        // Interpolate mouse movement over time to apply smoothing delta.
-                        _smoothMouse.x = Mathf.Lerp(_smoothMouse.x, mouseDelta.x, 1f / smoothing.x);
-                        _smoothMouse.y = Mathf.Lerp(_smoothMouse.y, mouseDelta.y, 1f / smoothing.y);
-
-                        // euler angles are pitch, yaw, roll
-                        input.RotationInputEuler.x = -_smoothMouse.y;
-                        input.RotationInputEuler.y = _smoothMouse.x;
-                    }
                     // TODO: add key controls for turning
                     input.RotationInputEuler.z = GetKeyInputAxis(Settings.RollCCWKey, Settings.RollCWKey);
                 }
@@ -415,10 +397,6 @@ namespace FreeIva
         //private bool _reseatingCrew = false;
         public void Buckle()
         {
-            InternalCamera.Instance.minPitch = -30f;
-            InternalCamera.Instance.maxPitch = 60f;
-            InternalCamera.Instance.maxRot = 60f;
-
             if (TargetedSeat == null || TargetedSeatIndex == -1)
                 return;
 
@@ -543,10 +521,6 @@ namespace FreeIva
             previousRotation = InternalCamera.Instance.transform.rotation;
             InternalCamera.Instance.ManualReset(false);
 
-            // disable the stock game's mouse control
-            InternalCamera.Instance.minPitch = 0;
-            InternalCamera.Instance.maxPitch = 0;
-            InternalCamera.Instance.maxRot = 0;
 
             _previousPos = Vector3.zero;
             FreeIva.EnableInternals();
@@ -875,6 +849,7 @@ namespace FreeIva
 
             KerbalIva.transform.rotation = rotRoll * rotPitch * rotYaw * previousRotation;
             previousRotation = InternalCamera.Instance.transform.rotation;
+			InternalCamera.Instance.ManualReset(false);
         }
 
 
@@ -885,7 +860,6 @@ namespace FreeIva
         public static Vector2 smoothing = new Vector2(3, 3);
         public static Vector2 targetDirection;
         public static Vector2 targetCharacterDirection;
-        private static Vector2 _smoothMouse;
 
         /*/ FPS-style movement relative to a downward force.
         // This works fine, but downwards is always relative to the IVA itself.
@@ -961,7 +935,7 @@ namespace FreeIva
                 movementThrottle.z * Settings.ForwardSpeed);
 
             // Make the movement relative to the camera rotation.
-            Quaternion orientation = InternalCamera.Instance.transform.rotation;
+            Quaternion orientation = previousRotation;
             Vector3 newPos = KerbalIva.transform.localPosition + (orientation * movement);
 
             //KerbalCollider.rigidbody.velocity = new Vector3(0, 0, 0);

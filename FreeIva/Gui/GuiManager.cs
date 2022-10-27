@@ -47,7 +47,6 @@ namespace FreeIva
             }
 
             GUILayout.BeginHorizontal();
-            KerbalIvaController.MouseLook = GUILayout.Toggle(KerbalIvaController.MouseLook, "Mouse look");
             KerbalIvaController.KerbalIva.GetComponentCached<SphereCollider>(ref KerbalIvaController.KerbalCollider);
             KerbalIvaController.KerbalCollider.enabled = !GUILayout.Toggle(!KerbalIvaController.KerbalCollider.enabled, "Disable collisions");
             KerbalIvaController.Gravity = GUILayout.Toggle(KerbalIvaController.Gravity, "Gravity");
