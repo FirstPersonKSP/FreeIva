@@ -402,73 +402,10 @@ namespace FreeIva
 
             Debug.Log(ActiveKerbal.name + " is entering seat " + TargetedSeat.transform.name + " at index " + TargetedSeatIndex + " in part " + FreeIva.CurrentPart);
 
-            //InitialPart.RemoveCrewmember(ActiveKerbal); // Don't do this on unbuckle or we lose the InternalCamera.
-
-            /*TargetedSeat.part.AddCrewmemberAt(ActiveKerbal, TargetedSeatIndex);
-            CurrentPart.SpawnCrew();*/
-            /*HideCurrentKerbal(false);
-
-            FreeIva.InitialPart.RemoveCrewmember(ActiveKerbal);
-            FreeIva.CurrentPart.AddCrewmemberAt(ActiveKerbal, TargetedSeatIndex);
-            HideCurrentKerbal(false);
-
-            if (FreeIva.InitialPart != FreeIva.CurrentPart)
-            {
-                GameEvents.onCrewTransferred.Fire(new GameEvents.HostedFromToAction<ProtoCrewMember, Part>(ActiveKerbal, FreeIva.InitialPart, FreeIva.CurrentPart));
-                GameEvents.onVesselChange.Fire(FlightGlobals.ActiveVessel);
-                /*InitialPart.SpawnCrew();
-                CurrentPart.SpawnCrew();
-                InitialPart.RegisterCrew();
-                CurrentPart.RegisterCrew();
-                FlightGlobals.ActiveVessel.SpawnCrew();* /
-            }
-            //_reseatingCrew = true;
-            FreeIva.EnableInternals();*/
-
-            //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            /*if (FreeIva.InitialPart != null && FreeIva.InitialPart != FreeIva.CurrentPart)
-            {*/
-            //TransferCrewTest(ActiveKerbal, FreeIva.InitialPart, FreeIva.CurrentPart);
-            //FreeIva.InitialPart.RemoveCrewmember(ActiveKerbal); - This part kills the InternalCamera.Instance by calling internalModel.UnseatKerbal
-            /*if (FreeIva.InitialPart.protoModuleCrew.Contains(ActiveKerbal))
-            {
-                ActiveKerbal.UnregisterExperienceTraits(FreeIva.InitialPart);
-                ActiveKerbal.rosterStatus = ProtoCrewMember.RosterStatus.Available;
-                FreeIva.InitialPart.protoModuleCrew.Remove(ActiveKerbal);
-                if (FreeIva.InitialPart.internalModel)
-                {
-                    OriginalSeat.crew.seatIdx = -1;
-                    OriginalSeat.crew.seat = null;
-                    OriginalSeat.crew = null;
-                    OriginalSeat.taken = false;
-                    if (OriginalSeat.kerbalRef)
-                    {
-                        //OriginalSeat.DespawnCrew();
-                    }
-                }
-                FreeIva.CurrentPart.AddCrewmemberAt(ActiveKerbal, TargetedSeatIndex);
-            }*/
-            //OriginalSeat.kerbalRef = null;
-            //TargetedSeat.kerbalRef = ActiveKerbal.KerbalRef;
-            //FreeIva.CurrentPart.AddCrewmember(ActiveKerbal);
-            //if (ActiveKerbal.seat != null)
-            //ActiveKerbal.seat.SpawnCrew();
-            //FreeIva.InitialPart = FreeIva.CurrentPart;
-
             InternalCamera.Instance.transform.parent = ActiveKerbal.KerbalRef.eyeTransform;
-            CameraManager.Instance.SetCameraFlight();
+
             buckled = true;
-            CrewTransfer_MoveCrewTo();
-            /*}
-            else
-            {
-                SetCameraToSeat();
-                if (InternalCamera.Instance != null)
-                {
-                    // The Kerbal's eye transform is the InternalCamera's parent normally, not InternalSpace.Instance as previously thought.
-                    InternalCamera.Instance.transform.parent = ActiveKerbal.KerbalRef.eyeTransform;
-                }
-            }*/
+            MoveKerbalToSeat(ActiveKerbal, TargetedSeat);
             KerbalIva.GetComponentCached<SphereCollider>(ref KerbalCollider);
             KerbalCollider.enabled = false;
             HideCurrentKerbal(false);
@@ -481,29 +418,53 @@ namespace FreeIva
         public void ReturnToSeat()
         {
             //TargetedSeat = OriginalSeat;
-            //Buckle();
-            buckled = true;
+            Buckle();
             ScreenMessages.PostScreenMessage(ActiveKerbal.name + " returned to their seat.", 1f, ScreenMessageStyle.LOWER_CENTER);
         }
 
-        private Vector3 _initialEyePosition;
-        public void CrewTransfer_MoveCrewTo()
+        public void MoveKerbalToSeat(ProtoCrewMember crewMember, InternalSeat newSeat)
         {
-            _initialEyePosition = ActiveKerbal.KerbalRef.eyeInitialPos;
-            FreeIva.InitialPart.RemoveCrewmember(ActiveKerbal);
-            FreeIva.CurrentPart.AddCrewmemberAt(ActiveKerbal, TargetedSeatIndex);
-            GameEvents.onCrewTransferred.Fire(new GameEvents.HostedFromToAction<ProtoCrewMember, Part>(ActiveKerbal, FreeIva.InitialPart, FreeIva.CurrentPart));
-            FlightGlobals.ActiveVessel.DespawnCrew();
-            base.StartCoroutine(CallbackUtil.DelayedCallback(1, new Callback(CrewTransfer_waitAndCompleteTransfer)));
-        }
-        private void CrewTransfer_waitAndCompleteTransfer()
-        {
-            FlightGlobals.ActiveVessel.SpawnCrew();
-            ActiveKerbal.KerbalRef.eyeInitialPos = _initialEyePosition;
-            CameraManager.Instance.SetCameraIVA(ActiveKerbal.KerbalRef, false);
-            InternalCamera.Instance.transform.position += TargetedSeat.kerbalEyeOffset;
-            KerbalIva.transform.position = InternalCamera.Instance.transform.position;
-        }
+			var oldSeat = crewMember.seat;
+			var sourceModel = oldSeat.internalModel;
+			var destModel = newSeat.internalModel;
+
+			// remove the kerbal from their old seat in a non-destructive way
+			oldSeat.kerbalRef = null;
+			sourceModel.UnseatKerbalAt(oldSeat);
+
+			// transferring seats in the same part
+			if (sourceModel == destModel)
+			{
+				destModel.SitKerbalAt(crewMember, newSeat);
+			}
+			else
+			{
+				sourceModel.part.RemoveCrewmember(crewMember);
+				destModel.part.AddCrewmemberAt(crewMember, destModel.seats.IndexOf(newSeat));
+
+				GameEvents.onCrewTransferred.Fire(new GameEvents.HostedFromToAction<ProtoCrewMember, Part>(crewMember, sourceModel.part, destModel.part));
+				Vessel.CrewWasModified(sourceModel.part.vessel, destModel.part.vessel);
+			}
+
+			// this is basically InternalSeat.SpawnCrew but without creating the new kerbal (because we already have one)
+			{
+				var kerbal = crewMember.KerbalRef;
+				// Kerbal kerbal = ProtoCrewMember.Spawn(crew);
+				kerbal.transform.parent = newSeat.seatTransform;
+				kerbal.transform.localPosition = newSeat.kerbalOffset;
+				kerbal.transform.localScale = Vector3.Scale(kerbal.transform.localScale, newSeat.kerbalScale);
+				kerbal.transform.localRotation = Quaternion.identity;
+				kerbal.InPart = destModel.part;
+				kerbal.ShowHelmet(newSeat.allowCrewHelmet);
+				newSeat.kerbalRef = kerbal;
+			}
+
+			// SetCameraIVA will actually change to flight mode if called with the current kerbal and already in iva mode
+			// to prevent this, forcibly change the current camera mode (this will emit an extra mode changed event, but it should be fine)
+			CameraManager.Instance.currentCameraMode = CameraManager.CameraMode.Internal;
+			CameraManager.Instance.SetCameraIVA(crewMember.KerbalRef, false);
+			GameEvents.OnIVACameraKerbalChange.Fire(newSeat.kerbalRef);
+		}
 
         //Transform _internalCameraParent = null;
 
