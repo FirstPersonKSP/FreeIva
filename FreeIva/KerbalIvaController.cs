@@ -415,6 +415,10 @@ namespace FreeIva
         //private bool _reseatingCrew = false;
         public void Buckle()
         {
+            InternalCamera.Instance.minPitch = -30f;
+            InternalCamera.Instance.maxPitch = 60f;
+            InternalCamera.Instance.maxRot = 60f;
+
             if (TargetedSeat == null || TargetedSeatIndex == -1)
                 return;
 
@@ -525,9 +529,24 @@ namespace FreeIva
 
         //Transform _internalCameraParent = null;
 
+        float StashCameraRotationLimit(ref float limit)
+        {
+            float val = limit;
+            limit = 0;
+            return val;
+        }
+
         public void Unbuckle()
         {
             if (!buckled) return;
+
+            previousRotation = InternalCamera.Instance.transform.rotation;
+            InternalCamera.Instance.ManualReset(false);
+
+            // disable the stock game's mouse control
+            InternalCamera.Instance.minPitch = 0;
+            InternalCamera.Instance.maxPitch = 0;
+            InternalCamera.Instance.maxRot = 0;
 
             _previousPos = Vector3.zero;
             FreeIva.EnableInternals();
@@ -538,7 +557,7 @@ namespace FreeIva
             HideCurrentKerbal(true);
 
             KerbalIva.transform.position = ActiveKerbal.KerbalRef.eyeTransform.position;
-            KerbalIva.transform.rotation = ActiveKerbal.KerbalRef.eyeTransform.rotation;
+            KerbalIva.transform.rotation = previousRotation;
             // The Kerbal's eye transform is the InternalCamera's parent normally, not InternalSpace.Instance as previously thought.
             InternalCamera.Instance.transform.parent = KerbalIva.transform;
             InternalCamera.Instance.transform.localPosition = Vector3.zero;
@@ -855,7 +874,7 @@ namespace FreeIva
 
 
             KerbalIva.transform.rotation = rotRoll * rotPitch * rotYaw * previousRotation;
-            previousRotation = KerbalIva.transform.rotation;
+            previousRotation = InternalCamera.Instance.transform.rotation;
         }
 
 
@@ -942,7 +961,8 @@ namespace FreeIva
                 movementThrottle.z * Settings.ForwardSpeed);
 
             // Make the movement relative to the camera rotation.
-            Vector3 newPos = KerbalIva.transform.localPosition + (KerbalIva.transform.localRotation * movement);
+            Quaternion orientation = InternalCamera.Instance.transform.rotation;
+            Vector3 newPos = KerbalIva.transform.localPosition + (orientation * movement);
 
             //KerbalCollider.rigidbody.velocity = new Vector3(0, 0, 0);
             KerbalIva.GetComponentCached<Rigidbody>(ref KerbalRigidbody);
