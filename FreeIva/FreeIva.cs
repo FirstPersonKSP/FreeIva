@@ -364,7 +364,6 @@ namespace FreeIva
                     if (p.internalModel != null)
                     {
                         p.internalModel.SetVisible(true);
-                        PropHatch.AddPropHatches(p.internalModel);
                         //PrintInternals(p);
                     }
                 }

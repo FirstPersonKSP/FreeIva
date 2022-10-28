@@ -20,41 +20,14 @@ namespace FreeIva
         }
 
         public InternalProp ClosedProp;
-        private MeshRenderer _closedRenderer = null;
-        public MeshRenderer ClosedRenderer
-        {
-            get
-            {
-                if (_closedRenderer == null && ClosedProp != null)
-                {
-                    Debug.Log("# Getting ClosedRenderer...");
-                    _closedRenderer = ClosedProp.GetComponentInChildren<MeshRenderer>();
-                }
-                return _closedRenderer;
-            }
-        }
-
         public InternalProp OpenProp;
-        private MeshRenderer _openRenderer = null;
-        public MeshRenderer OpenRenderer
-        {
-            get
-            {
-                if (_openRenderer == null && OpenProp != null)
-                {
-                    Debug.Log("# Getting OpenRenderer...");
-                    _openRenderer = OpenProp.GetComponentInChildren<MeshRenderer>();
-                }
-                return _openRenderer;
-            }
-        }
 
         public override bool IsOpen
         {
             get
             {
-                if (ClosedRenderer != null)
-                    return !ClosedRenderer.enabled;
+                if (ClosedProp != null)
+                    return !ClosedProp.isActiveAndEnabled;
                 else
                     return false;
             }
@@ -144,8 +117,7 @@ namespace FreeIva
             {
                 Debug.LogError($"[FreeIVA] Prop at closedPropIndex {ClosedPropIndex} didn't match expected closedPropName {ClosedPropName}.");
             }
-            MeshRenderer mrC = closedHatch.GetComponentInChildren<MeshRenderer>();
-            mrC.enabled = true;
+
             ClosedProp = closedHatch;
 
             InternalProp openHatch = PartLoader.GetInternalProp(this.OpenPropName);
@@ -163,32 +135,28 @@ namespace FreeIva
                 this.Part.internalModel.props.Add(openHatch);
                 openHatch.transform.rotation = this.Rotation;
                 openHatch.transform.localPosition = this.LocalPosition;
-                MeshRenderer[] mrO = openHatch.GetComponentsInChildren<MeshRenderer>();
-                if (mrO != null && mrO.Length > 0)
-                {
-                    mrO[0].enabled = false;
-                }
                 OpenProp = openHatch;
+				OpenProp.gameObject.SetActive(false);
             }
         }
 
         public override void Open(bool open)
         {
-            if (ClosedRenderer != null)
+            if (ClosedProp != null)
             {
-                ClosedRenderer.enabled = !open;
+				ClosedProp.gameObject.SetActive(!open);
             }
             else
             {
-                Debug.Log("# ClosedRenderer was null");
+                Debug.Log("# ClosedProp was null");
             }
-            if (OpenRenderer != null)
+            if (OpenProp != null)
             {
-                OpenRenderer.enabled = open;
+                OpenProp.gameObject.SetActive(open);
             }
             else
             {
-                Debug.Log("# OpenRenderer was null");
+                Debug.Log("# OpenProp was null");
             }
             HideOnOpen(open);
             FreeIva.SetRenderQueues(FreeIva.CurrentPart);
@@ -209,44 +177,6 @@ namespace FreeIva
         }
 
         public static List<PropHatch> PropHatches = new List<PropHatch>();
-
-        // Can be safely called multiple times for the same part.
-        public static void AddPropHatches(InternalModel internalModel)
-        {
-            Debug.Log("# Adding prop hatch for " + internalModel.part);
-
-            if (internalModel == null)
-            {
-                Debug.LogWarning("Unable to create prop hatches: internal model was null");
-                return;
-            }
-
-            int propCount = internalModel.props.Count; // This list will be added to in the loop below.
-            for (int i = 0; i < propCount; i++)
-            {
-                InternalProp prop = internalModel.props[i];
-                if (prop.name == "Hatch_Plane" && !HatchInitialised(prop)) // TODO: Generalise this.
-                {
-                    Debug.Log("# Found Hatch_Plane");
-                    InternalProp openHatch = PartLoader.GetInternalProp("Hatch_Plane_Frame");
-                    openHatch.propID = FreeIva.CurrentPart.internalModel.props.Count;
-                    openHatch.internalModel = FreeIva.CurrentPart.internalModel;
-                    //openHatch.get_transform().set_parent(base.get_transform()); TODO: Set parent
-                    openHatch.hasModel = true;
-                    internalModel.props.Add(openHatch);
-                    openHatch.transform.rotation = prop.transform.rotation;
-                    openHatch.transform.position = prop.transform.position;
-
-                    MeshRenderer mr = openHatch.GetComponentInChildren<MeshRenderer>();
-                    mr.enabled = false;
-
-                    PropHatch propHatch = new PropHatch();
-                    propHatch.ClosedProp = prop;
-                    propHatch.OpenProp = openHatch;
-                    PropHatches.Add(propHatch);
-                }
-            }
-        }
 
         private static bool HatchInitialised(InternalProp prop)
         {
