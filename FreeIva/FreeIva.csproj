@@ -121,6 +121,9 @@
     <Compile Include="Utils.cs" />
     <Compile Include="Experimental\WorldCollisionTracker.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include=".editorconfig" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y $(TargetDir)$(TargetName).* $(SolutionDir)GameData\$(ProjectName)\Plugins\$(TargetName).*</PostBuildEvent>
