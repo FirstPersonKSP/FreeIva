@@ -88,6 +88,9 @@ namespace FreeIva
             Settings.LoadSettings();
             OnIvaPartChanged.Add(IvaPartChanged);
             SetRenderQueues(FlightGlobals.ActiveVessel.rootPart);
+
+			Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.InternalSpace);
+			Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.Kerbals, false);
         }
 
         public static bool Paused = false;

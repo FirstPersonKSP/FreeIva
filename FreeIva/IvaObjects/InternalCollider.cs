@@ -147,7 +147,7 @@ namespace FreeIva
 
             if (p.internalModel != null)
                 IvaGameObject.transform.parent = p.internalModel.transform;
-            IvaGameObject.SetLayerRecursive((int)Layers.InternalSpace);
+            IvaGameObject.SetLayerRecursive((int)Layers.Kerbals);
             IvaGameObject.transform.localScale = scale;
             IvaGameObject.transform.localPosition = localPosition;
             IvaGameObject.transform.localRotation = rotation;

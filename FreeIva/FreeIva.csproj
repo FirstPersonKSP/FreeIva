@@ -91,6 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Experimental\ColliderManipulator.cs" />
+    <Compile Include="FreeIvaInternalCameraSwitch.cs" />
     <Compile Include="Gui\DrawLine.cs" />
     <Compile Include="Gui\GuiManager.cs" />
     <Compile Include="IvaObjects\Hatches\IHatch.cs" />
