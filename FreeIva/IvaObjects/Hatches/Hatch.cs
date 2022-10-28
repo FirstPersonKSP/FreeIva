@@ -18,6 +18,9 @@ namespace FreeIva
         [KSPField]
         public string hatchCloseSoundFile = "FreeIva/Sounds/HatchClose";
 
+        [KSPField]
+        public string handleTransformName = string.Empty;
+
         // ----- the following fields are set via PropHatchConfig, so that they can be different per placement of the prop
 
         // The name of the part attach node this hatch is positioned on, as defined in the part.cfg's "node definitions".
@@ -83,7 +86,22 @@ namespace FreeIva
             HatchOpenSound = SetupAudio(hatchOpenSoundFile);
             HatchCloseSound = SetupAudio(hatchCloseSoundFile);
 
+            if (handleTransformName != string.Empty)
+            {
+                var handleTransform = internalProp.FindModelTransform(handleTransformName);
+                if (handleTransform != null)
+                {
+                    var clickWatcher = handleTransform.gameObject.AddComponent<ClickWatcher>();
+                    clickWatcher.AddMouseDownAction(OnHandleClick);
+                }
+            }
+
             part.GetComponent<ModuleFreeIva>().Hatches.Add(this);
+        }
+
+        private void OnHandleClick()
+        {
+            ToggleHatch();
         }
 
         private void GetConnectedHatch()
