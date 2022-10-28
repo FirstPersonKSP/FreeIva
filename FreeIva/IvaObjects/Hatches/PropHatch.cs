@@ -136,7 +136,7 @@ namespace FreeIva
                 openHatch.transform.rotation = this.Rotation;
                 openHatch.transform.localPosition = this.LocalPosition;
                 OpenProp = openHatch;
-				OpenProp.gameObject.SetActive(false);
+                OpenProp.gameObject.SetActive(false);
             }
         }
 
@@ -144,7 +144,7 @@ namespace FreeIva
         {
             if (ClosedProp != null)
             {
-				ClosedProp.gameObject.SetActive(!open);
+                ClosedProp.gameObject.SetActive(!open);
             }
             else
             {
