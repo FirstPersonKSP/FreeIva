@@ -205,7 +205,7 @@ namespace FreeIva
         {
             string nodeName;
             string prefix = @"node_stack_";
-            if (attachNodeId.StartsWith(prefix))
+            if (attachNodeId != null && attachNodeId.StartsWith(prefix))
             {
                 nodeName = attachNodeId.Substring(prefix.Length, attachNodeId.Length - prefix.Length);
             }
