@@ -36,7 +36,7 @@ namespace FreeIva
                 c.Instantiate(part);
 
             // Instantiate internal colliders first as hatches will be instantiating their own colliders.
-            foreach (Hatch h in Hatches)
+            foreach (IHatch h in Hatches)
                 h.Instantiate(part);
 
             if (CopyPartCollidersToInternalColliders)
@@ -59,20 +59,6 @@ namespace FreeIva
                 PersistenceManager.instance.AddHatches(part.name, Hatches);
             }
             Debug.Log("# Hatches loaded from config for part " + part.name + ": " + Hatches.Count);
-
-            if (node.HasNode("PropHatch"))
-            {
-                ConfigNode[] propHatchNodes = node.GetNodes("PropHatch");
-                foreach (var phn in propHatchNodes)
-                {
-                    PropHatch ph = PropHatch.LoadPropHatchFromCfg(phn);
-                    if (ph != null)
-                    {
-                        Hatches.Add(ph);
-                    }
-                }
-                PersistenceManager.instance.AddHatches(part.name, Hatches);
-            }
 
             if (node.HasNode("MeshHatch"))
             {

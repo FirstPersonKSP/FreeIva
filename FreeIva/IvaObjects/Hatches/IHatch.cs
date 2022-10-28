@@ -16,6 +16,8 @@ namespace FreeIva
         string HatchOpenSoundFile { get; set;  }
         string HatchCloseSoundFile { get; set; }
 
+        void Instantiate(Part part);
+
         IHatch Clone();
         void Open(bool open);
         void ToggleHatch();

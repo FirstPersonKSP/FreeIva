@@ -6,7 +6,7 @@ namespace FreeIva
     /// Base class for IVA objects created by FreeIVA.
     /// </summary>
     /// TODO: Rename to IvaObjectBase
-    public class IvaObject : IIvaObject
+    public class IvaObject : ScriptableObject, IIvaObject
     {
         public string Name { get; set; }
 
