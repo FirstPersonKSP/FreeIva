@@ -157,9 +157,54 @@ namespace FreeIva
             }
         }
 
+		// since props aren't usually directly associated with InternalSeats, we have to search for a seat that is near this prop
+		// only consider seats within this range
+		static float MaxRangeFromProp = 2f;
+
+		// how far away the kerbal can be from the seat transform to board it when clicking
+		static float MaxRangeFromKerbal = 1f;
+
+		InternalSeat FindClosestSeat(InternalModel model, Vector3 position)
+		{
+			float bestDist = MaxRangeFromProp;
+			InternalSeat result = null;
+			foreach (var seat in model.seats)
+			{
+				float dist = Vector3.Distance(seat.seatTransform.position, position);
+				if (dist < bestDist)
+				{
+					bestDist = dist;
+					result = seat;
+				}
+			}
+
+			return result;
+		}
+
         private void OnClick()
         {
-            KerbalIvaController.Instance.Unbuckle();
+			if (KerbalIvaController.Instance.buckled)
+			{
+				// TODO: what if this buckle is on a different seat than the one you're in?
+				KerbalIvaController.Instance.Unbuckle();
+			}
+			else
+			{
+				var seat = FindClosestSeat(internalModel, internalProp.transform.position);
+				if (seat != null)
+				{
+					Vector3 seatEyePosition = seat.seatTransform.position + seat.seatTransform.rotation * seat.kerbalEyeOffset;
+					float distanceFromKerbal = Vector3.Distance(InternalCamera.Instance.transform.position, seatEyePosition);
+
+					Debug.Log("[FreeIva] PropBuckleButton clicked while unbuckled; distance = " + distanceFromKerbal.ToString());
+
+					if (distanceFromKerbal < MaxRangeFromKerbal)
+					{
+						KerbalIvaController.Instance.TargetedSeat = seat;
+						KerbalIvaController.Instance.Buckle();
+					}
+				}
+			}
         }
     }
 }

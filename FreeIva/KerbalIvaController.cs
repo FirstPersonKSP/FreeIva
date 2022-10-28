@@ -45,7 +45,6 @@ namespace FreeIva
         public static ProtoCrewMember ActiveKerbal;
         public InternalSeat OriginalSeat = null;
         public InternalSeat TargetedSeat = null;
-        public int TargetedSeatIndex = -1;
         public static bool Gravity = false;
 #if Experimental
         public static bool CanHoldItems = false;
@@ -397,10 +396,10 @@ namespace FreeIva
         //private bool _reseatingCrew = false;
         public void Buckle()
         {
-            if (TargetedSeat == null || TargetedSeatIndex == -1)
+            if (TargetedSeat == null)
                 return;
 
-            Debug.Log(ActiveKerbal.name + " is entering seat " + TargetedSeat.transform.name + " at index " + TargetedSeatIndex + " in part " + FreeIva.CurrentPart);
+            Debug.Log(ActiveKerbal.name + " is entering seat " + TargetedSeat.transform.name + " in part " + FreeIva.CurrentPart);
 
             InternalCamera.Instance.transform.parent = ActiveKerbal.KerbalRef.eyeTransform;
 
@@ -626,7 +625,6 @@ namespace FreeIva
         {
             float closestDistance = Settings.MaxInteractDistance;
             TargetedSeat = null;
-            TargetedSeatIndex = -1;
             if (FreeIva.CurrentPart.internalModel == null)
                 return;
 
@@ -645,7 +643,6 @@ namespace FreeIva
                     if (distance < closestDistance)
                     {
                         TargetedSeat = FreeIva.CurrentPart.internalModel.seats[i];
-                        TargetedSeatIndex = i;
                         closestDistance = distance;
                     }
                 }
