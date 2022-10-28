@@ -92,25 +92,26 @@ namespace FreeIva
 
         public override void OnLoad(ConfigNode node)
         {
-            List<KeyValuePair<Vector3, string>> hideWhenOpen = null;
+            Hatch.ObjectsToHide objectsToHide = null;
 
             if (node.HasNode("HideWhenOpen"))
             {
-                hideWhenOpen = new List<KeyValuePair<Vector3, string>>();
+                objectsToHide = ScriptableObject.CreateInstance<Hatch.ObjectsToHide>();
                 ConfigNode[] hideNodes = node.GetNodes("HideWhenOpen");
                 foreach (var hideNode in hideNodes)
                 {
-                    string propName = hideNode.GetValue("name");
-                    if (propName == null)
+                    Hatch.ObjectToHide objectToHide = new Hatch.ObjectToHide();
+
+                    objectToHide.name = hideNode.GetValue("name");
+                    if (objectToHide.name == null)
                     {
                         Debug.LogWarning("[FreeIVA] HideWhenOpen name not found.");
                         continue;
                     }
                     
-                    Vector3 propPos = Vector3.zero;
-                    if (hideNode.TryGetValue("position", ref propPos))
+                    if (hideNode.TryGetValue("position", ref objectToHide.position))
                     {
-                        hideWhenOpen.Add(new KeyValuePair<Vector3, string>(propPos, propName));
+                        objectsToHide.objects.Add(objectToHide);
                     }
                     else
                     {
@@ -124,10 +125,7 @@ namespace FreeIva
             if (propHatch != null)
             {
                 propHatch.attachNodeId = attachNodeId;
-                if (hideWhenOpen != null)
-                {
-                    propHatch.HideWhenOpen = hideWhenOpen;
-                }
+                propHatch.HideWhenOpen = objectsToHide;
             }
         }
     }

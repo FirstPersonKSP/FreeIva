@@ -23,7 +23,21 @@ namespace FreeIva
         // The name of the part attach node this hatch is positioned on, as defined in the part.cfg's "node definitions".
         // e.g. node_stack_top
         public string attachNodeId;
-        public List<KeyValuePair<Vector3, string>> HideWhenOpen { get; set; } = new List<KeyValuePair<Vector3, string>>();
+        
+        [SerializeReference]
+        public ObjectsToHide HideWhenOpen;
+
+        [Serializable]
+        public struct ObjectToHide
+        {
+            public string name;
+            public Vector3 position;
+        }
+
+        public class ObjectsToHide : ScriptableObject
+        {
+            public List<ObjectToHide> objects = new List<ObjectToHide>();
+        }
 
         // -----
 
@@ -157,21 +171,31 @@ namespace FreeIva
 
         public virtual void HideOnOpen(bool open)
         {
+            if (HideWhenOpen == null) return;
+
             MeshRenderer[] meshRenderers = internalModel.GetComponentsInChildren<MeshRenderer>();
-            foreach (var hideProp in HideWhenOpen)
+            foreach (var hideProp in HideWhenOpen.objects)
             {
+                bool found = false;
+
                 foreach (MeshRenderer mr in meshRenderers)
                 {
-                    if (mr.name.Equals(hideProp.Value) && mr.transform != null)
+                    if (mr.name.Equals(hideProp.name) && mr.transform != null)
                     {
-                        float error = Vector3.Distance(mr.transform.localPosition, hideProp.Key);
+                        float error = Vector3.Distance(mr.transform.localPosition, hideProp.position);
                         if (error < 0.15)
                         {
                             Debug.Log("# Toggling " + mr.name);
                             mr.enabled = !open;
+                            found = true;
                             break;
                         }
                     }
+                }
+
+                if (!found)
+                {
+                    Debug.LogError($"[FreeIva] HideWhenOpen - could not find meshrenderer named {hideProp.name} in model {internalModel.internalName}");
                 }
             }
         }
