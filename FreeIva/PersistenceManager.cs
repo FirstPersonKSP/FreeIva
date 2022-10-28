@@ -12,7 +12,7 @@ namespace FreeIva
     {
         public static PersistenceManager instance { get; private set; }
 
-        private static Dictionary<string, List<IHatch>> _hatches = new Dictionary<string, List<IHatch>>();
+        private static Dictionary<string, List<Hatch>> _hatches = new Dictionary<string, List<Hatch>>();
         private static Dictionary<string, List<InternalCollider>> _internalColliderTemplates = new Dictionary<string, List<InternalCollider>>();
         private static Dictionary<Type, Dictionary<string, ConfigNode>> nodes = new Dictionary<Type, Dictionary<string, ConfigNode>>();
 
@@ -22,7 +22,7 @@ namespace FreeIva
             DontDestroyOnLoad(this);
         }
 
-        public void AddHatches(string partName, List<IHatch> hatches)
+        public void AddHatches(string partName, List<Hatch> hatches)
         {
             if (!_hatches.ContainsKey(partName))
             {
@@ -48,25 +48,6 @@ namespace FreeIva
                 Debug.Log("# NOT adding duplicate " + colliders.Count + " internal colldier for part " + partName);
                 Debug.Log("# Dictionary entries: " + _internalColliderTemplates.Count());
             }
-        }
-
-        public List<IHatch> GetHatchesForPartInstance(string partName)
-        {
-            //string n = partName.Replace("(Clone)", String.Empty);
-            List<IHatch> hatchTemplates;
-            if (_hatches.TryGetValue(partName, out hatchTemplates))
-            {
-                Debug.Log("# Hatch FOUND for part " + partName);
-                var hatchInstances = new List<IHatch>();
-                foreach (var hatchTemplate in hatchTemplates)
-                {
-                    hatchInstances.Add(hatchTemplate.Clone());
-                }
-                return hatchInstances;
-            }
-            else
-                Debug.Log("# Hatch not found in dictionary for part " + partName);
-            return new List<IHatch>();
         }
 
         public List<InternalCollider> GetCollidersForPartInstance(string partName)

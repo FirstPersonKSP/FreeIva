@@ -4,7 +4,10 @@ using UnityEngine;
 
 namespace FreeIva
 {
-    public class PropHatch : InternalModule
+    /// <summary>
+    /// A module that can be placed on a hatch prop.  Swaps that prop with an 'opened' version when opened
+    /// </summary>
+    public class PropHatch : Hatch
     {
         [KSPField]
         public string openPropName = string.Empty;
@@ -18,122 +21,38 @@ namespace FreeIva
         [KSPField]
         public Vector3 rotation = Vector3.zero; // as euler angles
 
-        [KSPField]
-        public string HatchOpenSoundFile = string.Empty;
-
-        [KSPField]
-        public string HatchCloseSoundFile = string.Empty;
-
-        // these fields are populated by PropHatchConfig, per-placement
-        public string attachNodeId;
-        public List<KeyValuePair<Vector3, string>> HideWhenOpen;
-
-        PropHatchInstance hatchInstance;
-
-        public void Start()
-        {
-            if (HighLogic.LoadedSceneIsFlight)
-            {
-                hatchInstance = PropHatchInstance.Create(this);
-                part.GetComponent<ModuleFreeIva>().Hatches.Add(hatchInstance);
-            }
-        }
-    }
-
-    /// <summary>
-    /// A hatch which is based on one or more IVA prop objects. Assumes the prop for the hatch in the closed state is already present.
-    /// </summary>
-    public class PropHatchInstance : Hatch
-    {
-        public static PropHatchInstance Create(PropHatch propHatch)
-        {
-            var hatchInstance = ScriptableObject.CreateInstance<PropHatchInstance>();
-            hatchInstance.Instantiate(propHatch);
-            return hatchInstance;
-        }
-
-        private PropHatch _propHatch;
-
-        public override Vector3 WorldPosition
-        {
-            get
-            {
-                if (ClosedProp != null)
-                    return ClosedProp.transform.position;
-                return Vector3.zero;
-            }
-        }
-
-        public InternalProp ClosedProp => _propHatch.internalProp;
+        public InternalProp ClosedProp => internalProp;
         public InternalProp OpenProp;
 
-        public override bool IsOpen
+        public new void Start()
         {
-            get
-            {
-                if (ClosedProp != null)
-                    return !ClosedProp.isActiveAndEnabled;
-                else
-                    return false;
-            }
-        }
+            if (!HighLogic.LoadedSceneIsFlight) return;
 
-        public override void Instantiate(Part p)
-        {
-            throw new InvalidOperationException("PropHatch can't be instantiaed");
-        }
-
-        private void Instantiate(PropHatch propHatch)
-        {
-            _propHatch = propHatch;
-
-            if (propHatch.HideWhenOpen != null)
-            {
-                HideWhenOpen = propHatch.HideWhenOpen;
-            }
-
-            AttachNodeId = propHatch.attachNodeId;
-
-            Part = propHatch.part;
-            Debug.Log("# Instantiating prop hatch for part " + Part);
-            if (IvaGameObject != null)
-            {
-                Debug.LogError("[FreeIVA] Hatch has already been instantiated.");
-                return;
-            }
+            base.Start();
 
             CreateOpenProp();
-            IvaGameObject = ClosedProp.gameObject;
-
-            SetupAudio();
         }
 
-        public override IHatch Clone()
-        {
-            throw new InvalidOperationException("PropHatch can't be cloned");
-        }
-
-        // Find the prop in the IVA. If not present, spawn it.
         private void CreateOpenProp()
         {
-            if (string.IsNullOrEmpty(_propHatch.openPropName)) return;
+            if (string.IsNullOrEmpty(openPropName)) return;
 
-            OpenProp = PartLoader.GetInternalProp(_propHatch.openPropName);
+            OpenProp = PartLoader.GetInternalProp(openPropName);
             if (OpenProp == null)
             {
-                Debug.LogError("[FreeIVA] Unable to load open prop hatch \"" + _propHatch.openPropName + "\" in part " + this.Part.name);
+                Debug.LogError("[FreeIVA] Unable to load open prop hatch \"" + openPropName + "\" in part " + part.name);
             }
             else
             {
-                Debug.Log("# Adding PropHatch to part " + this.Part.name);
+                Debug.Log("# Adding PropHatch to part " + part.name);
                 OpenProp.propID = FreeIva.CurrentPart.internalModel.props.Count;
-                OpenProp.internalModel = this.Part.internalModel;
-                OpenProp.transform.parent = this.Part.internalModel.transform;
+                OpenProp.internalModel = part.internalModel;
+                OpenProp.transform.parent = part.internalModel.transform;
                 OpenProp.hasModel = true;
-                this.Part.internalModel.props.Add(OpenProp);
-                OpenProp.transform.rotation = _propHatch.transform.rotation * Quaternion.Euler(_propHatch.rotation);
-                OpenProp.transform.position = _propHatch.transform.position + _propHatch.transform.rotation * _propHatch.position;
-                OpenProp.transform.localScale = _propHatch.scale;
+                part.internalModel.props.Add(OpenProp);
+                OpenProp.transform.rotation = transform.rotation * Quaternion.Euler(rotation);
+                OpenProp.transform.position = transform.position + transform.rotation * position;
+                OpenProp.transform.localScale = scale;
                 OpenProp.gameObject.SetActive(false);
             }
         }
@@ -156,19 +75,8 @@ namespace FreeIva
             {
                 Debug.Log("# OpenProp was null");
             }
-            HideOnOpen(open);
-            FreeIva.SetRenderQueues(FreeIva.CurrentPart);
 
-            if (open)
-            {
-                if (HatchOpenSound != null && HatchOpenSound.audio != null)
-                    HatchOpenSound.audio.Play();
-            }
-            else
-            {
-                if (HatchCloseSound != null && HatchCloseSound.audio != null)
-                    HatchCloseSound.audio.Play();
-            }
+            base.Open(open);
         }
     }
 
@@ -207,11 +115,14 @@ namespace FreeIva
             }
 
             base.OnLoad(node);
-            var propHatch = GetComponent<PropHatch>();
+            var propHatch = GetComponent<Hatch>();
             if (propHatch != null)
             {
                 propHatch.attachNodeId = attachNodeId;
-                propHatch.HideWhenOpen = hideWhenOpen;
+                if (hideWhenOpen != null)
+                {
+                    propHatch.HideWhenOpen = hideWhenOpen;
+                }
             }
         }
     }

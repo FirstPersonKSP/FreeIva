@@ -94,8 +94,6 @@
     <Compile Include="FreeIvaInternalCameraSwitch.cs" />
     <Compile Include="Gui\DrawLine.cs" />
     <Compile Include="Gui\GuiManager.cs" />
-    <Compile Include="IvaObjects\Hatches\IHatch.cs" />
-    <Compile Include="IvaObjects\Hatches\MeshHatch.cs" />
     <Compile Include="HideInternalMesh.cs" />
     <Compile Include="ClickWatcher.cs" />
     <Compile Include="IvaObjects\IIvaObject.cs" />

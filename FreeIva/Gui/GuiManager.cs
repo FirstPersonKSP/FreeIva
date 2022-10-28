@@ -388,7 +388,7 @@ namespace FreeIva
             if (_hatchIndex < 0)
                 _hatchIndex = FreeIva.CurrentModuleFreeIva.Hatches.Count - 1;
             GuiUtils.label("Current Hatch", _hatchIndex + 1);
-            IHatch h = FreeIva.CurrentModuleFreeIva.Hatches[_hatchIndex];
+            Hatch h = FreeIva.CurrentModuleFreeIva.Hatches[_hatchIndex];
             GuiUtils.label("Hatch (" + (_hatchIndex + 1) + "/" + FreeIva.CurrentModuleFreeIva.Hatches.Count + ")", h);
 
             GUILayout.Label("<b>Hatch</b>");
@@ -397,14 +397,14 @@ namespace FreeIva
             openHatch = GUILayout.Toggle(openHatch, "Open");
             if (h.IsOpen != openHatch)
                 h.Open(openHatch);
-            PositionIvaObject(h);
+            // PositionIvaObject(h.gameObject);
             GUILayout.EndVertical();
 
             float distance = Vector3.Distance(h.WorldPosition, InternalCamera.Instance.transform.position);
             GUILayout.Label(distance.ToString());
 
             if (GUILayout.Button("Select current hatch"))
-                FreeIva.SelectedObject = h.IvaGameObject;
+                FreeIva.SelectedObject = h.gameObject;
         }
 
 #if Experimental
