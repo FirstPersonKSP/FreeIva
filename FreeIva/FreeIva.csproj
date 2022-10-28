@@ -96,6 +96,7 @@
     <Compile Include="Gui\GuiManager.cs" />
     <Compile Include="HideInternalMesh.cs" />
     <Compile Include="ClickWatcher.cs" />
+    <Compile Include="IvaObjects\DepthMask.cs" />
     <Compile Include="IvaObjects\IIvaObject.cs" />
     <Compile Include="Experimental\InteractionCollider.cs" />
     <Compile Include="Experimental\InteractiveIvaProp.cs" />

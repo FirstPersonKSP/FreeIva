@@ -47,12 +47,16 @@ namespace FreeIva
                 Debug.Log("# Adding PropHatch to part " + part.name);
                 OpenProp.propID = FreeIva.CurrentPart.internalModel.props.Count;
                 OpenProp.internalModel = part.internalModel;
-                OpenProp.transform.parent = part.internalModel.transform;
+                
+                // position the prop relative to this one, then attach it to the internal model
+                OpenProp.transform.SetParent(transform, false);
+                OpenProp.transform.localRotation = Quaternion.Euler(rotation);
+                OpenProp.transform.localPosition = position;
+                OpenProp.transform.localScale = scale;
+                OpenProp.transform.SetParent(internalModel.transform, true);
+                
                 OpenProp.hasModel = true;
                 part.internalModel.props.Add(OpenProp);
-                OpenProp.transform.rotation = transform.rotation * Quaternion.Euler(rotation);
-                OpenProp.transform.position = transform.position + transform.rotation * position;
-                OpenProp.transform.localScale = scale;
                 OpenProp.gameObject.SetActive(false);
             }
         }
@@ -92,6 +96,7 @@ namespace FreeIva
 
             if (node.HasNode("HideWhenOpen"))
             {
+                hideWhenOpen = new List<KeyValuePair<Vector3, string>>();
                 ConfigNode[] hideNodes = node.GetNodes("HideWhenOpen");
                 foreach (var hideNode in hideNodes)
                 {

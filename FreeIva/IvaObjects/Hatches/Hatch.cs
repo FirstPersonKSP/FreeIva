@@ -6,7 +6,7 @@ namespace FreeIva
 {
     /// <summary>
     /// Base class for hatches (points where kerbals can exit or enter a part during IVA).
-    /// Manages attachment node, audio, and the depth mask
+    /// Manages attachment node, audio, and connections to other hatches
     /// </summary>
     public abstract class Hatch : InternalModule
     {
@@ -17,9 +17,6 @@ namespace FreeIva
 
         [KSPField]
         public string hatchCloseSoundFile = "FreeIva/Sounds/HatchClose";
-
-        [KSPField]
-        public string depthMaskTransformName = string.Empty;
 
         // ----- the following fields are set via PropHatchConfig, so that they can be different per placement of the prop
 
@@ -59,7 +56,6 @@ namespace FreeIva
 
         public FXGroup HatchOpenSound = null;
         public FXGroup HatchCloseSound = null;
-        private Renderer _depthMaskRenderer = null;
 
         public bool IsOpen { get; private set; }
 
@@ -68,33 +64,6 @@ namespace FreeIva
             if (!HighLogic.LoadedSceneIsFlight) return;
 
             Debug.Log($"# Creating hatch {internalProp.propName} for part {part.partName}");
-
-            if (!string.IsNullOrEmpty(depthMaskTransformName))
-            {
-                var depthMaskTransform = internalProp.FindModelTransform(depthMaskTransformName);
-
-                if (depthMaskTransform != null)
-                {
-                    // if this is part of a prop, disconnect the depth mask object from the prop and attach it to the internal model instead,
-                    // so that we can disable the prop and keep the depth mask object visible
-                    if (internalProp.hasModel)
-                    {
-                        depthMaskTransform.SetParent(internalModel.transform, true);
-                    }
-
-                    _depthMaskRenderer = depthMaskTransform.GetComponentInChildren<Renderer>();
-
-                    Shader depthMask = Utils.GetDepthMask();
-                    if (depthMask != null)
-                        _depthMaskRenderer.material.shader = depthMask;
-                    _depthMaskRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                    _depthMaskRenderer.enabled = false;
-                }
-                else
-                {
-                    Debug.LogError($"[FreeIVA] unable to find transform {depthMaskTransformName} for prop {internalProp.propName} in {internalModel.internalName}");
-                }
-            }
             
             HatchOpenSound = SetupAudio(hatchOpenSoundFile);
             HatchCloseSound = SetupAudio(hatchCloseSoundFile);
@@ -175,11 +144,6 @@ namespace FreeIva
         {
             HideOnOpen(open);
             FreeIva.SetRenderQueues(FreeIva.CurrentPart);
-
-            if (_depthMaskRenderer != null)
-            {
-                _depthMaskRenderer.gameObject.SetActive(open);
-            }
 
             if (open != IsOpen)
             {
