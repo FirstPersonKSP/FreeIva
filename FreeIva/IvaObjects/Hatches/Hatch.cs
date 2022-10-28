@@ -34,6 +34,7 @@ namespace FreeIva
             public Vector3 position;
         }
 
+        // this bullshit brought to you by the Unity serialization system
         public class ObjectsToHide : ScriptableObject
         {
             public List<ObjectToHide> objects = new List<ObjectToHide>();

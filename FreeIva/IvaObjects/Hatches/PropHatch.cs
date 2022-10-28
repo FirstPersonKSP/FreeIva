@@ -13,13 +13,13 @@ namespace FreeIva
         public string openPropName = string.Empty;
 
         [KSPField]
-        public Vector3 position = Vector3.zero;
+        public Vector3 openPropPosition = Vector3.zero;
 
         [KSPField]
-        public Vector3 scale = Vector3.one;
+        public Vector3 openPropScale = Vector3.one;
 
         [KSPField]
-        public Vector3 rotation = Vector3.zero; // as euler angles
+        public Vector3 openPropRotation = Vector3.zero; // as euler angles
 
         public InternalProp ClosedProp => internalProp;
         public InternalProp OpenProp;
@@ -50,9 +50,9 @@ namespace FreeIva
                 
                 // position the prop relative to this one, then attach it to the internal model
                 OpenProp.transform.SetParent(transform, false);
-                OpenProp.transform.localRotation = Quaternion.Euler(rotation);
-                OpenProp.transform.localPosition = position;
-                OpenProp.transform.localScale = scale;
+                OpenProp.transform.localRotation = Quaternion.Euler(openPropRotation);
+                OpenProp.transform.localPosition = openPropPosition;
+                OpenProp.transform.localScale = openPropScale;
                 OpenProp.transform.SetParent(internalModel.transform, true);
                 
                 OpenProp.hasModel = true;
