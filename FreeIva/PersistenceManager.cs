@@ -73,13 +73,13 @@ namespace FreeIva
         {
             if (!_cuts.ContainsKey(partName))
             {
-                Debug.Log("[FreeIVA] Adding " + cuts.Count + " hatches for part " + partName);
+                Debug.Log("[FreeIVA] Adding " + cuts.Count + " cuts for part " + partName);
                 _cuts.Add(partName, cuts);
             }
             else
             {
-                Debug.Log("# NOT adding duplicate " + cuts.Count + " hatches for part " + partName);
-                Debug.Log("# Dictionary entries: " + _cuts.Count());
+                Debug.Log("[FreeIVA] NOT adding duplicate " + cuts.Count + " cuts for part " + partName);
+                Debug.Log("[FreeIVA] Dictionary entries: " + _cuts.Count());
             }
         }
 
@@ -88,7 +88,7 @@ namespace FreeIva
             List<CutParameter> cutTemplates;
             if (_cuts.TryGetValue(partName, out cutTemplates))
             {
-                Debug.Log("# Hatch FOUND for part " + partName);
+                Debug.Log("[FreeIVA] Cut FOUND for part " + partName);
                 List<CutParameter> cutInstances = new List<CutParameter>();
                 foreach (CutParameter cutTemplate in cutTemplates)
                 {
@@ -97,7 +97,7 @@ namespace FreeIva
                 return cutInstances;
             }
             else
-                Debug.Log("# Cuts not found in dictionary for part " + partName);
+                Debug.Log("[FreeIVA] Cuts not found in dictionary for part " + partName);
             return new List<CutParameter>();
         }
 
