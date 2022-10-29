@@ -40,7 +40,7 @@ namespace FreeIva
                 return;
             }
 
-            meshRenderers[meshIndex].enabled = false;
+            Component.Destroy(meshRenderers[meshIndex]);
         }
     }
 }
