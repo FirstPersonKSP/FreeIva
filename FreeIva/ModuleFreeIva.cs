@@ -1,5 +1,4 @@
-﻿using FreeIva.Hatches;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace FreeIva
@@ -12,7 +11,7 @@ namespace FreeIva
         [KSPField]
         public bool CopyPartCollidersToInternalColliders = false;
 
-        public List<IHatch> Hatches = new List<IHatch>();
+        public List<Hatch> Hatches = new List<Hatch>(); // hatches will register themselves with us
         public List<InternalCollider> InternalColliders = new List<InternalCollider>();
         public List<Collider> PartInternalColliders = new List<Collider>();
         public List<GameObject> PartInternalColliderObjects = new List<GameObject>();
@@ -23,9 +22,8 @@ namespace FreeIva
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT) return;
 
-            Hatches = new List<IHatch>(PersistenceManager.instance.GetHatchesForPartInstance(part.partInfo.name));
             InternalColliders = new List<InternalCollider>(PersistenceManager.instance.GetCollidersForPartInstance(part.partInfo.name));
-            Cuts = new List<CutParameter>(PersistenceManager.instance.GetCutParametersFroPartInstance(part.partInfo.name));
+            Cuts = new List<CutParameter>(PersistenceManager.instance.GetCutParametersForPartInstance(part.partInfo.name));
         }
 
         public void Start()
@@ -37,10 +35,6 @@ namespace FreeIva
             foreach (InternalCollider c in InternalColliders)
                 c.Instantiate(part);
 
-            // Instantiate internal colliders first as hatches will be instantiating their own colliders.
-            foreach (Hatch h in Hatches)
-                h.Instantiate(part);
-
             MeshCutter.Cut(part, Cuts);
 
             if (CopyPartCollidersToInternalColliders)
@@ -49,48 +43,6 @@ namespace FreeIva
 
         public override void OnLoad(ConfigNode node)
         {
-            if (node.HasNode("Hatch"))
-            {
-                ConfigNode[] hatchNodes = node.GetNodes("Hatch");
-                foreach (var hn in hatchNodes)
-                {
-                    IHatch h = Hatch.LoadFromCfg(hn);
-                    if (h != null)
-                    {
-                        Hatches.Add(h);
-                    }
-                }
-                PersistenceManager.instance.AddHatches(part.name, Hatches);
-            }
-            Debug.Log("# Hatches loaded from config for part " + part.name + ": " + Hatches.Count);
-
-            if (node.HasNode("PropHatch"))
-            {
-                ConfigNode[] propHatchNodes = node.GetNodes("PropHatch");
-                foreach (var phn in propHatchNodes)
-                {
-                    PropHatch ph = PropHatch.LoadPropHatchFromCfg(phn);
-                    if (ph != null)
-                    {
-                        Hatches.Add(ph);
-                    }
-                }
-                PersistenceManager.instance.AddHatches(part.name, Hatches);
-            }
-
-            if (node.HasNode("MeshHatch"))
-            {
-                ConfigNode[] meshHatchNodes = node.GetNodes("MeshHatch");
-                foreach (var mhn in meshHatchNodes)
-                {
-                    MeshHatch mh = MeshHatch.LoadMeshHatchFromCfg(mhn);
-                    if (mh != null)
-                    {
-                        Hatches.Add(mh);
-                    }
-                }
-                PersistenceManager.instance.AddHatches(part.name, Hatches);
-            }
             //if (node.HasNode("PropHatchAnimated"))
             //{
             //    ConfigNode[] propHatchAnimatedNodes = node.GetNodes("PropHatchAnimated");

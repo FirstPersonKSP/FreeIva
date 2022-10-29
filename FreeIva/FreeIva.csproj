@@ -104,10 +104,9 @@
     <Compile Include="FreeIvaInternalCameraSwitch.cs" />
     <Compile Include="Gui\DrawLine.cs" />
     <Compile Include="Gui\GuiManager.cs" />
-    <Compile Include="IvaObjects\Hatches\IHatch.cs" />
-    <Compile Include="IvaObjects\Hatches\MeshHatch.cs" />
     <Compile Include="HideInternalMesh.cs" />
     <Compile Include="ClickWatcher.cs" />
+    <Compile Include="IvaObjects\DepthMask.cs" />
     <Compile Include="IvaObjects\IIvaObject.cs" />
     <Compile Include="Experimental\InteractionCollider.cs" />
     <Compile Include="Experimental\InteractiveIvaProp.cs" />
@@ -131,6 +130,9 @@
     <Compile Include="Settings.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Experimental\WorldCollisionTracker.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".editorconfig" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

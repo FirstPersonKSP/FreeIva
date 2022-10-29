@@ -171,11 +171,11 @@ namespace FreeIva
 
                 for (int i = 0; i < iva.Hatches.Count; i++)
                 {
-                    IHatch h = iva.Hatches[i];
+                    Hatch h = iva.Hatches[i];
 
                     if (h.IsOpen && h.ConnectedHatch != null && h.ConnectedHatch.IsOpen &&
-                        h.ConnectedHatch.HatchPart != null && !visibleParts.Contains(h.ConnectedHatch.HatchPart))
-                        visibleParts.AddRange(GetVisibleParts(h.ConnectedHatch.HatchPart, ref visibleParts));
+                        h.ConnectedHatch.part != null && !visibleParts.Contains(h.ConnectedHatch.part))
+                        visibleParts.AddRange(GetVisibleParts(h.ConnectedHatch.part, ref visibleParts));
                 }
             }
 
@@ -364,7 +364,6 @@ namespace FreeIva
                     if (p.internalModel != null)
                     {
                         p.internalModel.SetVisible(true);
-                        PropHatch.AddPropHatches(p.internalModel);
                         //PrintInternals(p);
                     }
                 }

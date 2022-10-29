@@ -5,371 +5,128 @@ using UnityEngine;
 namespace FreeIva
 {
     /// <summary>
-    /// A hatch which is based on one or more IVA prop objects. Assumes the prop for the hatch in the closed state is already present.
+    /// A module that can be placed on a hatch prop.  Swaps that prop with an 'opened' version when opened
     /// </summary>
     public class PropHatch : Hatch
     {
-        public override Vector3 WorldPosition
-        {
-            get
-            {
-                if (ClosedProp != null)
-                    return ClosedProp.transform.position;
-                return Vector3.zero;
-            }
-        }
+        [KSPField]
+        public string openPropName = string.Empty;
 
-        public InternalProp ClosedProp;
-        private MeshRenderer _closedRenderer = null;
-        public MeshRenderer ClosedRenderer
-        {
-            get
-            {
-                if (_closedRenderer == null && ClosedProp != null)
-                {
-                    Debug.Log("# Getting ClosedRenderer...");
-                    _closedRenderer = ClosedProp.GetComponentInChildren<MeshRenderer>();
-                }
-                return _closedRenderer;
-            }
-        }
+        [KSPField]
+        public Vector3 openPropPosition = Vector3.zero;
 
+        [KSPField]
+        public Vector3 openPropScale = Vector3.one;
+
+        [KSPField]
+        public Vector3 openPropRotation = Vector3.zero; // as euler angles
+
+        public InternalProp ClosedProp => internalProp;
         public InternalProp OpenProp;
-        private MeshRenderer _openRenderer = null;
-        public MeshRenderer OpenRenderer
+
+        public new void Start()
         {
-            get
-            {
-                if (_openRenderer == null && OpenProp != null)
-                {
-                    Debug.Log("# Getting OpenRenderer...");
-                    _openRenderer = OpenProp.GetComponentInChildren<MeshRenderer>();
-                }
-                return _openRenderer;
-            }
+            if (!HighLogic.LoadedSceneIsFlight) return;
+
+            base.Start();
+
+            CreateOpenProp();
         }
 
-        public override bool IsOpen
+        private void CreateOpenProp()
         {
-            get
+            if (string.IsNullOrEmpty(openPropName)) return;
+
+            OpenProp = PartLoader.GetInternalProp(openPropName);
+            if (OpenProp == null)
             {
-                if (ClosedRenderer != null)
-                    return !ClosedRenderer.enabled;
-                else
-                    return false;
-            }
-        }
-
-        public string ClosedPropName { get; set; }
-        public string OpenPropName { get; set; }
-        public int ClosedPropIndex { get; set; }
-
-        public PropHatch() { }
-
-        public PropHatch(string name, string attachNodeId, Vector3 localPosition, Vector3 scale, Quaternion rotation,
-            List<KeyValuePair<Vector3, string>> hideWhenOpen, InternalCollider collider,
-            string closedPropName, string openPropName, int closedPropIndex)
-        {
-            Name = name;
-            AttachNodeId = attachNodeId;
-            LocalPosition = localPosition;
-            Scale = scale;
-            Rotation = rotation;
-            HideWhenOpen = hideWhenOpen;
-            Collider = collider;
-            ClosedPropName = closedPropName;
-            OpenPropName = openPropName;
-            ClosedPropIndex = closedPropIndex;
-        }
-
-        public override void Instantiate(Part p)
-        {
-            Part = p;
-            Debug.Log("# Instantiating prop hatch for part " + p);
-            if (IvaGameObject != null)
-            {
-                Debug.LogError("[FreeIVA] Hatch has already been instantiated.");
-                return;
-            }
-
-            GetProp();
-            IvaGameObject = ClosedProp.gameObject;
-            IvaGameObject.layer = (int)Layers.InternalSpace;
-            PropHatches.Add(this);
-            if (Collider != null)
-            {
-                Collider.Instantiate(p);
-                ModuleFreeIva mfi = p.GetModule<ModuleFreeIva>();
-                if (mfi != null)
-                {
-                    mfi.InternalColliders.Add(Collider);
-                }
-            }
-
-            SetupAudio();
-        }
-
-        public override IHatch Clone()
-        {
-            return new PropHatch(Name, AttachNodeId, LocalPosition, Scale, Rotation, new List<KeyValuePair<Vector3, string>>(HideWhenOpen), Collider?.Clone(),
-                ClosedPropName, OpenPropName, ClosedPropIndex);
-        }
-
-        // Find the prop in the IVA. If not present, spawn it.
-        private void GetProp()
-        {
-            // Find the existing prop.
-            InternalProp closedHatch = this.Part.internalModel.props[ClosedPropIndex];
-            if (closedHatch == null)
-            {
-                // Spawn a new prop.
-                closedHatch = PartLoader.GetInternalProp(this.ClosedPropName);
-                if (closedHatch == null)
-                {
-                    Debug.LogError("[FreeIVA] Unable to load closed prop hatch \"" + this.ClosedPropName + "\" in part " + this.Part.name);
-                }
-                else
-                {
-                    closedHatch.propID = FreeIva.CurrentPart.internalModel.props.Count;
-                    closedHatch.internalModel = this.Part.internalModel;
-                    closedHatch.transform.parent = this.Part.internalModel.transform;
-                    closedHatch.transform.gameObject.layer = (int)Layers.InternalSpace;
-                    closedHatch.hasModel = true;
-                    this.Part.internalModel.props.Add(closedHatch);
-                    closedHatch.transform.localRotation = this.Rotation;
-                    closedHatch.transform.localPosition = this.LocalPosition;
-                }
-            }
-            else if (closedHatch.name != ClosedPropName)
-            {
-                Debug.LogError($"[FreeIVA] Prop at closedPropIndex {ClosedPropIndex} didn't match expected closedPropName {ClosedPropName}.");
-            }
-            MeshRenderer mrC = closedHatch.GetComponentInChildren<MeshRenderer>();
-            mrC.enabled = true;
-            ClosedProp = closedHatch;
-
-            InternalProp openHatch = PartLoader.GetInternalProp(this.OpenPropName);
-            if (openHatch == null)
-            {
-                Debug.LogError("[FreeIVA] Unable to load open prop hatch \"" + this.OpenPropName + "\" in part " + this.Part.name);
+                Debug.LogError("[FreeIVA] Unable to load open prop hatch \"" + openPropName + "\" in part " + part.name);
             }
             else
             {
-                Debug.Log("# Adding PropHatch to part " + this.Part.name);
-                openHatch.propID = FreeIva.CurrentPart.internalModel.props.Count;
-                openHatch.internalModel = this.Part.internalModel;
-                openHatch.transform.parent = this.Part.internalModel.transform;
-                openHatch.hasModel = true;
-                this.Part.internalModel.props.Add(openHatch);
-                openHatch.transform.rotation = this.Rotation;
-                openHatch.transform.localPosition = this.LocalPosition;
-                MeshRenderer[] mrO = openHatch.GetComponentsInChildren<MeshRenderer>();
-                if (mrO != null && mrO.Length > 0)
-                {
-                    mrO[0].enabled = false;
-                }
-                OpenProp = openHatch;
+                Debug.Log("# Adding PropHatch to part " + part.name);
+                OpenProp.propID = FreeIva.CurrentPart.internalModel.props.Count;
+                OpenProp.internalModel = part.internalModel;
+                
+                // position the prop relative to this one, then attach it to the internal model
+                OpenProp.transform.SetParent(transform, false);
+                OpenProp.transform.localRotation = Quaternion.Euler(openPropRotation);
+                OpenProp.transform.localPosition = openPropPosition;
+                OpenProp.transform.localScale = openPropScale;
+                OpenProp.transform.SetParent(internalModel.transform, true);
+                
+                OpenProp.hasModel = true;
+                part.internalModel.props.Add(OpenProp);
+                OpenProp.gameObject.SetActive(false);
             }
         }
 
         public override void Open(bool open)
         {
-            if (ClosedRenderer != null)
+            if (ClosedProp != null)
             {
-                ClosedRenderer.enabled = !open;
+                ClosedProp.gameObject.SetActive(!open);
             }
             else
             {
-                Debug.Log("# ClosedRenderer was null");
+                Debug.Log("# ClosedProp was null");
             }
-            if (OpenRenderer != null)
+            if (OpenProp != null)
             {
-                OpenRenderer.enabled = open;
+                OpenProp.gameObject.SetActive(open);
             }
             else
             {
-                Debug.Log("# OpenRenderer was null");
+                Debug.Log("# OpenProp was null");
             }
-            HideOnOpen(open);
-            FreeIva.SetRenderQueues(FreeIva.CurrentPart);
 
-            if (Collider != null)
-                Collider.Enable(!open);
-
-            if (open)
-            {
-                if (HatchOpenSound != null && HatchOpenSound.audio != null)
-                    HatchOpenSound.audio.Play();
-            }
-            else
-            {
-                if (HatchCloseSound != null && HatchCloseSound.audio != null)
-                    HatchCloseSound.audio.Play();
-            }
+            base.Open(open);
         }
+    }
 
-        public static List<PropHatch> PropHatches = new List<PropHatch>();
+    // this module just contains per-placement data for the prop hatch
+    public class PropHatchConfig : InternalModule
+    {
+        [KSPField]
+        public string attachNodeId;
 
-        // Can be safely called multiple times for the same part.
-        public static void AddPropHatches(InternalModel internalModel)
+        public override void OnLoad(ConfigNode node)
         {
-            Debug.Log("# Adding prop hatch for " + internalModel.part);
-
-            if (internalModel == null)
-            {
-                Debug.LogWarning("Unable to create prop hatches: internal model was null");
-                return;
-            }
-
-            int propCount = internalModel.props.Count; // This list will be added to in the loop below.
-            for (int i = 0; i < propCount; i++)
-            {
-                InternalProp prop = internalModel.props[i];
-                if (prop.name == "Hatch_Plane" && !HatchInitialised(prop)) // TODO: Generalise this.
-                {
-                    Debug.Log("# Found Hatch_Plane");
-                    InternalProp openHatch = PartLoader.GetInternalProp("Hatch_Plane_Frame");
-                    openHatch.propID = FreeIva.CurrentPart.internalModel.props.Count;
-                    openHatch.internalModel = FreeIva.CurrentPart.internalModel;
-                    //openHatch.get_transform().set_parent(base.get_transform()); TODO: Set parent
-                    openHatch.hasModel = true;
-                    internalModel.props.Add(openHatch);
-                    openHatch.transform.rotation = prop.transform.rotation;
-                    openHatch.transform.position = prop.transform.position;
-
-                    MeshRenderer mr = openHatch.GetComponentInChildren<MeshRenderer>();
-                    mr.enabled = false;
-
-                    PropHatch propHatch = new PropHatch();
-                    propHatch.ClosedProp = prop;
-                    propHatch.OpenProp = openHatch;
-                    PropHatches.Add(propHatch);
-                }
-            }
-        }
-
-        private static bool HatchInitialised(InternalProp prop)
-        {
-            foreach (PropHatch p in PropHatches)
-            {
-                if (p.ClosedProp != null && p.ClosedProp.Equals(prop))
-                    return true;
-            }
-            return false;
-        }
-
-        public static PropHatch LoadPropHatchFromCfg(ConfigNode node)
-        {
-            Vector3 position = Vector3.zero;
-            Vector3 scale = Vector3.one;
-            if (!node.HasValue("closedPropIndex"))
-            {
-                Debug.LogWarning("[FreeIVA] Prop hatch closedPropIndex not found: Skipping hatch.");
-                return null;
-            }
-            PropHatch propHatch = new PropHatch();
-            propHatch.ClosedPropIndex = int.Parse(node.GetValue("closedPropIndex"));
-
-            if (node.HasValue("closedPropName"))
-                propHatch.ClosedPropName = node.GetValue("closedPropName");
-
-            if (node.HasValue("openPropName"))
-                propHatch.OpenPropName = node.GetValue("openPropName");
-
-            if (node.HasValue("attachNodeId"))
-                propHatch.AttachNodeId = node.GetValue("attachNodeId");
-
-            if (node.HasValue("position"))
-            {
-                string posString = node.GetValue("position");
-                string[] p = posString.Split(Utils.CfgSplitChars, StringSplitOptions.RemoveEmptyEntries);
-                if (p.Length != 3)
-                {
-                    Debug.LogWarning("[FreeIVA] Invalid prop hatch position definition \"" + posString + "\": Must be in the form x, y, z.");
-                    return null;
-                }
-                else
-                    propHatch.LocalPosition = new Vector3(float.Parse(p[0]), float.Parse(p[1]), float.Parse(p[2]));
-            }
-            else
-            {
-                Debug.LogWarning("[FreeIVA] PropHatch does not have a position");
-            }
-            Debug.Log("# PropHatch position: " + propHatch.LocalPosition);
-
-            if (node.HasValue("scale"))
-            {
-                string scaleString = node.GetValue("scale");
-                string[] s = scaleString.Split(Utils.CfgSplitChars, StringSplitOptions.RemoveEmptyEntries);
-                if (s.Length != 3)
-                {
-                    Debug.LogWarning("[FreeIVA] Invalid prop hatch scale definition \"" + scaleString + "\": Must be in the form x, y, z.");
-                    return null;
-                }
-                else
-                    propHatch.Scale = new Vector3(float.Parse(s[0]), float.Parse(s[1]), float.Parse(s[2]));
-            }
-
-            if (node.HasValue("rotation"))
-            {
-                string rotationString = node.GetValue("rotation");
-                string[] s = rotationString.Split(Utils.CfgSplitChars, StringSplitOptions.RemoveEmptyEntries);
-                if (s.Length != 3)
-                {
-                    Debug.LogWarning("[FreeIVA] Invalid prop hatch rotation definition \"" + rotationString + "\": Must be in the form x, y, z.");
-                    return null;
-                }
-                else
-                    propHatch.Rotation = Quaternion.Euler(float.Parse(s[0]), float.Parse(s[1]), float.Parse(s[2]));
-            }
-
-            if (node.HasValue("HatchOpenSoundFile"))
-            {
-                propHatch.HatchOpenSoundFile = node.GetValue("HatchOpenSoundFile");
-            }
-            if (node.HasValue("HatchCloseSoundFile"))
-            {
-                propHatch.HatchCloseSoundFile = node.GetValue("HatchCloseSoundFile");
-            }
+            Hatch.ObjectsToHide objectsToHide = null;
 
             if (node.HasNode("HideWhenOpen"))
             {
+                objectsToHide = ScriptableObject.CreateInstance<Hatch.ObjectsToHide>();
                 ConfigNode[] hideNodes = node.GetNodes("HideWhenOpen");
                 foreach (var hideNode in hideNodes)
                 {
-                    if (!hideNode.HasValue("name"))
+                    Hatch.ObjectToHide objectToHide = new Hatch.ObjectToHide();
+
+                    objectToHide.name = hideNode.GetValue("name");
+                    if (objectToHide.name == null)
                     {
                         Debug.LogWarning("[FreeIVA] HideWhenOpen name not found.");
                         continue;
                     }
-                    string propName = hideNode.GetValue("name");
-
-                    if (hideNode.HasValue("position"))
+                    
+                    if (hideNode.TryGetValue("position", ref objectToHide.position))
                     {
-                        string posString = hideNode.GetValue("position");
-                        string[] p = posString.Split(Utils.CfgSplitChars, StringSplitOptions.RemoveEmptyEntries);
-                        if (p.Length != 3)
-                        {
-                            Debug.LogWarning("[FreeIVA] Invalid HideWhenOpen position definition \"" + posString + "\": Must be in the form x, y, z.");
-                            continue;
-                        }
-                        else
-                        {
-                            Vector3 propPos = new Vector3(float.Parse(p[0]), float.Parse(p[1]), float.Parse(p[2]));
-                            propHatch.HideWhenOpen.Add(new KeyValuePair<Vector3, string>(propPos, propName));
-                        }
+                        objectsToHide.objects.Add(objectToHide);
                     }
-
+                    else
+                    {
+                        Debug.LogWarning($"[FreeIVA] Invalid HideWhenOpen position definition in INTERNAL {internalModel.internalName} PROP {internalProp.propName}");
+                    }
                 }
             }
 
-            if (node.HasNode("InternalCollider"))
+            base.OnLoad(node);
+            var propHatch = GetComponent<Hatch>();
+            if (propHatch != null)
             {
-                ConfigNode hatchColliderNode = node.GetNode("InternalCollider");
-                if (hatchColliderNode != null)
-                    propHatch.Collider = InternalCollider.LoadFromCfg(hatchColliderNode);
+                propHatch.attachNodeId = attachNodeId;
+                propHatch.HideWhenOpen = objectsToHide;
             }
-            return propHatch;
         }
     }
 }

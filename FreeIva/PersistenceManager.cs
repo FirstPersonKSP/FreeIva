@@ -12,7 +12,7 @@ namespace FreeIva
     {
         public static PersistenceManager instance { get; private set; }
 
-        private static Dictionary<string, List<IHatch>> _hatches = new Dictionary<string, List<IHatch>>();
+        private static Dictionary<string, List<Hatch>> _hatches = new Dictionary<string, List<Hatch>>();
         private static Dictionary<string, List<InternalCollider>> _internalColliderTemplates = new Dictionary<string, List<InternalCollider>>();
         private static Dictionary<Type, Dictionary<string, ConfigNode>> nodes = new Dictionary<Type, Dictionary<string, ConfigNode>>();
         private static Dictionary<string, List<CutParameter>> _cuts = new Dictionary<string, List<CutParameter>>();
@@ -23,7 +23,7 @@ namespace FreeIva
             DontDestroyOnLoad(this);
         }
 
-        public void AddHatches(string partName, List<IHatch> hatches)
+        public void AddHatches(string partName, List<Hatch> hatches)
         {
             if (!_hatches.ContainsKey(partName))
             {
@@ -51,57 +51,6 @@ namespace FreeIva
             }
         }
 
-        public void AddCutParameters(string partName, List<CutParameter> cuts)
-        {
-            if (!_cuts.ContainsKey(partName))
-            {
-                Debug.Log("[FreeIVA] Adding " + cuts.Count + " hatches for part " + partName);
-                _cuts.Add(partName, cuts);
-            }
-            else
-            {
-                Debug.Log("# NOT adding duplicate " + cuts.Count + " hatches for part " + partName);
-                Debug.Log("# Dictionary entries: " + _cuts.Count());
-            }
-        }
-
-        public List<CutParameter> GetCutParametersFroPartInstance(string partName)
-        {
-            List<CutParameter> cutTemplates;
-            if (_cuts.TryGetValue(partName, out cutTemplates))
-            {
-                Debug.Log("# Hatch FOUND for part " + partName);
-                List<CutParameter> cutInstances = new List<CutParameter>();
-                foreach (CutParameter cutTemplate in cutTemplates)
-                {
-                    cutInstances.Add(cutTemplate.Clone());
-                }
-                return cutInstances;
-            }
-            else
-                Debug.Log("# Cuts not found in dictionary for part " + partName);
-            return new List<CutParameter>();
-        }
-
-        public List<IHatch> GetHatchesForPartInstance(string partName)
-        {
-            //string n = partName.Replace("(Clone)", String.Empty);
-            List<IHatch> hatchTemplates;
-            if (_hatches.TryGetValue(partName, out hatchTemplates))
-            {
-                Debug.Log("# Hatch FOUND for part " + partName);
-                var hatchInstances = new List<IHatch>();
-                foreach (var hatchTemplate in hatchTemplates)
-                {
-                    hatchInstances.Add(hatchTemplate.Clone());
-                }
-                return hatchInstances;
-            }
-            else
-                Debug.Log("# Hatch not found in dictionary for part " + partName);
-            return new List<IHatch>();
-        }
-
         public List<InternalCollider> GetCollidersForPartInstance(string partName)
         {
             List<InternalCollider> partColliderTemplates;
@@ -118,6 +67,38 @@ namespace FreeIva
             else
                 Debug.Log("# Internal collider not found in dictionary for part " + partName);
             return new List<InternalCollider>();
+        }
+
+        public void AddCutParameters(string partName, List<CutParameter> cuts)
+        {
+            if (!_cuts.ContainsKey(partName))
+            {
+                Debug.Log("[FreeIVA] Adding " + cuts.Count + " hatches for part " + partName);
+                _cuts.Add(partName, cuts);
+            }
+            else
+            {
+                Debug.Log("# NOT adding duplicate " + cuts.Count + " hatches for part " + partName);
+                Debug.Log("# Dictionary entries: " + _cuts.Count());
+            }
+        }
+
+        public List<CutParameter> GetCutParametersForPartInstance(string partName)
+        {
+            List<CutParameter> cutTemplates;
+            if (_cuts.TryGetValue(partName, out cutTemplates))
+            {
+                Debug.Log("# Hatch FOUND for part " + partName);
+                List<CutParameter> cutInstances = new List<CutParameter>();
+                foreach (CutParameter cutTemplate in cutTemplates)
+                {
+                    cutInstances.Add(cutTemplate.Clone());
+                }
+                return cutInstances;
+            }
+            else
+                Debug.Log("# Cuts not found in dictionary for part " + partName);
+            return new List<CutParameter>();
         }
 
         /// <summary>
