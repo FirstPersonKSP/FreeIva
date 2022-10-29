@@ -90,6 +90,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CSG\CSG.cs" />
+    <Compile Include="CSG\Model.cs" />
+    <Compile Include="CSG\Node.cs" />
+    <Compile Include="CSG\Plane.cs" />
+    <Compile Include="CSG\Polygon.cs" />
+    <Compile Include="CSG\Vertex.cs" />
+    <Compile Include="CSG\VertexAttributes.cs" />
+    <Compile Include="CSG\VertexUtility.cs" />
+    <Compile Include="CutParameter.cs" />
     <Compile Include="Experimental\ColliderManipulator.cs" />
     <Compile Include="FreeIvaInternalCameraSwitch.cs" />
     <Compile Include="Gui\DrawLine.cs" />
@@ -101,6 +110,7 @@
     <Compile Include="Experimental\InteractionCollider.cs" />
     <Compile Include="Experimental\InteractiveIvaProp.cs" />
     <Compile Include="Experimental\ModuleInternalPressure.cs" />
+    <Compile Include="MeshCutter.cs" />
     <Compile Include="PropBuckleButton.cs" />
     <Compile Include="PropHatchAnimated.cs" />
     <Compile Include="Enums.cs" />

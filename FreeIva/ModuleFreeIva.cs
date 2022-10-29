@@ -15,6 +15,7 @@ namespace FreeIva
         public List<InternalCollider> InternalColliders = new List<InternalCollider>();
         public List<Collider> PartInternalColliders = new List<Collider>();
         public List<GameObject> PartInternalColliderObjects = new List<GameObject>();
+        public List<CutParameter> Cuts = new List<CutParameter>();
 
         // OnAwake should always occur before Start.
         public override void OnAwake()
@@ -22,6 +23,7 @@ namespace FreeIva
             if (HighLogic.LoadedScene != GameScenes.FLIGHT) return;
 
             InternalColliders = new List<InternalCollider>(PersistenceManager.instance.GetCollidersForPartInstance(part.partInfo.name));
+            Cuts = new List<CutParameter>(PersistenceManager.instance.GetCutParametersForPartInstance(part.partInfo.name));
         }
 
         public void Start()
@@ -32,6 +34,8 @@ namespace FreeIva
 
             foreach (InternalCollider c in InternalColliders)
                 c.Instantiate(part);
+
+            MeshCutter.Cut(part, Cuts);
 
             if (CopyPartCollidersToInternalColliders)
                 PartCollidersToInternal();
@@ -72,6 +76,20 @@ namespace FreeIva
             {
                 PersistenceManager.instance.AddInternalColliders(part.name, InternalColliders);
                 Debug.Log("# Internal colliders loaded from config for part " + part.name + ": " + InternalColliders.Count);
+            }
+
+            if (node.HasNode("Cut"))
+            {
+                ConfigNode[] cutNodes = node.GetNodes("Cut");
+                foreach (ConfigNode n in cutNodes)
+                {
+
+                    CutParameter cp = CutParameter.LoadFromCfg(n);
+                    if (cp != null)
+                        Cuts.Add(cp);
+                }
+                PersistenceManager.instance.AddCutParameters(part.name, Cuts);
+                Debug.Log("[FreeIVA] Cut parameters loaded from config for part " + part.name + ": " + Cuts.Count);
             }
         }
 
