@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -30,6 +31,10 @@ namespace FreeIva
         [SerializeReference]
         public ObjectsToHide HideWhenOpen;
 
+        public string airlockName = string.Empty;
+
+        // -----
+
         [Serializable]
         public struct ObjectToHide
         {
@@ -42,8 +47,6 @@ namespace FreeIva
         {
             public List<ObjectToHide> objects = new List<ObjectToHide>();
         }
-
-        // -----
 
         // Where the GameObject is located. Used for basic interaction targeting (i.e. when to show the "Open hatch?" prompt).
         public virtual Vector3 WorldPosition => transform.position;
@@ -97,6 +100,11 @@ namespace FreeIva
             }
 
             part.GetComponent<ModuleFreeIva>().Hatches.Add(this);
+        }
+
+        void OnDestroy()
+        {
+            part.GetComponent<ModuleFreeIva>().Hatches.Remove(this);
         }
 
         private void OnHandleClick()
@@ -175,17 +183,33 @@ namespace FreeIva
 
         public virtual void Open(bool open)
         {
-            HideOnOpen(open);
-            FreeIva.SetRenderQueues(FreeIva.CurrentPart);
+            var connectedHatch = ConnectedHatch;
 
-            if (open != IsOpen)
+            // if we're trying to open a door to space, just go EVA
+            if (connectedHatch == null && open)
             {
-                var sound = open ? HatchOpenSound : HatchCloseSound;
-                if (sound != null && sound.audio != null)
-                    sound.audio.Play();
+                GoEVA();
             }
+            else
+            {
+                HideOnOpen(open);
+                FreeIva.SetRenderQueues(FreeIva.CurrentPart);
 
-            IsOpen = open;
+                if (open != IsOpen)
+                {
+                    var sound = open ? HatchOpenSound : HatchCloseSound;
+                    if (sound != null && sound.audio != null)
+                        sound.audio.Play();
+                }
+
+                IsOpen = open;
+
+                // automatically toggle the far hatch too
+                if (connectedHatch != null && connectedHatch.IsOpen != open)
+                {
+                    connectedHatch.Open(open);
+                }
+            }
         }
 
         public virtual void HideOnOpen(bool open)
@@ -217,6 +241,43 @@ namespace FreeIva
                     Debug.LogError($"[FreeIva] HideWhenOpen - could not find meshrenderer named {hideProp.name} in model {internalModel.internalName}");
                 }
             }
+        }
+
+        static Transform FindAirlock(Part part, string airlockName)
+        {
+            if (!string.IsNullOrEmpty(airlockName))
+            {
+                var childTransform = part.FindModelTransform(airlockName);
+
+                if (childTransform.CompareTag("Airlock"))
+                {
+                    return childTransform;
+                }
+            }
+
+            return part.airlock;
+        }
+
+        bool GoEVA()
+        {
+            float acLevel = ScenarioUpgradeableFacilities.GetFacilityLevel(SpaceCenterFacility.AstronautComplex);
+            bool evaUnlocked = GameVariables.Instance.UnlockedEVA(acLevel);
+            bool evaPossible = GameVariables.Instance.EVAIsPossible(evaUnlocked, vessel);
+
+            Kerbal kerbal = CameraManager.Instance.IVACameraActiveKerbal;
+
+            if (kerbal != null && evaPossible && HighLogic.CurrentGame.Parameters.Flight.CanEVA)
+            {
+                var kerbalEVA = FlightEVA.fetch.spawnEVA(kerbal.protoCrewMember, kerbal.InPart, FindAirlock(kerbal.InPart, airlockName), true);
+
+                if (kerbalEVA != null)
+                {
+                    CameraManager.Instance.SetCameraFlight();
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static void InitialiseAllHatchesClosed()

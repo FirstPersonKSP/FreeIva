@@ -90,6 +90,9 @@ namespace FreeIva
         [KSPField]
         public string attachNodeId;
 
+        [KSPField]
+        public string airlockName;
+
         public override void OnLoad(ConfigNode node)
         {
             Hatch.ObjectsToHide objectsToHide = null;
@@ -126,6 +129,7 @@ namespace FreeIva
             {
                 propHatch.attachNodeId = attachNodeId;
                 propHatch.HideWhenOpen = objectsToHide;
+                propHatch.airlockName = airlockName;
             }
         }
     }

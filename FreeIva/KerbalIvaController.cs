@@ -133,6 +133,8 @@ namespace FreeIva
         {
             if (cameraMode != CameraManager.CameraMode.IVA && _previousCameraMode == CameraManager.CameraMode.IVA)
             {
+                InputLockManager.RemoveControlLock("FreeIVA");
+
 #if Experimental
                 KerbalWorldSpaceCollider.enabled = false;
 #endif
@@ -416,7 +418,20 @@ namespace FreeIva
 
         public void ReturnToSeat()
         {
-            //TargetedSeat = OriginalSeat;
+            // some of this stuff should probably get moved to a common function
+            KerbalIva.GetComponentCached<SphereCollider>(ref KerbalCollider);
+            KerbalCollider.enabled = false;
+            buckled = true;
+            DisablePartHighlighting(false);
+            InputLockManager.RemoveControlLock("FreeIVA");
+
+            // the original seat should still be pointing at this kerbal.  If not, they probably went EVA or something
+            if (OriginalSeat.crew == null)
+            {
+                return;
+            }
+
+            TargetedSeat = OriginalSeat;
             Buckle();
             ScreenMessages.PostScreenMessage(ActiveKerbal.name + " returned to their seat.", 1f, ScreenMessageStyle.LOWER_CENTER);
         }
