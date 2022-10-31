@@ -369,8 +369,6 @@ namespace FreeIva
                 }
 
                 // TODO
-                InternalCollider.HideAllColliders();
-                // TODO
                 Hatch.InitialiseAllHatchesClosed();
 
                 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

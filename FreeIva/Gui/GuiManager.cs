@@ -68,7 +68,6 @@ namespace FreeIva
             if (FreeIva.CurrentModuleFreeIva == null)
                 GUILayout.Label("Free IVA module not found in this part. ModuleManager_FreeIvaParts.cfg update required.");
 
-            ColliderGui();
             HatchGui();
 #if Experimental
             PressureGui();

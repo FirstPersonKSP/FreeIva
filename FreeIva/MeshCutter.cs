@@ -8,26 +8,26 @@ namespace FreeIva
 {
 	public static class MeshCutter
 	{
-		public static void Cut(Part part, List<CutParameter> parameters)
+		public static void Cut(InternalModel model, List<CutParameter> parameters)
 		{
 			if (parameters.Count == 0)
 			{
 				return;
 			}
 
-			Debug.Log($"[FreeIVA/MeshCutter] Cutting on part '{part.partInfo.name}'");
+			Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal '{model.internalName}'");
 			DateTime starTime = DateTime.Now;
 
 			IEnumerable<string> targets = parameters.Select(x => x.target).Distinct();
 			foreach (string targetName in targets)
 			{
-				Debug.Log($"[FreeIVA/MeshCutter] Cutting on target '{targetName}' on part '{part.partInfo.name}'");
-				MeshFilter target = part.internalModel.FindModelTransform(targetName).gameObject.GetComponent<MeshFilter>();
-				List<GameObject> tools = parameters.Where(x => x.target == targetName).Select(parameter => CreateTool(part, parameter)).ToList();
+				Debug.Log($"[FreeIVA/MeshCutter] Cutting on target '{targetName}' on internal '{model.internalName}'");
+				MeshFilter target = model.FindModelTransform(targetName).gameObject.GetComponent<MeshFilter>();
+				List<GameObject> tools = parameters.Where(x => x.target == targetName).Select(parameter => CreateTool(model, parameter)).ToList();
 				ApplyCut(target, tools);
 			}
 
-			Debug.Log($"[FreeIVA/MeshCutter] Cutting on part '{part.partInfo.name}' done ({parameters.Count} cut(s) on {targets.Count()} target(s)), time used: {(DateTime.Now - starTime).TotalMilliseconds}ms");
+			Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal'{model.internalName}' done ({parameters.Count} cut(s) on {targets.Count()} target(s)), time used: {(DateTime.Now - starTime).TotalMilliseconds}ms");
 		}
 
 		private static void ApplyCut(MeshFilter target, List<GameObject> tools)
@@ -99,11 +99,11 @@ namespace FreeIva
 			}
 		}
 
-		private static GameObject CreateTool(Part part, CutParameter parameter)
+		private static GameObject CreateTool(InternalModel model, CutParameter parameter)
 		{
 			if (parameter.type == CutParameter.Type.Mesh)
 			{
-				return part.internalModel.FindModelTransform(parameter.tool).gameObject;
+				return model.FindModelTransform(parameter.tool).gameObject;
 			}
 			else
 			{
@@ -118,7 +118,7 @@ namespace FreeIva
 				{
 					g = GameObject.CreatePrimitive(parameter.type == CutParameter.Type.Cube ? PrimitiveType.Cube : PrimitiveType.Cylinder);
 				}
-				g.transform.parent = part.internalModel.transform;
+				g.transform.parent = model.transform;
 				g.transform.localPosition = parameter.position;
 				g.transform.localRotation = Quaternion.Euler(parameter.rotation);
 				g.transform.localScale = parameter.scale;

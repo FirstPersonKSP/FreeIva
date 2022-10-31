@@ -31,29 +31,6 @@ namespace FreeIva
 
 		public string tool;
 
-		public CutParameter()
-		{
-
-		}
-
-		public CutParameter(string target, Type type, Vector3 position, Vector3 rotation, Vector3 scale, float radius, float depth, int sides, string tool)
-		{
-			this.target = target;
-			this.type = type;
-			this.position = position;
-			this.rotation = rotation;
-			this.scale = scale;
-			this.radius = radius;
-			this.height = depth;
-			this.slices = sides;
-			this.tool = tool;
-		}
-
-		public CutParameter Clone()
-		{
-			return new CutParameter(target, type, position, rotation, scale, radius, height, slices, tool);
-		}
-
 		public static CutParameter LoadFromCfg(ConfigNode node)
 		{
 			/* 

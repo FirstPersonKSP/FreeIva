@@ -93,7 +93,6 @@ namespace FreeIva
                     FreeIva.EnableInternals();
                     UpdateActiveKerbal();//false);
                     SetCameraToSeat();
-                    InternalCollider.HideAllColliders();
                 }
 
                 // Check if we're changing crew member using the 'V' key.
