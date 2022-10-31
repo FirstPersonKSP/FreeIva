@@ -102,11 +102,6 @@ namespace FreeIva
             InternalModuleFreeIva.GetForModel(internalModel).Hatches.Add(this);
         }
 
-        void OnDestroy()
-        {
-            InternalModuleFreeIva.GetForModel(internalModel).Hatches.Remove(this);
-        }
-
         private void OnHandleClick()
         {
             ToggleHatch();
@@ -268,6 +263,8 @@ namespace FreeIva
 
             if (kerbal != null && evaPossible && HighLogic.CurrentGame.Parameters.Flight.CanEVA)
             {
+                // This isn't correct if you're trying to EVA from a hatch that isn't on the part you had been sitting in
+                // not sure what the best solution is; maybe move the kerbal to this part?  But what if the EVA fails?
                 var kerbalEVA = FlightEVA.fetch.spawnEVA(kerbal.protoCrewMember, kerbal.InPart, FindAirlock(kerbal.InPart, airlockName), true);
 
                 if (kerbalEVA != null)
