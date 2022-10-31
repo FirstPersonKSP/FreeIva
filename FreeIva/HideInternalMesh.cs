@@ -7,11 +7,11 @@ namespace FreeIva
     /// </summary>
     public class HideInternalMesh : InternalModule
     {
-        public string meshName;
-        public int meshIndex = -1;
-
         public override void OnLoad(ConfigNode node)
         {
+            string meshName = string.Empty;
+            int meshIndex = -1;
+
             Debug.Log("#HideInternalMesh OnLoad: " + node);
             if (node.HasValue("meshName"))
             {
@@ -21,10 +21,8 @@ namespace FreeIva
             {
                 int.TryParse(node.GetValue("meshIndex"), out meshIndex);
             }
-        }
 
-        public override void OnAwake()
-        {
+
             if (meshIndex == -1) return;
 
             MeshRenderer[] meshRenderers = this.internalModel.GetComponentsInChildren<MeshRenderer>();
