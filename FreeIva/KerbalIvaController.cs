@@ -669,15 +669,15 @@ namespace FreeIva
         // TODO: Replace this with clickable interaction colliders.
         public void TargetHatches(bool openHatch, bool openFarHatch)
         {
-            if (FreeIva.CurrentModuleFreeIva == null) return;
+            if (FreeIva.CurrentInternalModuleFreeIva == null) return;
 
             Hatch targetedHatch = null;
             float closestDistance = Settings.MaxInteractDistance;
 
-            if (FreeIva.CurrentModuleFreeIva.Hatches.Count != 0)
+            if (FreeIva.CurrentInternalModuleFreeIva.Hatches.Count != 0)
             {
                 //for (int i = 0; i < CurrentModuleFreeIva.Hatches.Count; i++)
-                foreach (Hatch h in FreeIva.CurrentModuleFreeIva.Hatches)
+                foreach (Hatch h in FreeIva.CurrentInternalModuleFreeIva.Hatches)
                 {
                     if (IsTargeted(h.WorldPosition))
                     {
@@ -694,7 +694,7 @@ namespace FreeIva
             {
                 // Part has no hatches but does have a ModuleFreeIva. Passable part without hatches, like a tube.
                 // TODO: Restrict this to node attachments?
-                ModuleFreeIva parentModule = FreeIva.CurrentPart.parent.GetModule<ModuleFreeIva>();
+                InternalModuleFreeIva parentModule = InternalModuleFreeIva.GetForModel(FreeIva.CurrentPart.parent.internalModel);
                 if (parentModule != null)
                 {
                     foreach (Hatch h in parentModule.Hatches)
@@ -713,7 +713,8 @@ namespace FreeIva
 
                 foreach (Part child in FreeIva.CurrentPart.children)
                 {
-                    ModuleFreeIva childModule = child.GetModule<ModuleFreeIva>();
+                    InternalModuleFreeIva childModule = InternalModuleFreeIva.GetForModel(child.internalModel);
+
                     if (childModule == null)
                         continue;
                     foreach (Hatch h in childModule.Hatches)

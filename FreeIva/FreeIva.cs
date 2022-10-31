@@ -62,17 +62,17 @@ namespace FreeIva
         public static Part InitialPart;
         public static Part CurrentPart;
         public static GameObject SelectedObject = null;
-        private static ModuleFreeIva _currentModuleFreeIva = null;
-        public static ModuleFreeIva CurrentModuleFreeIva
+        private static InternalModuleFreeIva _currentInternalModuleFreeIva = null;
+        public static InternalModuleFreeIva CurrentInternalModuleFreeIva
         {
             get
             {
-                if (_currentModuleFreeIva == null || _currentModuleFreeIva.part != CurrentPart)
+                if (_currentInternalModuleFreeIva == null || _currentInternalModuleFreeIva.part != CurrentPart)
                 {
-                    _currentModuleFreeIva = CurrentPart.GetModule<ModuleFreeIva>();
-                    return _currentModuleFreeIva;
+                    _currentInternalModuleFreeIva = InternalModuleFreeIva.GetForModel(CurrentPart.internalModel);
+                    return _currentInternalModuleFreeIva;
                 }
-                return _currentModuleFreeIva;
+                return _currentInternalModuleFreeIva;
             }
         }
 
@@ -163,7 +163,7 @@ namespace FreeIva
         /// <returns></returns>
         private static List<Part> GetVisibleParts(Part part, ref List<Part> visibleParts)
         {
-            ModuleFreeIva iva = part.GetModule<ModuleFreeIva>();
+            InternalModuleFreeIva iva = InternalModuleFreeIva.GetForModel(part.internalModel);
             if (iva != null)
             {
                 if (!visibleParts.Contains(part))

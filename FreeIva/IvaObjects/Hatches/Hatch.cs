@@ -99,12 +99,12 @@ namespace FreeIva
                 }
             }
 
-            part.GetComponent<ModuleFreeIva>().Hatches.Add(this);
+            InternalModuleFreeIva.GetForModel(internalModel).Hatches.Add(this);
         }
 
         void OnDestroy()
         {
-            part.GetComponent<ModuleFreeIva>().Hatches.Remove(this);
+            InternalModuleFreeIva.GetForModel(internalModel).Hatches.Remove(this);
         }
 
         private void OnHandleClick()
@@ -117,7 +117,7 @@ namespace FreeIva
             AttachNode hatchNode = GetHatchNode(attachNodeId);
             if (hatchNode == null) return;
 
-            ModuleFreeIva iva = hatchNode.attachedPart.GetModule<ModuleFreeIva>();
+            InternalModuleFreeIva iva = InternalModuleFreeIva.GetForModel(hatchNode.attachedPart?.internalModel);
             if (iva == null) return;
             for (int i = 0; i < iva.Hatches.Count; i++)
             {
@@ -284,7 +284,7 @@ namespace FreeIva
         {
             foreach (Part p in FlightGlobals.ActiveVessel.Parts)
             {
-                ModuleFreeIva mfi = p.GetModule<ModuleFreeIva>();
+                InternalModuleFreeIva mfi = InternalModuleFreeIva.GetForModel(p.internalModel);
                 if (mfi != null)
                 {
                     foreach (var hatch in mfi.Hatches)

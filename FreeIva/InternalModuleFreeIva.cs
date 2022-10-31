@@ -7,13 +7,25 @@ using UnityEngine;
 
 namespace FreeIva
 {
-    internal class InternalModuleFreeIva : InternalModule
+    public class InternalModuleFreeIva : InternalModule
     {
+        #region Cache
+        private static Dictionary<InternalModel, InternalModuleFreeIva> perModelCache = new Dictionary<InternalModel, InternalModuleFreeIva>();
+        public static InternalModuleFreeIva GetForModel(InternalModel model)
+        {
+            if (model == null) return null;
+            perModelCache.TryGetValue(model, out InternalModuleFreeIva module);
+            return module;
+        }
+        #endregion
+
         [KSPField]
         public string shellColliderName = string.Empty;
 
         [KSPField]
         public bool CopyPartCollidersToInternalColliders = false;
+
+        public List<Hatch> Hatches = new List<Hatch>(); // hatches will register themselves with us
 
         public override void OnLoad(ConfigNode node)
         {
@@ -69,7 +81,16 @@ namespace FreeIva
             {
                 MeshCutter.Cut(internalModel, cutParameters);
             }
+        }
 
+        public override void OnAwake()
+        {
+            perModelCache[internalModel] = this;
+        }
+
+        void OnDestroy()
+        {
+            perModelCache.Remove(internalModel);
         }
     }
 }

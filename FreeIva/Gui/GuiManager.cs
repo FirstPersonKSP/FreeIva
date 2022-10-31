@@ -65,7 +65,7 @@ namespace FreeIva
 
             KerbalColliderGui();
 
-            if (FreeIva.CurrentModuleFreeIva == null)
+            if (FreeIva.CurrentInternalModuleFreeIva == null)
                 GUILayout.Label("Free IVA module not found in this part. ModuleManager_FreeIvaParts.cfg update required.");
 
             HatchGui();
@@ -165,8 +165,8 @@ namespace FreeIva
         {
             if (GUILayout.Button((showHatchGui ? "Hide" : "Show") + " hatch configuration"))
                 showHatchGui = !showHatchGui;
-            if (!showHatchGui || FreeIva.CurrentModuleFreeIva == null) return;
-            if (FreeIva.CurrentModuleFreeIva.Hatches.Count == 0)
+            if (!showHatchGui || FreeIva.CurrentInternalModuleFreeIva == null) return;
+            if (FreeIva.CurrentInternalModuleFreeIva.Hatches.Count == 0)
             {
                 GUILayout.Label("No hatches");
                 return;
@@ -186,13 +186,13 @@ namespace FreeIva
                 _hatchIndex++;
             GUILayout.EndHorizontal();
 
-            if (_hatchIndex >= FreeIva.CurrentModuleFreeIva.Hatches.Count)
+            if (_hatchIndex >= FreeIva.CurrentInternalModuleFreeIva.Hatches.Count)
                 _hatchIndex = 0;
             if (_hatchIndex < 0)
-                _hatchIndex = FreeIva.CurrentModuleFreeIva.Hatches.Count - 1;
+                _hatchIndex = FreeIva.CurrentInternalModuleFreeIva.Hatches.Count - 1;
             GuiUtils.label("Current Hatch", _hatchIndex + 1);
-            Hatch h = FreeIva.CurrentModuleFreeIva.Hatches[_hatchIndex];
-            GuiUtils.label("Hatch (" + (_hatchIndex + 1) + "/" + FreeIva.CurrentModuleFreeIva.Hatches.Count + ")", h);
+            Hatch h = FreeIva.CurrentInternalModuleFreeIva.Hatches[_hatchIndex];
+            GuiUtils.label("Hatch (" + (_hatchIndex + 1) + "/" + FreeIva.CurrentInternalModuleFreeIva.Hatches.Count + ")", h);
 
             GUILayout.Label("<b>Hatch</b>");
             GUILayout.BeginVertical();
