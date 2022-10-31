@@ -12,7 +12,6 @@ namespace FreeIva
         public bool CopyPartCollidersToInternalColliders = false;
 
         public List<Hatch> Hatches = new List<Hatch>(); // hatches will register themselves with us
-        public List<InternalCollider> InternalColliders = new List<InternalCollider>();
         public List<Collider> PartInternalColliders = new List<Collider>();
         public List<GameObject> PartInternalColliderObjects = new List<GameObject>();
         public List<CutParameter> Cuts = new List<CutParameter>();
@@ -22,7 +21,6 @@ namespace FreeIva
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT) return;
 
-            InternalColliders = new List<InternalCollider>(PersistenceManager.instance.GetCollidersForPartInstance(part.partInfo.name));
             Cuts = new List<CutParameter>(PersistenceManager.instance.GetCutParametersForPartInstance(part.partInfo.name));
         }
 
@@ -31,9 +29,6 @@ namespace FreeIva
             if (HighLogic.LoadedScene != GameScenes.FLIGHT || !vessel.isActiveVessel) return; // TODO: Instantiate on vessel switch.
             if (Hatches == null)
                 Debug.LogError("[FreeIVA] Startup error: Hatches null");
-
-            foreach (InternalCollider c in InternalColliders)
-                c.Instantiate(part);
 
             MeshCutter.Cut(part, Cuts);
 

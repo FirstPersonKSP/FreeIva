@@ -13,7 +13,6 @@ namespace FreeIva
         public static PersistenceManager instance { get; private set; }
 
         private static Dictionary<string, List<Hatch>> _hatches = new Dictionary<string, List<Hatch>>();
-        private static Dictionary<string, List<InternalCollider>> _internalColliderTemplates = new Dictionary<string, List<InternalCollider>>();
         private static Dictionary<Type, Dictionary<string, ConfigNode>> nodes = new Dictionary<Type, Dictionary<string, ConfigNode>>();
         private static Dictionary<string, List<CutParameter>> _cuts = new Dictionary<string, List<CutParameter>>();
 
@@ -35,38 +34,6 @@ namespace FreeIva
                 Debug.Log("# NOT adding duplicate " + hatches.Count + " hatches for part " + partName);
                 Debug.Log("# Dictionary entries: " + _hatches.Count());
             }
-        }
-
-        public void AddInternalColliders(string partName, List<InternalCollider> colliders)
-        {
-            if (!_internalColliderTemplates.ContainsKey(partName))
-            {
-                Debug.Log("[FreeIVA] Adding " + colliders.Count + " internal colldiers for part " + partName);
-                _internalColliderTemplates.Add(partName, colliders);
-            }
-            else
-            {
-                Debug.Log("# NOT adding duplicate " + colliders.Count + " internal colldier for part " + partName);
-                Debug.Log("# Dictionary entries: " + _internalColliderTemplates.Count());
-            }
-        }
-
-        public List<InternalCollider> GetCollidersForPartInstance(string partName)
-        {
-            List<InternalCollider> partColliderTemplates;
-            if (_internalColliderTemplates.TryGetValue(partName, out partColliderTemplates))
-            {
-                Debug.Log("# Internal collider FOUND for part " + partName);
-                var colliderInstances = new List<InternalCollider>();
-                foreach (var colliderTemplate in partColliderTemplates)
-                {
-                    colliderInstances.Add(colliderTemplate.Clone());
-                }
-                return colliderInstances;
-            }
-            else
-                Debug.Log("# Internal collider not found in dictionary for part " + partName);
-            return new List<InternalCollider>();
         }
 
         public void AddCutParameters(string partName, List<CutParameter> cuts)

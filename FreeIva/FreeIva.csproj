@@ -116,7 +116,6 @@
     <Compile Include="PropHatchAnimated.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="ExtensionMethods.cs" />
-    <Compile Include="IvaObjects\InternalCollider.cs" />
     <Compile Include="KerbalIvaController.cs" />
     <Compile Include="IvaCollisionPrinter.cs" />
     <Compile Include="FreeIva.cs" />
