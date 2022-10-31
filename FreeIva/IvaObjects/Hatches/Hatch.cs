@@ -188,7 +188,6 @@ namespace FreeIva
             else
             {
                 HideOnOpen(open);
-                FreeIva.SetRenderQueues(FreeIva.CurrentPart);
 
                 if (open != IsOpen)
                 {
@@ -203,6 +202,7 @@ namespace FreeIva
                 if (connectedHatch != null && connectedHatch.IsOpen != open)
                 {
                     connectedHatch.Open(open);
+                    FreeIva.SetRenderQueues(FreeIva.CurrentPart);
                 }
             }
         }
