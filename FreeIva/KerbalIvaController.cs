@@ -734,24 +734,19 @@ namespace FreeIva
 
             if (targetedHatch != null)
             {
-                ScreenMessages.PostScreenMessage((targetedHatch.IsOpen ? "Close" : "Open") + " hatch [" + Settings.OpenHatchKey + "]",
+                if (targetedHatch.ConnectedHatch == null)
+                {
+                    ScreenMessages.PostScreenMessage("Go EVA [" + Settings.OpenHatchKey + "]",
                         0.1f, ScreenMessageStyle.LOWER_CENTER);
+                }
+                else
+                {
+                    ScreenMessages.PostScreenMessage((targetedHatch.IsOpen ? "Close" : "Open") + " hatch [" + Settings.OpenHatchKey + "]",
+                        0.1f, ScreenMessageStyle.LOWER_CENTER);
+                }
 
                 if (openHatch)
                     targetedHatch.ToggleHatch();
-
-                // Allow reaching through an open hatch to open or close the connected hatch.
-                if (targetedHatch.IsOpen && targetedHatch.ConnectedHatch != null && IsTargeted(targetedHatch.ConnectedHatch.WorldPosition))
-                {
-                    float distance = Vector3.Distance(targetedHatch.ConnectedHatch.WorldPosition, InternalCamera.Instance.transform.position);
-                    if (distance < Settings.MaxInteractDistance)
-                    {
-                        ScreenMessages.PostScreenMessage((targetedHatch.ConnectedHatch.IsOpen ? "Close" : "Open") + " far hatch [" + Settings.ModifierKey + " + " + Settings.OpenHatchKey + "]",
-                                0.1f, ScreenMessageStyle.LOWER_CENTER);
-                        if (openFarHatch)
-                            targetedHatch.ConnectedHatch.ToggleHatch();
-                    }
-                }
             }
         }
 
