@@ -9,7 +9,7 @@ namespace FreeIva
     /// Base class for hatches (points where kerbals can exit or enter a part during IVA).
     /// Manages attachment node, audio, and connections to other hatches
     /// </summary>
-    public abstract class Hatch : InternalModule
+    public class FreeIvaHatch : InternalModule
     {
         // ----- fields set in prop config
 
@@ -56,9 +56,9 @@ namespace FreeIva
         // Where the GameObject is located. Used for basic interaction targeting (i.e. when to show the "Open hatch?" prompt).
         public virtual Vector3 WorldPosition => transform.position;
 
-        private Hatch _connectedHatch = null;
+        private FreeIvaHatch _connectedHatch = null;
         // The other hatch that this one is connected or docked to, if present.
-        public Hatch ConnectedHatch
+        public FreeIvaHatch ConnectedHatch
         {
             get
             {

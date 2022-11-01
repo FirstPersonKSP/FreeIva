@@ -173,7 +173,7 @@ namespace FreeIva
 
                 for (int i = 0; i < iva.Hatches.Count; i++)
                 {
-                    Hatch h = iva.Hatches[i];
+                    FreeIvaHatch h = iva.Hatches[i];
 
                     if (h.IsOpen && h.ConnectedHatch != null && h.ConnectedHatch.IsOpen &&
                         h.ConnectedHatch.part != null && !visibleParts.Contains(h.ConnectedHatch.part))
@@ -371,7 +371,7 @@ namespace FreeIva
                 }
 
                 // TODO
-                Hatch.InitialiseAllHatchesClosed();
+                FreeIvaHatch.InitialiseAllHatchesClosed();
 
                 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 // Colliders, hatches and hatch props are all unhidden by this.

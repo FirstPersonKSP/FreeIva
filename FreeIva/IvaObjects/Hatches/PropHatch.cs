@@ -7,7 +7,7 @@ namespace FreeIva
     /// <summary>
     /// A module that can be placed on a hatch prop.  Swaps that prop with an 'opened' version when opened
     /// </summary>
-    public class PropHatch : Hatch
+    public class PropHatch : FreeIvaHatch
     {
         [KSPField]
         public string openPropName = string.Empty;
@@ -95,15 +95,15 @@ namespace FreeIva
 
         public override void OnLoad(ConfigNode node)
         {
-            Hatch.ObjectsToHide objectsToHide = null;
+            FreeIvaHatch.ObjectsToHide objectsToHide = null;
 
             if (node.HasNode("HideWhenOpen"))
             {
-                objectsToHide = ScriptableObject.CreateInstance<Hatch.ObjectsToHide>();
+                objectsToHide = ScriptableObject.CreateInstance<FreeIvaHatch.ObjectsToHide>();
                 ConfigNode[] hideNodes = node.GetNodes("HideWhenOpen");
                 foreach (var hideNode in hideNodes)
                 {
-                    Hatch.ObjectToHide objectToHide = new Hatch.ObjectToHide();
+                    FreeIvaHatch.ObjectToHide objectToHide = new FreeIvaHatch.ObjectToHide();
 
                     objectToHide.name = hideNode.GetValue("name");
                     if (objectToHide.name == null)
@@ -124,7 +124,7 @@ namespace FreeIva
             }
 
             base.OnLoad(node);
-            var propHatch = GetComponent<Hatch>();
+            var propHatch = GetComponent<FreeIvaHatch>();
             if (propHatch != null)
             {
                 propHatch.attachNodeId = attachNodeId;

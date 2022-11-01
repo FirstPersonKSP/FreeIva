@@ -25,7 +25,7 @@ namespace FreeIva
         [KSPField]
         public bool CopyPartCollidersToInternalColliders = false;
 
-        public List<Hatch> Hatches = new List<Hatch>(); // hatches will register themselves with us
+        public List<FreeIvaHatch> Hatches = new List<FreeIvaHatch>(); // hatches will register themselves with us
 
         public override void OnLoad(ConfigNode node)
         {

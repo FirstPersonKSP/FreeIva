@@ -191,7 +191,7 @@ namespace FreeIva
             if (_hatchIndex < 0)
                 _hatchIndex = FreeIva.CurrentInternalModuleFreeIva.Hatches.Count - 1;
             GuiUtils.label("Current Hatch", _hatchIndex + 1);
-            Hatch h = FreeIva.CurrentInternalModuleFreeIva.Hatches[_hatchIndex];
+            FreeIvaHatch h = FreeIva.CurrentInternalModuleFreeIva.Hatches[_hatchIndex];
             GuiUtils.label("Hatch (" + (_hatchIndex + 1) + "/" + FreeIva.CurrentInternalModuleFreeIva.Hatches.Count + ")", h);
 
             GUILayout.Label("<b>Hatch</b>");

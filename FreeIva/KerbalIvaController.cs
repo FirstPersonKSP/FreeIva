@@ -671,13 +671,13 @@ namespace FreeIva
         {
             if (FreeIva.CurrentInternalModuleFreeIva == null) return;
 
-            Hatch targetedHatch = null;
+            FreeIvaHatch targetedHatch = null;
             float closestDistance = Settings.MaxInteractDistance;
 
             if (FreeIva.CurrentInternalModuleFreeIva.Hatches.Count != 0)
             {
                 //for (int i = 0; i < CurrentModuleFreeIva.Hatches.Count; i++)
-                foreach (Hatch h in FreeIva.CurrentInternalModuleFreeIva.Hatches)
+                foreach (FreeIvaHatch h in FreeIva.CurrentInternalModuleFreeIva.Hatches)
                 {
                     if (IsTargeted(h.WorldPosition))
                     {
@@ -697,7 +697,7 @@ namespace FreeIva
                 InternalModuleFreeIva parentModule = InternalModuleFreeIva.GetForModel(FreeIva.CurrentPart.parent?.internalModel);
                 if (parentModule != null)
                 {
-                    foreach (Hatch h in parentModule.Hatches)
+                    foreach (FreeIvaHatch h in parentModule.Hatches)
                     {
                         if (IsTargeted(h.WorldPosition))
                         {
@@ -717,7 +717,7 @@ namespace FreeIva
 
                     if (childModule == null)
                         continue;
-                    foreach (Hatch h in childModule.Hatches)
+                    foreach (FreeIvaHatch h in childModule.Hatches)
                     {
                         if (IsTargeted(h.WorldPosition))
                         {
