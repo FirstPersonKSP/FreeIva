@@ -111,19 +111,23 @@ namespace FreeIva
 
             m_doorTransform = internalProp.FindModelTransform(doorTransformName);
 
-            var tubeTransform = internalProp.FindModelTransform(tubeTransformName);
-
             // scale tube appropriately
+            var tubeTransform = internalProp.FindModelTransform(tubeTransformName);
             if (tubeTransform != null)
             {
+                // try to determine tube length from attach node
+                var attachNode = GetHatchNode(attachNodeId);
+                if (tubeExtent == 0 && attachNode != null)
+                {
+                    tubeExtent = Vector3.Dot(attachNode.originalPosition, attachNode.originalOrientation);
+                }
+
                 if (tubeExtent == 0)
                 {
                     GameObject.Destroy(tubeTransform.gameObject);
                 }
                 else
                 {
-                    // TODO: can we programmatically determine this from part bounds?
-                    // A: probably not, they're not quite accurate
                     Vector3 tubePositionInIVA = internalModel.transform.InverseTransformPoint(tubeTransform.position);
                     Vector3 tubeDownVectorWorld = tubeTransform.rotation * Vector3.down;
                     Vector3 tubeDownVectorIVA = internalModel.transform.InverseTransformVector(tubeDownVectorWorld);
