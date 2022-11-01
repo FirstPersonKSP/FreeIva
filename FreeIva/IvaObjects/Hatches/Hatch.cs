@@ -124,9 +124,12 @@ namespace FreeIva
                 {
                     // TODO: can we programmatically determine this from part bounds?
                     // A: probably not, they're not quite accurate
-                    Vector3 propDownVector = internalProp.transform.rotation * Vector3.down;
-                    float propPositionOnAxis = Vector3.Dot(propDownVector, internalProp.transform.position);
-                    float distanceToExtent = tubeExtent - propPositionOnAxis;
+                    Vector3 tubePositionInIVA = internalModel.transform.InverseTransformPoint(tubeTransform.position);
+                    Vector3 tubeDownVectorWorld = tubeTransform.rotation * Vector3.down;
+                    Vector3 tubeDownVectorIVA = internalModel.transform.InverseTransformVector(tubeDownVectorWorld);
+                    
+                    float tubePositionOnAxis = Vector3.Dot(tubeDownVectorIVA, tubePositionInIVA);
+                    float distanceToExtent = tubeExtent - tubePositionOnAxis;
 
                     // TODO: what if the prop itself is scaled?
                     tubeTransform.localScale = new Vector3(1.0f, distanceToExtent, 1.0f);
