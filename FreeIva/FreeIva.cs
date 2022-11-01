@@ -146,10 +146,12 @@ namespace FreeIva
                             }
                             else
                             {
-                                if (p == activePart || !partVisible)
-                                    m.renderQueue = 2000; // Hide the part the player is inside, and parts with closed hatches.
-                                else
-                                    m.renderQueue = DepthMaskQueue - 1; //1998;
+                                m.renderQueue = DepthMaskQueue - 1;
+
+                                //if (p == activePart || !partVisible)
+                                //    m.renderQueue = 2000; // Hide the part the player is inside, and parts with closed hatches.
+                                //else
+                                //    m.renderQueue = DepthMaskQueue - 1; //1998;
                             }
                         }
                     }
