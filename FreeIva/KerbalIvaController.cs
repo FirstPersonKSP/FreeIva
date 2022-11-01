@@ -694,7 +694,7 @@ namespace FreeIva
             {
                 // Part has no hatches but does have a ModuleFreeIva. Passable part without hatches, like a tube.
                 // TODO: Restrict this to node attachments?
-                InternalModuleFreeIva parentModule = InternalModuleFreeIva.GetForModel(FreeIva.CurrentPart.parent.internalModel);
+                InternalModuleFreeIva parentModule = InternalModuleFreeIva.GetForModel(FreeIva.CurrentPart.parent?.internalModel);
                 if (parentModule != null)
                 {
                     foreach (Hatch h in parentModule.Hatches)
