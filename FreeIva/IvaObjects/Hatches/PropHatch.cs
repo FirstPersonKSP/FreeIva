@@ -93,6 +93,9 @@ namespace FreeIva
         [KSPField]
         public string airlockName;
 
+        [KSPField]
+        public float tubeExtent;
+
         public override void OnLoad(ConfigNode node)
         {
             FreeIvaHatch.ObjectsToHide objectsToHide = null;
@@ -130,6 +133,7 @@ namespace FreeIva
                 propHatch.attachNodeId = attachNodeId;
                 propHatch.HideWhenOpen = objectsToHide;
                 propHatch.airlockName = airlockName;
+                propHatch.tubeExtent = tubeExtent;
             }
         }
     }

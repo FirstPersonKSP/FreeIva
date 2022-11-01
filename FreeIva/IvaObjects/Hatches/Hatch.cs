@@ -25,6 +25,9 @@ namespace FreeIva
         [KSPField]
         public string doorTransformName = string.Empty;
 
+        [KSPField]
+        public string tubeTransformName = string.Empty;
+
         // ----- the following fields are set via PropHatchConfig, so that they can be different per placement of the prop
 
         // The name of the part attach node this hatch is positioned on, as defined in the part.cfg's "node definitions".
@@ -35,6 +38,8 @@ namespace FreeIva
         public ObjectsToHide HideWhenOpen;
 
         public string airlockName = string.Empty;
+
+        public float tubeExtent = 0;
 
         // -----
 
@@ -105,6 +110,28 @@ namespace FreeIva
             }
 
             m_doorTransform = internalProp.FindModelTransform(doorTransformName);
+
+            var tubeTransform = internalProp.FindModelTransform(tubeTransformName);
+
+            // scale tube appropriately
+            if (tubeTransform != null)
+            {
+                if (tubeExtent == 0)
+                {
+                    GameObject.Destroy(tubeTransform);
+                }
+                else
+                {
+                    // TODO: can we programmatically determine this from part bounds?
+                    // A: probably not, they're not quite accurate
+                    Vector3 propDownVector = internalProp.transform.rotation * Vector3.down;
+                    float propPositionOnAxis = Vector3.Dot(propDownVector, internalProp.transform.position);
+                    float distanceToExtent = tubeExtent - propPositionOnAxis;
+
+                    // TODO: what if the prop itself is scaled?
+                    tubeTransform.localScale = new Vector3(1.0f, distanceToExtent, 1.0f);
+                }
+            }
 
             InternalModuleFreeIva.GetForModel(internalModel).Hatches.Add(this);
         }
