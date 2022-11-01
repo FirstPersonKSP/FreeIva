@@ -290,9 +290,17 @@ namespace FreeIva
             {
                 var childTransform = part.FindModelTransform(airlockName);
 
-                if (childTransform.CompareTag("Airlock"))
+                if (childTransform != null && childTransform.CompareTag("Airlock"))
                 {
                     return childTransform;
+                }
+                else if (childTransform == null)
+                {
+                    Debug.LogError($"[FreeIva] could not find airlock transform named {airlockName} on part {part.partInfo.name}");
+                }
+                else
+                {
+                    Debug.LogError($"[FreeIva] found airlock transform named {airlockName} on part {part.partInfo.name} but it doesn't have the 'Airlock' tag");
                 }
             }
 
