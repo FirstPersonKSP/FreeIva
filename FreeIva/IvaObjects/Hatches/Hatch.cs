@@ -118,7 +118,7 @@ namespace FreeIva
             {
                 if (tubeExtent == 0)
                 {
-                    GameObject.Destroy(tubeTransform);
+                    GameObject.Destroy(tubeTransform.gameObject);
                 }
                 else
                 {
