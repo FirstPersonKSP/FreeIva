@@ -22,6 +22,9 @@ namespace FreeIva
         [KSPField]
         public string handleTransformName = string.Empty;
 
+        [KSPField]
+        public string doorTransformName = string.Empty;
+
         // ----- the following fields are set via PropHatchConfig, so that they can be different per placement of the prop
 
         // The name of the part attach node this hatch is positioned on, as defined in the part.cfg's "node definitions".
@@ -47,6 +50,8 @@ namespace FreeIva
         {
             public List<ObjectToHide> objects = new List<ObjectToHide>();
         }
+
+        Transform m_doorTransform;
 
         // Where the GameObject is located. Used for basic interaction targeting (i.e. when to show the "Open hatch?" prompt).
         public virtual Vector3 WorldPosition => transform.position;
@@ -98,6 +103,8 @@ namespace FreeIva
                     clickWatcher.AddMouseDownAction(OnHandleClick);
                 }
             }
+
+            m_doorTransform = internalProp.FindModelTransform(doorTransformName);
 
             InternalModuleFreeIva.GetForModel(internalModel).Hatches.Add(this);
         }
@@ -187,6 +194,11 @@ namespace FreeIva
             }
             else
             {
+                if (m_doorTransform != null)
+                {
+                    m_doorTransform.gameObject.SetActive(!open);
+                }
+
                 HideOnOpen(open);
 
                 if (open != IsOpen)
