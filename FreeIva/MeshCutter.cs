@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace FreeIva
 {
@@ -16,7 +17,9 @@ namespace FreeIva
 			}
 
 			Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal '{model.internalName}'");
-			DateTime starTime = DateTime.Now;
+			var stopwatch = new System.Diagnostics.Stopwatch();
+			stopwatch.Start();
+			Profiler.BeginSample("MeshCut");
 
 			IEnumerable<string> targets = parameters.Select(x => x.target).Distinct();
 			foreach (string targetName in targets)
@@ -27,7 +30,24 @@ namespace FreeIva
 				ApplyCut(target, tools);
 			}
 
-			Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal'{model.internalName}' done ({parameters.Count} cut(s) on {targets.Count()} target(s)), time used: {(DateTime.Now - starTime).TotalMilliseconds}ms");
+			Profiler.EndSample();
+			stopwatch.Stop();
+			Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal '{model.internalName}' done ({parameters.Count} cut(s) on {targets.Count()} target(s)), time used: {stopwatch.Elapsed.TotalMilliseconds}ms");
+		}
+
+		public static void CutFromProp(InternalModel model, InternalProp prop, string targetName, string toolTransformName)
+		{
+			Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal '{model.internalName}'");
+			var stopwatch = new System.Diagnostics.Stopwatch();
+			stopwatch.Start();
+
+			MeshFilter target = model.FindModelTransform(targetName).gameObject.GetComponent<MeshFilter>();
+			GameObject tool = prop.FindModelTransform(toolTransformName).gameObject;
+			ApplyCut(target, new List<GameObject>() { tool });
+
+			Profiler.EndSample();
+			stopwatch.Stop();
+			Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal '{model.internalName}' from prop '{prop.propName}' done, time used: {stopwatch.Elapsed.TotalMilliseconds}ms");
 		}
 
 		private static void ApplyCut(MeshFilter target, List<GameObject> tools)

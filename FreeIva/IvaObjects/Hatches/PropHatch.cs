@@ -87,23 +87,19 @@ namespace FreeIva
     // this module just contains per-placement data for the prop hatch
     public class PropHatchConfig : InternalModule
     {
-        [KSPField]
-        public string attachNodeId;
-
-        [KSPField]
-        public string airlockName;
-
-        [KSPField]
-        public float tubeExtent;
-
         public override void OnLoad(ConfigNode node)
         {
-            FreeIvaHatch.ObjectsToHide objectsToHide = null;
+            var propHatch = GetComponent<FreeIvaHatch>();
 
-            if (node.HasNode("HideWhenOpen"))
+            node.TryGetValue("attachNodeId", ref propHatch.attachNodeId);
+            node.TryGetValue("airlockName", ref propHatch.airlockName);
+            node.TryGetValue("tubeExtent", ref propHatch.tubeExtent);
+
+            ConfigNode[] hideNodes = node.GetNodes("HideWhenOpen");
+            if (hideNodes != null && hideNodes.Length > 0)
             {
-                objectsToHide = ScriptableObject.CreateInstance<FreeIvaHatch.ObjectsToHide>();
-                ConfigNode[] hideNodes = node.GetNodes("HideWhenOpen");
+                propHatch.HideWhenOpen = ScriptableObject.CreateInstance<FreeIvaHatch.ObjectsToHide>();
+                
                 foreach (var hideNode in hideNodes)
                 {
                     FreeIvaHatch.ObjectToHide objectToHide = new FreeIvaHatch.ObjectToHide();
@@ -117,7 +113,7 @@ namespace FreeIva
                     
                     if (hideNode.TryGetValue("position", ref objectToHide.position))
                     {
-                        objectsToHide.objects.Add(objectToHide);
+                        propHatch.HideWhenOpen.objects.Add(objectToHide);
                     }
                     else
                     {
@@ -126,14 +122,10 @@ namespace FreeIva
                 }
             }
 
-            base.OnLoad(node);
-            var propHatch = GetComponent<FreeIvaHatch>();
-            if (propHatch != null)
+            var cutoutTargetTransformName = node.GetValue("cutoutTargetTransformName");
+            if (propHatch.cutoutTransformName != string.Empty && cutoutTargetTransformName != null)
             {
-                propHatch.attachNodeId = attachNodeId;
-                propHatch.HideWhenOpen = objectsToHide;
-                propHatch.airlockName = airlockName;
-                propHatch.tubeExtent = tubeExtent;
+                MeshCutter.CutFromProp(internalModel, propHatch.internalProp, cutoutTargetTransformName, propHatch.cutoutTransformName);
             }
         }
     }

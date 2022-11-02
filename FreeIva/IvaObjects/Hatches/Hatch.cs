@@ -28,6 +28,9 @@ namespace FreeIva
         [KSPField]
         public string tubeTransformName = string.Empty;
 
+        [KSPField]
+        public string cutoutTransformName = string.Empty;
+
         // ----- the following fields are set via PropHatchConfig, so that they can be different per placement of the prop
 
         // The name of the part attach node this hatch is positioned on, as defined in the part.cfg's "node definitions".
@@ -109,12 +112,24 @@ namespace FreeIva
                 }
             }
 
+            // if the cutout didn't get removed at load time, do it now
+            if (cutoutTransformName != string.Empty)
+            {
+                var cutoutTransform = internalProp.FindModelTransform(cutoutTransformName);
+                if (cutoutTransform != null)
+                {
+                    GameObject.Destroy(cutoutTransform.gameObject);
+                }
+            }
+
             m_doorTransform = internalProp.FindModelTransform(doorTransformName);
 
             // scale tube appropriately
             var tubeTransform = internalProp.FindModelTransform(tubeTransformName);
             if (tubeTransform != null)
             {
+                float tubeScale = 0;
+
                 // try to determine tube length from attach node
                 var attachNode = GetHatchNode(attachNodeId);
                 if (tubeExtent == 0 && attachNode != null)
@@ -122,21 +137,25 @@ namespace FreeIva
                     tubeExtent = Vector3.Dot(attachNode.originalPosition, attachNode.originalOrientation);
                 }
 
-                if (tubeExtent == 0)
-                {
-                    GameObject.Destroy(tubeTransform.gameObject);
-                }
-                else
+                if (tubeExtent != 0)
                 {
                     Vector3 tubePositionInIVA = internalModel.transform.InverseTransformPoint(tubeTransform.position);
                     Vector3 tubeDownVectorWorld = tubeTransform.rotation * Vector3.down;
                     Vector3 tubeDownVectorIVA = internalModel.transform.InverseTransformVector(tubeDownVectorWorld);
                     
                     float tubePositionOnAxis = Vector3.Dot(tubeDownVectorIVA, tubePositionInIVA);
-                    float distanceToExtent = tubeExtent - tubePositionOnAxis;
+                    tubeScale = tubeExtent - tubePositionOnAxis;
 
                     // TODO: what if the prop itself is scaled?
-                    tubeTransform.localScale = new Vector3(1.0f, distanceToExtent, 1.0f);
+                }
+
+                if (tubeScale <= 0)
+                {
+                    GameObject.Destroy(tubeTransform.gameObject);
+                }
+                else
+                {
+                    tubeTransform.localScale = new Vector3(1.0f, tubeScale, 1.0f);
                 }
             }
 
