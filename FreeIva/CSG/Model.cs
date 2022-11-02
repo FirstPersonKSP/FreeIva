@@ -67,6 +67,12 @@ namespace Parabox.CSG
                 mesh.GetIndices(indices, i);
                 m_Indices.Add(indices);
             }
+
+            // some stock meshes seem to have more submeshes than materials
+            for (int i = m_Materials.Count; i < mesh.subMeshCount; ++i)
+            {
+                m_Materials.Add(m_Materials[0]);
+            }
         }
 
         internal Model(List<Polygon> polygons)

@@ -35,21 +35,6 @@ namespace FreeIva
 			Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal '{model.internalName}' done ({parameters.Count} cut(s) on {targets.Count()} target(s)), time used: {stopwatch.Elapsed.TotalMilliseconds}ms");
 		}
 
-		public static void CutFromProp(InternalModel model, InternalProp prop, string targetName, string toolTransformName)
-		{
-			Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal '{model.internalName}'");
-			var stopwatch = new System.Diagnostics.Stopwatch();
-			stopwatch.Start();
-
-			MeshFilter target = model.FindModelTransform(targetName).gameObject.GetComponent<MeshFilter>();
-			GameObject tool = prop.FindModelTransform(toolTransformName).gameObject;
-			ApplyCut(target, new List<GameObject>() { tool });
-
-			Profiler.EndSample();
-			stopwatch.Stop();
-			Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal '{model.internalName}' from prop '{prop.propName}' done, time used: {stopwatch.Elapsed.TotalMilliseconds}ms");
-		}
-
 		private static void ApplyCut(MeshFilter target, List<GameObject> tools)
 		{
 			// All these transform nonsenses are for counteracting a bug in Paradox.CSG
@@ -123,7 +108,7 @@ namespace FreeIva
 		{
 			if (parameter.type == CutParameter.Type.Mesh)
 			{
-				return model.FindModelTransform(parameter.tool).gameObject;
+				return parameter.tool != null ? parameter.tool : model.FindModelTransform(parameter.toolName).gameObject;
 			}
 			else
 			{

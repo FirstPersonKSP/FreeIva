@@ -29,7 +29,8 @@ namespace FreeIva
 
 		public int slices;
 
-		public string tool;
+        public string toolName;
+		public GameObject tool;
 
 		public static CutParameter LoadFromCfg(ConfigNode node)
 		{
@@ -93,7 +94,7 @@ namespace FreeIva
 
 			if (param.type == Type.Mesh)
 			{
-				param.tool = node.GetValue("tool");
+                param.toolName = node.GetValue("tool");
 			}
 			else
 			{

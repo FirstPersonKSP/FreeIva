@@ -125,7 +125,8 @@ namespace FreeIva
             var cutoutTargetTransformName = node.GetValue("cutoutTargetTransformName");
             if (propHatch.cutoutTransformName != string.Empty && cutoutTargetTransformName != null)
             {
-                MeshCutter.CutFromProp(internalModel, propHatch.internalProp, cutoutTargetTransformName, propHatch.cutoutTransformName);
+                var freeIvaModule = internalModel.GetComponentInChildren<InternalModuleFreeIva>();
+                freeIvaModule.AddPropCut(cutoutTargetTransformName, propHatch);
             }
         }
     }
