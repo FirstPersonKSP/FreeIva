@@ -93,11 +93,29 @@ namespace FreeIva
 
         public bool IsOpen { get; private set; }
 
+        public override void OnLoad(ConfigNode node)
+        {
+            // is this module placed directly in an INTERNAL node?
+            if (internalModel != null)
+            {
+                Vector3 position = Vector3.zero;
+                if (node.TryGetValue("position", ref position))
+                {
+                    transform.localPosition = position;
+                }
+
+                Quaternion rotation = Quaternion.identity;
+                if (node.TryGetValue("rotation", ref rotation))
+                {
+                    transform.localRotation = rotation;
+                }
+            }
+        }
         public void Start()
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
 
-            Debug.Log($"# Creating hatch {internalProp.propName} for part {part.partName}");
+            Debug.Log($"# Creating hatch {internalProp.propName} for part {part.partInfo.name}");
             
             HatchOpenSound = SetupAudio(hatchOpenSoundFile);
             HatchCloseSound = SetupAudio(hatchCloseSoundFile);
