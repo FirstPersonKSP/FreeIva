@@ -361,7 +361,7 @@ namespace FreeIva
                 {
                     if (p.internalModel == null)
                     {
-                        p.CreateInternalModel();
+                        p.SpawnIVA();
                     }
                     if (p.internalModel != null)
                     {

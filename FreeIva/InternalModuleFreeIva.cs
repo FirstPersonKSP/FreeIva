@@ -141,9 +141,12 @@ namespace FreeIva
             cutParameters = null;
         }
 
-        public override void OnAwake()
+        void Awake()
         {
-            perModelCache[internalModel] = this;
+            if (HighLogic.LoadedScene == GameScenes.FLIGHT)
+            {
+                perModelCache[internalModel] = this;
+            }
         }
 
         void OnDestroy()

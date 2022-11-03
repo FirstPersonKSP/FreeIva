@@ -111,7 +111,7 @@ namespace FreeIva
                 }
             }
         }
-        public void Start()
+        public override void OnAwake()
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
 
@@ -177,7 +177,8 @@ namespace FreeIva
                 }
             }
 
-            InternalModuleFreeIva.GetForModel(internalModel).Hatches.Add(this);
+            var internalModule = InternalModuleFreeIva.GetForModel(internalModel);
+            internalModule.Hatches.Add(this);
         }
 
         private void OnHandleClick()

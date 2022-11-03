@@ -24,11 +24,11 @@ namespace FreeIva
         public InternalProp ClosedProp => internalProp;
         public InternalProp OpenProp;
 
-        public new void Start()
+        public override void OnAwake()
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
 
-            base.Start();
+            base.OnAwake();
 
             CreateOpenProp();
         }
