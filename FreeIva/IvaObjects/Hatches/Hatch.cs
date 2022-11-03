@@ -383,21 +383,5 @@ namespace FreeIva
                 }
             }
         }
-
-        /*public void Destroy()
-        {
-            cylinder.DestroyGameObject();
-        }*/
-
-        /*public static void PositionHole()
-        {
-            cylinder.transform.localPosition = new Vector3(0f, -0.6f, 0f);
-            cylinder.transform.localScale = Scale;
-            return;
-            /*Debug.Log("Positioning cylinder from " + cylinder.transform.localPosition);
-            cylinder.transform.localPosition = new Vector3(hatchX, hatchY, hatchZ);
-            Debug.Log("                       to " + cylinder.transform.localPosition);
-            cylinder.transform.localScale = new Vector3(hatchScaleX, hatchScaleY, hatchScaleZ);* /
-        }*/
     }
 }

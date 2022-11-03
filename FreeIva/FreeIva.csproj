@@ -107,6 +107,7 @@
     <Compile Include="ClickWatcher.cs" />
     <Compile Include="InternalModuleFreeIva.cs" />
     <Compile Include="IvaObjects\DepthMask.cs" />
+    <Compile Include="IvaObjects\Hatches\HatchConfig.cs" />
     <Compile Include="IvaObjects\IIvaObject.cs" />
     <Compile Include="Experimental\InteractionCollider.cs" />
     <Compile Include="Experimental\InteractiveIvaProp.cs" />
