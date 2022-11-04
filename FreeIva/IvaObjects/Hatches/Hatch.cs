@@ -180,6 +180,11 @@ namespace FreeIva
             }
 
             var internalModule = InternalModuleFreeIva.GetForModel(internalModel);
+            if (internalModule == null)
+            {
+                Debug.LogError($"[FreeIva] no InternalModuleFreeIva instance registered for internal {internalModel.internalName} for hatch prop {internalProp.propName}");
+                return;
+            }
             internalModule.Hatches.Add(this);
 
             if (hideDoorWhenConnected)
