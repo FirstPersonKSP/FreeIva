@@ -1,3 +1,22 @@
+#
+# Exclude IPMT
+#
+/Assets/TextMesh Pro/
+/Assets/PartTools/
+/Assets/SquadCore/
+/Assets/Plugins/
+/Assets/IPMT/
+/Assets/TextMesh Pro.meta
+/Assets/PartTools.meta
+/Assets/SquadCore.meta
+/Assets/Plugins.meta
+/Assets/IPMT.meta
+
+# Parttool config
+PartTools.cfg
+ipmtConfig.json
+
+
 # This .gitignore file should be placed at the root of your Unity project directory
 #
 # Get latest from https://github.com/github/gitignore/blob/master/Unity.gitignore
