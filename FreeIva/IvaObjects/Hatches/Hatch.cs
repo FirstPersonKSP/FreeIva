@@ -203,14 +203,14 @@ namespace FreeIva
                 {
                     // right now this is redundant, but eventually doors will animate open instead of disappearing
                     m_doorTransform.gameObject.SetActive(false);
-                    if (connectedHatch.m_doorTransform != null)
-                    {
-                        connectedHatch.m_doorTransform.gameObject.SetActive(false);
-                    }
-
-                    enabled = false;
-                    connectedHatch.enabled = false;
                 }
+                if (connectedHatch.m_doorTransform != null)
+                {
+                    connectedHatch.m_doorTransform.gameObject.SetActive(false);
+                }
+
+                enabled = false;
+                connectedHatch.enabled = false;
             }
         }
 
