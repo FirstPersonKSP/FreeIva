@@ -362,22 +362,14 @@ namespace FreeIva
                     if (p.internalModel == null)
                     {
                         p.CreateInternalModel();
-                    }
-                    if (p.internalModel != null)
-                    {
-                        p.internalModel.Initialize(p);
-                        p.internalModel.SpawnCrew();
-                        p.internalModel.SetVisible(true);
+                        if (p.internalModel != null)
+                        {
+                            p.internalModel.Initialize(p);
+                            p.internalModel.SpawnCrew();
+                            p.internalModel.SetVisible(true);
+                        }
                     }
                 }
-
-                // TODO
-                FreeIvaHatch.InitialiseAllHatchesClosed();
-
-                //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                // Colliders, hatches and hatch props are all unhidden by this.
-                //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
                 //_initialised = true;
             }
