@@ -14,6 +14,19 @@ namespace FreeIva
         {
             var propHatch = GetComponent<FreeIvaHatch>();
 
+            if (propHatch == null)
+            {
+                if (internalProp.hasModel)
+                {
+                    Debug.Log($"[FreeIva] PropHatchConfig in internal {internalModel.internalName} placed in prop {internalProp.propName} that does not have a FreeIvaHatch module");
+                }
+                else
+                {
+                    Debug.LogError($"[FreeIva] PropHatchConfig in internal {internalModel.internalName} was placed outside of a PROP node");
+                }
+                return;
+            }
+
             node.TryGetValue("attachNodeId", ref propHatch.attachNodeId);
             node.TryGetValue("airlockName", ref propHatch.airlockName);
             node.TryGetValue("tubeExtent", ref propHatch.tubeExtent);
