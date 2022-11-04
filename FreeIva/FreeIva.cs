@@ -366,8 +366,12 @@ namespace FreeIva
                         {
                             p.internalModel.Initialize(p);
                             p.internalModel.SpawnCrew();
-                            p.internalModel.SetVisible(true);
                         }
+                    }
+
+                    if (p.internalModel != null)
+                    {
+                        p.internalModel.SetVisible(true);
                     }
                 }
 

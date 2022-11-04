@@ -93,6 +93,7 @@ namespace FreeIva
                     FreeIva.EnableInternals();
                     UpdateActiveKerbal();//false);
                     SetCameraToSeat();
+                    FreeIva.SetRenderQueues(FreeIva.CurrentPart);
                 }
 
                 // Check if we're changing crew member using the 'V' key.
@@ -476,8 +477,11 @@ namespace FreeIva
 			// to prevent this, forcibly change the current camera mode (this will emit an extra mode changed event, but it should be fine)
 			CameraManager.Instance.currentCameraMode = CameraManager.CameraMode.Internal;
 			CameraManager.Instance.SetCameraIVA(crewMember.KerbalRef, false);
-			GameEvents.OnIVACameraKerbalChange.Fire(newSeat.kerbalRef);
-		}
+            GameEvents.OnIVACameraKerbalChange.Fire(newSeat.kerbalRef);
+
+            FreeIva.EnableInternals(); // SetCameraIVA also calls FlightGlobals.ActiveVessel.SetActiveInternalSpace(activeInternalPart); which will hide all other IVAs
+            FreeIva.SetRenderQueues(newSeat.part);
+        }
 
         //Transform _internalCameraParent = null;
 
@@ -499,6 +503,7 @@ namespace FreeIva
             _previousPos = Vector3.zero;
             FreeIva.EnableInternals();
             UpdateActiveKerbal();
+            FreeIva.SetRenderQueues(FreeIva.CurrentPart);
             FreeIva.InitialPart = FreeIva.CurrentPart;
             OriginalSeat = ActiveKerbal.seat;
 
@@ -666,7 +671,19 @@ namespace FreeIva
                 ScreenMessages.PostScreenMessage("Enter seat [" + Settings.UnbuckleKey + "]", 0.1f, ScreenMessageStyle.LOWER_CENTER);
         }
 
-        // TODO: Replace this with clickable interaction colliders.
+        void ConsiderHatch(ref FreeIvaHatch targetedHatch, ref float closestDistance, FreeIvaHatch newHatch)
+        {
+            if (newHatch.enabled && IsTargeted(newHatch.WorldPosition))
+            {
+                float distance = Vector3.Distance(newHatch.WorldPosition, InternalCamera.Instance.transform.position);
+                if (distance < closestDistance)
+                {
+                    targetedHatch = newHatch;
+                    closestDistance = distance;
+                }
+            }
+        }
+
         public void TargetHatches(bool openHatch, bool openFarHatch)
         {
             if (FreeIva.CurrentInternalModuleFreeIva == null) return;
@@ -676,38 +693,21 @@ namespace FreeIva
 
             if (FreeIva.CurrentInternalModuleFreeIva.Hatches.Count != 0)
             {
-                //for (int i = 0; i < CurrentModuleFreeIva.Hatches.Count; i++)
                 foreach (FreeIvaHatch h in FreeIva.CurrentInternalModuleFreeIva.Hatches)
                 {
-                    if (IsTargeted(h.WorldPosition))
-                    {
-                        float distance = Vector3.Distance(h.WorldPosition, InternalCamera.Instance.transform.position);
-                        if (distance < closestDistance)
-                        {
-                            targetedHatch = h;
-                            closestDistance = distance;
-                        }
-                    }
+                    ConsiderHatch(ref targetedHatch, ref closestDistance, h);
                 }
             }
-            else
+            
+            // try neighboring parts
+            if (targetedHatch == null)
             {
-                // Part has no hatches but does have a ModuleFreeIva. Passable part without hatches, like a tube.
-                // TODO: Restrict this to node attachments?
                 InternalModuleFreeIva parentModule = InternalModuleFreeIva.GetForModel(FreeIva.CurrentPart.parent?.internalModel);
                 if (parentModule != null)
                 {
                     foreach (FreeIvaHatch h in parentModule.Hatches)
                     {
-                        if (IsTargeted(h.WorldPosition))
-                        {
-                            float distance = Vector3.Distance(h.WorldPosition, InternalCamera.Instance.transform.position);
-                            if (distance < closestDistance)
-                            {
-                                targetedHatch = h;
-                                closestDistance = distance;
-                            }
-                        }
+                        ConsiderHatch(ref targetedHatch, ref closestDistance, h);
                     }
                 }
 
@@ -719,15 +719,7 @@ namespace FreeIva
                         continue;
                     foreach (FreeIvaHatch h in childModule.Hatches)
                     {
-                        if (IsTargeted(h.WorldPosition))
-                        {
-                            float distance = Vector3.Distance(h.WorldPosition, InternalCamera.Instance.transform.position);
-                            if (distance < closestDistance)
-                            {
-                                targetedHatch = h;
-                                closestDistance = distance;
-                            }
-                        }
+                        ConsiderHatch(ref targetedHatch, ref closestDistance, h);
                     }
                 }
             }
@@ -736,6 +728,7 @@ namespace FreeIva
             {
                 if (targetedHatch.ConnectedHatch == null)
                 {
+                    // TODO: if the hatch is connected to a *part*, don't allow EVA
                     ScreenMessages.PostScreenMessage("Go EVA [" + Settings.OpenHatchKey + "]",
                         0.1f, ScreenMessageStyle.LOWER_CENTER);
                 }

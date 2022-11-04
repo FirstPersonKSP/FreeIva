@@ -17,6 +17,7 @@ namespace FreeIva
             node.TryGetValue("attachNodeId", ref propHatch.attachNodeId);
             node.TryGetValue("airlockName", ref propHatch.airlockName);
             node.TryGetValue("tubeExtent", ref propHatch.tubeExtent);
+            node.TryGetValue("hideDoorWhenConnected", ref propHatch.hideDoorWhenConnected);
 
             ConfigNode[] hideNodes = node.GetNodes("HideWhenOpen");
             if (hideNodes != null && hideNodes.Length > 0)

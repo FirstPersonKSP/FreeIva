@@ -44,6 +44,8 @@ namespace FreeIva
 
         public float tubeExtent = 0;
 
+        public bool hideDoorWhenConnected = false;
+
         // -----
 
         [Serializable]
@@ -179,6 +181,37 @@ namespace FreeIva
 
             var internalModule = InternalModuleFreeIva.GetForModel(internalModel);
             internalModule.Hatches.Add(this);
+
+            if (hideDoorWhenConnected)
+            {
+                // start a coroutine so that all the hatches have been initialized
+                StartCoroutine(CheckForConnection());
+            }
+        }
+
+        IEnumerator CheckForConnection()
+        {
+            yield return null;
+
+            var connectedHatch = ConnectedHatch;
+            if (connectedHatch != null && hideDoorWhenConnected)
+            {
+                Open(true);
+                HideOnOpen(true, true);
+                connectedHatch.HideOnOpen(true, true);
+                if (m_doorTransform != null)
+                {
+                    // right now this is redundant, but eventually doors will animate open instead of disappearing
+                    m_doorTransform.gameObject.SetActive(false);
+                    if (connectedHatch.m_doorTransform != null)
+                    {
+                        connectedHatch.m_doorTransform.gameObject.SetActive(false);
+                    }
+
+                    enabled = false;
+                    connectedHatch.enabled = false;
+                }
+            }
         }
 
         private void OnHandleClick()
@@ -271,7 +304,7 @@ namespace FreeIva
                     m_doorTransform.gameObject.SetActive(!open);
                 }
 
-                HideOnOpen(open);
+                HideOnOpen(open, false);
 
                 if (open != IsOpen)
                 {
@@ -291,7 +324,7 @@ namespace FreeIva
             }
         }
 
-        public virtual void HideOnOpen(bool open)
+        public virtual void HideOnOpen(bool open, bool permanent)
         {
             if (HideWhenOpen == null) return;
 
@@ -308,7 +341,15 @@ namespace FreeIva
                         if (error < 0.15)
                         {
                             Debug.Log("# Toggling " + mr.name);
-                            mr.enabled = !open;
+
+                            if (permanent)
+                            {
+                                GameObject.Destroy(mr.gameObject);
+                            }
+                            else
+                            {
+                                mr.gameObject.SetActive(!open);
+                            }
                             found = true;
                             break;
                         }
