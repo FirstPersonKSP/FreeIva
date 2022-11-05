@@ -34,7 +34,7 @@ namespace FreeIva
         // ----- the following fields are set via PropHatchConfig, so that they can be different per placement of the prop
 
         // The name of the part attach node this hatch is positioned on, as defined in the part.cfg's "node definitions".
-        // e.g. node_stack_top
+        // e.g. top => node_stack_top.  Do not include the prefixes (they are stripped out during loading in the stock code).
         public string attachNodeId;
         
         [SerializeReference]
@@ -68,28 +68,8 @@ namespace FreeIva
 
         private FreeIvaHatch _connectedHatch = null;
         // The other hatch that this one is connected or docked to, if present.
-        public FreeIvaHatch ConnectedHatch
-        {
-            get
-            {
-                if (_connectedHatch == null)
-                    GetConnectedHatch();
-                return _connectedHatch;
-            }
-        }
-
-        private AttachNode _hatchNode;
-        // The part attach node this hatch is positioned on.
-        public AttachNode HatchNode
-        {
-            get
-            {
-                if (_hatchNode == null)
-                    _hatchNode = GetHatchNode(attachNodeId);
-                return _hatchNode;
-            }
-        }
-
+        public FreeIvaHatch ConnectedHatch => _connectedHatch;
+        
         public FXGroup HatchOpenSound = null;
         public FXGroup HatchCloseSound = null;
 
@@ -144,29 +124,64 @@ namespace FreeIva
 
             m_doorTransform = internalProp.FindModelTransform(doorTransformName);
 
+            var internalModule = InternalModuleFreeIva.GetForModel(internalModel);
+            if (internalModule == null)
+            {
+                Debug.LogError($"[FreeIva] no InternalModuleFreeIva instance registered for internal {internalModel.internalName} for hatch prop {internalProp.propName}");
+                return;
+            }
+            internalModule.Hatches.Add(this);
+
+            // start a coroutine so that all the hatches have been initialized
+            StartCoroutine(CheckForConnection());
+        }
+
+        void SetTubeScale()
+        {
             // scale tube appropriately
             var tubeTransform = internalProp.FindModelTransform(tubeTransformName);
             if (tubeTransform != null)
             {
                 float tubeScale = 0;
 
-                // try to determine tube length from attach node
-                var attachNode = GetHatchNode(attachNodeId);
-                if (tubeExtent == 0 && attachNode != null)
+                // if we're connected to another hatch, find the midpoint between our attach nodes - this is for passthrough
+                // for parts that are directly connected to each other, the attach nodes are in the same place
+                // but with passthrough, we need to find a point to meet
+                if (_connectedHatch != null)
                 {
-                    tubeExtent = Vector3.Dot(attachNode.originalPosition, attachNode.originalOrientation);
+                    var otherTubeTransform = _connectedHatch.internalProp.FindModelTransform(_connectedHatch.tubeTransformName);
+
+                    // if the other transform doesn't have a tube, then we scale ours to reach the other prop's origin
+                    if (otherTubeTransform == null)
+                    {
+                        tubeScale = Vector3.Distance(tubeTransform.position, _connectedHatch.transform.position);
+                    }
+                    else
+                    {
+                        // otherwise we find the midpoint
+                        tubeScale = Vector3.Distance(tubeTransform.position, otherTubeTransform.position) * 0.5f;
+                    }
                 }
-
-                if (tubeExtent != 0)
+                else
                 {
-                    Vector3 tubePositionInIVA = internalModel.transform.InverseTransformPoint(tubeTransform.position);
-                    Vector3 tubeDownVectorWorld = tubeTransform.rotation * Vector3.down;
-                    Vector3 tubeDownVectorIVA = internalModel.transform.InverseTransformVector(tubeDownVectorWorld);
-                    
-                    float tubePositionOnAxis = Vector3.Dot(tubeDownVectorIVA, tubePositionInIVA);
-                    tubeScale = tubeExtent - tubePositionOnAxis;
+                    // try to determine tube length from attach node
+                    var myAttachNode = part.FindAttachNode(attachNodeId);
+                    if (tubeExtent == 0 && myAttachNode != null)
+                    {
+                        tubeExtent = Vector3.Dot(myAttachNode.originalPosition, myAttachNode.originalOrientation);
+                    }
 
-                    // TODO: what if the prop itself is scaled?
+                    if (tubeExtent != 0)
+                    {
+                        Vector3 tubePositionInIVA = internalModel.transform.InverseTransformPoint(tubeTransform.position);
+                        Vector3 tubeDownVectorWorld = tubeTransform.rotation * Vector3.down;
+                        Vector3 tubeDownVectorIVA = internalModel.transform.InverseTransformVector(tubeDownVectorWorld);
+
+                        float tubePositionOnAxis = Vector3.Dot(tubeDownVectorIVA, tubePositionInIVA);
+                        tubeScale = tubeExtent - tubePositionOnAxis;
+
+                        // TODO: what if the prop itself is scaled?
+                    }
                 }
 
                 if (tubeScale <= 0)
@@ -178,45 +193,42 @@ namespace FreeIva
                     tubeTransform.localScale = new Vector3(1.0f, tubeScale, 1.0f);
                 }
             }
-
-            var internalModule = InternalModuleFreeIva.GetForModel(internalModel);
-            if (internalModule == null)
-            {
-                Debug.LogError($"[FreeIva] no InternalModuleFreeIva instance registered for internal {internalModel.internalName} for hatch prop {internalProp.propName}");
-                return;
-            }
-            internalModule.Hatches.Add(this);
-
-            if (hideDoorWhenConnected)
-            {
-                // start a coroutine so that all the hatches have been initialized
-                StartCoroutine(CheckForConnection());
-            }
         }
 
         IEnumerator CheckForConnection()
         {
             yield return null;
 
-            var connectedHatch = ConnectedHatch;
-            if (connectedHatch != null && hideDoorWhenConnected)
+            if (_connectedHatch == null)
+            {
+                _connectedHatch = FindConnectedHatch();
+            }
+
+            if (_connectedHatch != null)
+            {
+                _connectedHatch._connectedHatch = this;
+            }
+
+            if (_connectedHatch != null && hideDoorWhenConnected)
             {
                 Open(true);
                 HideOnOpen(true, true);
-                connectedHatch.HideOnOpen(true, true);
+                _connectedHatch.HideOnOpen(true, true);
                 if (m_doorTransform != null)
                 {
                     // right now this is redundant, but eventually doors will animate open instead of disappearing
                     m_doorTransform.gameObject.SetActive(false);
                 }
-                if (connectedHatch.m_doorTransform != null)
+                if (_connectedHatch.m_doorTransform != null)
                 {
-                    connectedHatch.m_doorTransform.gameObject.SetActive(false);
+                    _connectedHatch.m_doorTransform.gameObject.SetActive(false);
                 }
 
                 enabled = false;
-                connectedHatch.enabled = false;
+                _connectedHatch.enabled = false;
             }
+
+            SetTubeScale();
         }
 
         private void OnHandleClick()
@@ -224,22 +236,72 @@ namespace FreeIva
             ToggleHatch();
         }
 
-        private void GetConnectedHatch()
-        {
-            AttachNode hatchNode = part.FindAttachNode(attachNodeId);
-            if (hatchNode == null) return;
 
-            InternalModuleFreeIva iva = InternalModuleFreeIva.GetForModel(hatchNode.attachedPart?.internalModel);
-            if (iva == null) return;
-            for (int i = 0; i < iva.Hatches.Count; i++)
+        private FreeIvaHatch FindConnectedHatch()
+        {
+            AttachNode currentNode = part.FindAttachNode(attachNodeId);
+            if (currentNode == null) return null;
+
+            // these variables are set in the below loop
+            AttachNode otherNode = null;
+            InternalModuleFreeIva otherIvaModule = null;
+
+            // find the Iva module and attachnode that this hatch connects to, possibly through a chain of passthrough parts
+            Part currentPart = part;
+            Part otherPart = currentNode.attachedPart;
+            while (otherPart != null)
             {
-                AttachNode otherHatchNode = iva.Hatches[i].HatchNode;
-                if (otherHatchNode != null && otherHatchNode.attachedPart != null && otherHatchNode.attachedPart.Equals(part))
+                // note: FindOpposingNode doesn't seem to work because currentNode.owner seems to be null
+                otherNode = otherPart.FindAttachNodeByPart(currentPart);
+
+                // if we found an internal module, we're done
+                otherIvaModule = InternalModuleFreeIva.GetForModel(otherPart.internalModel);
+                if (otherIvaModule != null) break;
+
+                // if there's a part module, see if it supports passthrough for this node
+                var ivaPartModule = otherPart.GetModule<ModuleFreeIva>();
+                if (ivaPartModule == null) return null;
+
+                string passThroughNodeName = null;
+                if (otherNode.id == ivaPartModule.passThroughNodeA)
                 {
-                    _connectedHatch = iva.Hatches[i];
-                    break;
+                    passThroughNodeName = ivaPartModule.passThroughNodeB;
+                }
+                else if (otherNode.id == ivaPartModule.passThroughNodeB)
+                {
+                    passThroughNodeName = ivaPartModule.passThroughNodeA;
+                }
+                else
+                {
+                    // no passthrough; we're done
+                    return null;
+                }
+
+                // get the node on the far side of the other part
+                currentNode = otherPart.FindAttachNode(passThroughNodeName);
+
+                if (currentNode == null)
+                {
+                    Debug.LogError($"[FreeIva] node {passThroughNodeName} wasn't found in part {otherPart.partInfo.name}");
+                    return null;
+                }
+
+                currentPart = otherPart;
+                otherPart = currentNode.attachedPart;
+            }
+
+            if (otherIvaModule == null) return null;
+
+            // look for a hatch that is on the node we're connected to
+            foreach (var otherHatch in otherIvaModule.Hatches)
+            {
+                if (otherHatch.attachNodeId == otherNode.id)
+                {
+                    return otherHatch;
                 }
             }
+
+            return null;
         }
 
         public FXGroup SetupAudio(string soundFile)

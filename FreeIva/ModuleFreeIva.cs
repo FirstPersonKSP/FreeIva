@@ -8,6 +8,9 @@ namespace FreeIva
     /// </summary>
     public class ModuleFreeIva : PartModule
     {
-
+        [KSPField]
+        public string passThroughNodeA;
+        [KSPField]
+        public string passThroughNodeB;
     }
 }
