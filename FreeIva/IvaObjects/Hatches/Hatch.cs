@@ -226,7 +226,7 @@ namespace FreeIva
 
         private void GetConnectedHatch()
         {
-            AttachNode hatchNode = GetHatchNode(attachNodeId);
+            AttachNode hatchNode = part.FindAttachNode(attachNodeId);
             if (hatchNode == null) return;
 
             InternalModuleFreeIva iva = InternalModuleFreeIva.GetForModel(hatchNode.attachedPart?.internalModel);
@@ -240,36 +240,6 @@ namespace FreeIva
                     break;
                 }
             }
-        }
-
-        /// <summary>
-        /// Find the part attach node this hatch is associated with.
-        /// </summary>
-        /// <param name="attachNodeId"></param>
-        /// <returns></returns>
-        private AttachNode GetHatchNode(string attachNodeId)
-        {
-            if (string.IsNullOrEmpty(attachNodeId)) return null;
-            string nodeName = RemoveNodePrefix(attachNodeId);
-            foreach (AttachNode n in part.attachNodes)
-            {
-                if (n.id == nodeName)
-                    return n;
-            }
-            return null;
-        }
-
-        private static string RemoveNodePrefix(string attachNodeId)
-        {
-            string nodeName;
-            string prefix = @"node_stack_";
-            if (attachNodeId.StartsWith(prefix))
-            {
-                nodeName = attachNodeId.Substring(prefix.Length, attachNodeId.Length - prefix.Length);
-            }
-            else
-                nodeName = attachNodeId;
-            return nodeName;
         }
 
         public FXGroup SetupAudio(string soundFile)
