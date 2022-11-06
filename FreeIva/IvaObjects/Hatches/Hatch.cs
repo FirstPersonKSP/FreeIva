@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KSP.Localization;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -423,6 +424,42 @@ namespace FreeIva
             return part.airlock;
         }
 
+        KerbalEVA SpawnEVA(ProtoCrewMember pCrew, Part airlockPart, Transform fromAirlock)
+        {
+            var flightEVA = FlightEVA.fetch;
+
+            Part crewPart = pCrew.KerbalRef.InPart;
+
+            if (FlightEVA.HatchIsObstructed(part, fromAirlock)) // NOTE: stock code also checks hatchInsideFairing
+            {
+                ScreenMessages.PostScreenMessage(Localizer.Format("#autoLOC_111978"), 5f, ScreenMessageStyle.UPPER_CENTER);
+                return null;
+            }
+            flightEVA.overrideEVA = false;
+            GameEvents.onAttemptEva.Fire(pCrew, crewPart, fromAirlock);
+            if (flightEVA.overrideEVA)
+            {
+                return null;
+            }
+
+            // at this point we're *definitely* going EVA
+            // manipulate the crew assignments to make this work.
+            if (crewPart != airlockPart)
+            {
+                crewPart.RemoveCrewmember(pCrew);
+
+                ++airlockPart.CrewCapacity;
+                airlockPart.AddCrewmember(pCrew);
+                pCrew.KerbalRef.InPart = airlockPart;
+                --airlockPart.CrewCapacity;
+            }
+
+            flightEVA.pCrew = pCrew;
+            flightEVA.fromPart = airlockPart;
+            flightEVA.fromAirlock = fromAirlock;
+            return flightEVA.onGoForEVA();
+        }
+
         public bool GoEVA()
         {
             float acLevel = ScenarioUpgradeableFacilities.GetFacilityLevel(SpaceCenterFacility.AstronautComplex);
@@ -433,9 +470,8 @@ namespace FreeIva
 
             if (kerbal != null && evaPossible && HighLogic.CurrentGame.Parameters.Flight.CanEVA)
             {
-                // This isn't correct if you're trying to EVA from a hatch that isn't on the part you had been sitting in
-                // not sure what the best solution is; maybe move the kerbal to this part?  But what if the EVA fails?
-                var kerbalEVA = FlightEVA.fetch.spawnEVA(kerbal.protoCrewMember, kerbal.InPart, FindAirlock(kerbal.InPart, airlockName), true);
+                // var kerbalEVA = FlightEVA.fetch.spawnEVA(kerbal.protoCrewMember, kerbal.InPart, FindAirlock(kerbal.InPart, airlockName), true);
+                var kerbalEVA = SpawnEVA(kerbal.protoCrewMember, part, FindAirlock(part, airlockName));
 
                 if (kerbalEVA != null)
                 {
