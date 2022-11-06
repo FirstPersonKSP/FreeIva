@@ -13,6 +13,9 @@ namespace FreeIva
         [KSPField]
         public string passThroughNodeB;
 
+        [KSPField]
+        public bool doesNotBlockEVA;
+
         public override string GetModuleDisplayName()
         {
             return "FreeIVA";
@@ -20,7 +23,14 @@ namespace FreeIva
 
         public override string GetInfo()
         {
-            return "This part can be traversed in IVA.";
+            if (doesNotBlockEVA)
+            {
+                return "This part will not block EVA hatches";
+            }
+            else
+            {
+                return "This part can be traversed in IVA";
+            }
         }
     }
 }
