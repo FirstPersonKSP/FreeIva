@@ -12,5 +12,15 @@ namespace FreeIva
         public string passThroughNodeA;
         [KSPField]
         public string passThroughNodeB;
+
+        public override string GetModuleDisplayName()
+        {
+            return "FreeIVA";
+        }
+
+        public override string GetInfo()
+        {
+            return "This part can be traversed in IVA.";
+        }
     }
 }
