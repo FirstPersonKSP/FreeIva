@@ -728,18 +728,40 @@ namespace FreeIva
             {
                 if (targetedHatch.ConnectedHatch == null)
                 {
-                    // TODO: if the hatch is connected to a *part*, don't allow EVA
-                    ScreenMessages.PostScreenMessage("Go EVA [" + Settings.OpenHatchKey + "]",
-                        0.1f, ScreenMessageStyle.LOWER_CENTER);
+                    bool canEVA = true;
+
+                    var attachNode = targetedHatch.part.FindAttachNode(targetedHatch.attachNodeId);
+                    var attachedPart = attachNode?.attachedPart;
+                    if (attachedPart != null)
+                    {
+                        var attachedIvaModule = attachedPart.GetModule<ModuleFreeIva>();
+                        canEVA = attachedIvaModule == null ? false : attachedIvaModule.doesNotBlockEVA;
+                    }
+
+                    if (canEVA)
+                    {
+                        ScreenMessages.PostScreenMessage("Go EVA [" + Settings.OpenHatchKey + "]",
+                            0.1f, ScreenMessageStyle.LOWER_CENTER);
+
+                        if (openHatch)
+                        {
+                            targetedHatch.GoEVA();
+                        }
+                    }
+                    else
+                    {
+                        ScreenMessages.PostScreenMessage("Hatch is blocked",
+                            0.1f, ScreenMessageStyle.LOWER_CENTER);
+                    }
                 }
                 else
                 {
                     ScreenMessages.PostScreenMessage((targetedHatch.IsOpen ? "Close" : "Open") + " hatch [" + Settings.OpenHatchKey + "]",
                         0.1f, ScreenMessageStyle.LOWER_CENTER);
-                }
 
-                if (openHatch)
-                    targetedHatch.ToggleHatch();
+                    if (openHatch)
+                        targetedHatch.ToggleHatch();
+                }
             }
         }
 

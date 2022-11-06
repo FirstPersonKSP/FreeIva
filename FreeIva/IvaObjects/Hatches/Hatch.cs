@@ -423,7 +423,7 @@ namespace FreeIva
             return part.airlock;
         }
 
-        bool GoEVA()
+        public bool GoEVA()
         {
             float acLevel = ScenarioUpgradeableFacilities.GetFacilityLevel(SpaceCenterFacility.AstronautComplex);
             bool evaUnlocked = GameVariables.Instance.UnlockedEVA(acLevel);
