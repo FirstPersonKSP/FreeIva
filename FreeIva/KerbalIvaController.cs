@@ -111,6 +111,7 @@ namespace FreeIva
                 // TODO: Doesn't get mouse input when in FixedUpdate.
                 // Split this out to flags set in Update and acted upon in FixedUpdate.
                 // note from JonnyOThan: don't do that, because FixedUpdate happens before Update
+                // well, ideally we should get input before FixedUpdate and then apply forces in FixedUpdate
                 IVAInput input = new IVAInput();
                 GetInput(ref input);
                 ApplyInput(input);
@@ -173,8 +174,10 @@ namespace FreeIva
             KerbalIva.GetComponentCached(ref KerbalRigidbody);
             if (Gravity)
             {
-                Vector3 gForce = FlightGlobals.getGeeForceAtPosition(KerbalIva.transform.position);
-                Vector3 centrifugalForce = FlightGlobals.getCentrifugalAcc(KerbalIva.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
+                Vector3 worldPosition = InternalSpace.InternalToWorld(KerbalIva.transform.position);
+
+                Vector3 gForce = FlightGlobals.getGeeForceAtPosition(worldPosition);
+                Vector3 centrifugalForce = FlightGlobals.getCentrifugalAcc(worldPosition, FreeIva.CurrentPart.orbit.referenceBody);
                 Vector3 coriolisForce = FlightGlobals.getCoriolisAcc(FreeIva.CurrentPart.vessel.rb_velocity + Krakensbane.GetFrameVelocityV3f(), FreeIva.CurrentPart.orbit.referenceBody);
 
                 gForce = InternalSpace.WorldToInternal(gForce);
@@ -483,15 +486,6 @@ namespace FreeIva
             FreeIva.SetRenderQueues(newSeat.part);
         }
 
-        //Transform _internalCameraParent = null;
-
-        float StashCameraRotationLimit(ref float limit)
-        {
-            float val = limit;
-            limit = 0;
-            return val;
-        }
-
         public void Unbuckle()
         {
             if (!buckled) return;
@@ -526,65 +520,18 @@ namespace FreeIva
             DisablePartHighlighting(true);
         }
 
-        /*private void TransferCrewTest(ProtoCrewMember crew, Part fromPart, Part toPart)
-        {
-            BaseEvent baseEvent = new BaseEvent(fromPart.Events, "transfer" + crew.name, () => TransferEvent(crew, fromPart, toPart),
-                new KSPEvent { guiName = "Transfer" + crew.name, guiActive = true });
-            fromPart.Events.Add(baseEvent);
-        }
-
-        private double _transferStart = 0;
-        private void TransferEvent(ProtoCrewMember crew, Part fromPart, Part toPart)
-        {
-            fromPart.RemoveCrewmember(crew);
-            toPart.AddCrewmember(crew);
-            crew.seat.SpawnCrew();
-            _transferStart = Planetarium.GetUniversalTime();
-        }*/
-
         private void InitialiseFpsControls()
         {
             // Set target direction to the camera's initial orientation.
             targetDirection = InternalCamera.Instance.transform.rotation.eulerAngles;
         }
 
-        private void UpdateActiveKerbal()//bool nextKerbal) TODO !!!
+        private void UpdateActiveKerbal()
         {
             ActiveKerbal = CameraManager.Instance.IVACameraActiveKerbal.protoCrewMember;
             if (ActiveKerbal.KerbalRef != null && ActiveKerbal.KerbalRef.InPart != null)
                 FreeIva.UpdateCurrentPart(ActiveKerbal.KerbalRef.InPart);
             return;
-            // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Test if the above (new to 1.1) is working, if so delete the below).
-
-            /*try
-            {
-                // TODO: Find a way of detecting a viewpoint switch ('V' in IVA).
-                List<ProtoCrewMember> vesselCrew = FlightGlobals.fetch.activeVessel.GetVesselCrew();
-
-                // TODO: There has to be a better way of doing this.
-                // Attempt to find the active crew member by searching for the one with the hidden head.
-                foreach (ProtoCrewMember c in vesselCrew)
-                {
-                    if (nextKerbal && c == ActiveKerbal)
-                        continue;
-                    if (c.KerbalRef.headTransform != null)
-                    {
-                        Renderer[] rs = c.KerbalRef.headTransform.GetComponentsInChildren<Renderer>();
-                        if (rs.Length > 0 && !rs[0].isVisible) // Normally the left eye
-                        {
-                            Debug.Log("Updating active kerbal from " + (ActiveKerbal == null ? "null" : ActiveKerbal.name) + " to " + c.name);
-                            ActiveKerbal = c;
-                            if (ActiveKerbal.KerbalRef != null && ActiveKerbal.KerbalRef.InPart != null)
-                                FreeIva.UpdateCurrentPart(ActiveKerbal.KerbalRef.InPart);
-                            break;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError("[FreeIVA] Error updating active kerbal: " + ex.Message + ", " + ex.StackTrace);
-            }*/
         }
 
         /// <summary>
