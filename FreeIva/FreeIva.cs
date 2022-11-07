@@ -84,6 +84,7 @@ namespace FreeIva
             Paused = false;
             GameEvents.onGamePause.Add(OnPause);
             GameEvents.onGameUnpause.Add(OnUnPause);
+            GameEvents.onVesselWasModified.Add(OnVesselWasModified);
 
             Settings.LoadSettings();
             OnIvaPartChanged.Add(IvaPartChanged);
@@ -93,7 +94,7 @@ namespace FreeIva
 			Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.Kerbals, false);
         }
 
-        public static bool Paused = false;
+		public static bool Paused = false;
         public void OnPause()
         {
             Paused = true;
@@ -103,11 +104,20 @@ namespace FreeIva
         {
             Paused = false;
         }
+        private void OnVesselWasModified(Vessel vessel)
+        {
+            if (vessel == FlightGlobals.ActiveVessel)
+            {
+                EnableInternals();
+                InternalModuleFreeIva.OnVesselWasModified(vessel);
+            }
+        }
 
         public void OnDestroy()
         {
             GameEvents.onGamePause.Remove(OnPause);
             GameEvents.onGameUnpause.Remove(OnUnPause);
+            GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
             OnIvaPartChanged.Remove(IvaPartChanged);
             InputLockManager.RemoveControlLock("FreeIVA");
         }

@@ -17,6 +17,30 @@ namespace FreeIva
             perModelCache.TryGetValue(model, out InternalModuleFreeIva module);
             return module;
         }
+
+        public static void OnVesselWasModified(Vessel vessel)
+        {
+            foreach (var ivaModule in perModelCache.Values)
+            {
+                if (ivaModule.vessel != FlightGlobals.ActiveVessel)
+                {
+                    ivaModule.part.DespawnIVA();
+                }
+                else
+                {
+                    foreach (var hatch in ivaModule.Hatches)
+                    {
+                        var otherHatch = hatch.ConnectedHatch;
+                        if (otherHatch == null || otherHatch.vessel != hatch.vessel)
+                        {
+                            hatch.Open(false);
+                        }
+                        hatch.RefreshConnection();
+                    }
+                }
+            }
+        }
+
         #endregion
 
         [KSPField]

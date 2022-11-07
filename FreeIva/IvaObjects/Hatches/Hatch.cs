@@ -133,8 +133,7 @@ namespace FreeIva
             }
             internalModule.Hatches.Add(this);
 
-            // start a coroutine so that all the hatches have been initialized
-            StartCoroutine(CheckForConnection());
+            RefreshConnection();
         }
 
         void SetTubeScale()
@@ -194,6 +193,12 @@ namespace FreeIva
                     tubeTransform.localScale = new Vector3(1.0f, tubeScale, 1.0f);
                 }
             }
+        }
+
+        public void RefreshConnection()
+        {
+            // start a coroutine so that all the hatches have been initialized
+            StartCoroutine(CheckForConnection());
         }
 
         IEnumerator CheckForConnection()
@@ -291,7 +296,19 @@ namespace FreeIva
                 otherPart = currentNode.attachedPart;
             }
 
-            if (otherIvaModule == null) return null;
+            // if we didn't find anything, check for a docking node module (these won't set up the connection through the AttachNode)
+            if (otherIvaModule == null)
+            {
+                var dockingModule = part.GetModule<ModuleDockingNode>();
+                if (dockingModule != null && dockingModule.referenceAttachNode == attachNodeId && dockingModule.otherNode != null)
+                {
+                    // TODO: do we need to check the current state?  otherNode might not be null for the acquire etc state...
+
+                    otherPart = dockingModule.otherNode.part;
+                    otherNode = dockingModule.otherNode.referenceNode;
+                    otherIvaModule = InternalModuleFreeIva.GetForModel(otherPart.internalModel);
+                }
+            }
 
             // look for a hatch that is on the node we're connected to
             foreach (var otherHatch in otherIvaModule.Hatches)
