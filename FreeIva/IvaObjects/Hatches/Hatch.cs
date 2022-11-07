@@ -228,6 +228,11 @@ namespace FreeIva
         {
             yield return null;
 
+            while (vessel.packed)
+            {
+                yield return null;
+            }
+
             if (_connectedHatch == null)
             {
                 _connectedHatch = FindConnectedHatch();
