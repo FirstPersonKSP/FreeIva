@@ -687,12 +687,20 @@ namespace FreeIva
 
                     if (canEVA)
                     {
-                        ScreenMessages.PostScreenMessage("Go EVA [" + Settings.OpenHatchKey + "]",
-                            0.1f, ScreenMessageStyle.LOWER_CENTER);
-
-                        if (openHatch)
+                        if (targetedHatch.airlockName == String.Empty)
                         {
-                            targetedHatch.GoEVA();
+                            ScreenMessages.PostScreenMessage("No airlock found",
+                                0.1f, ScreenMessageStyle.LOWER_CENTER);
+                        }
+                        else
+                        {
+                            ScreenMessages.PostScreenMessage("Go EVA [" + Settings.OpenHatchKey + "]",
+                                0.1f, ScreenMessageStyle.LOWER_CENTER);
+
+                            if (openHatch)
+                            {
+                                targetedHatch.GoEVA();
+                            }
                         }
                     }
                     else
