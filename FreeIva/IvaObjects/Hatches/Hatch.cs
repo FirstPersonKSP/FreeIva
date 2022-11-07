@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace FreeIva
@@ -37,7 +38,10 @@ namespace FreeIva
         // The name of the part attach node this hatch is positioned on, as defined in the part.cfg's "node definitions".
         // e.g. top => node_stack_top.  Do not include the prefixes (they are stripped out during loading in the stock code).
         public string attachNodeId;
-        
+
+        // some docking ports don't use AttachNodes (inline ports, inflatable airlock, shielded)
+        public string dockingPortNodeName = string.Empty;
+
         [SerializeReference]
         public ObjectsToHide HideWhenOpen;
 
@@ -63,6 +67,8 @@ namespace FreeIva
         }
 
         Transform m_doorTransform;
+
+        ModuleDockingNode m_dockingNodeModule;
 
         // Where the GameObject is located. Used for basic interaction targeting (i.e. when to show the "Open hatch?" prompt).
         public virtual Vector3 WorldPosition => transform.position;
@@ -124,6 +130,23 @@ namespace FreeIva
             }
 
             m_doorTransform = internalProp.FindModelTransform(doorTransformName);
+
+            if (dockingPortNodeName != string.Empty)
+            {
+                foreach (var module in part.Modules.OfType<ModuleDockingNode>())
+                {
+                    if (module.nodeTransformName == dockingPortNodeName)
+                    {
+                        m_dockingNodeModule = module;
+                        break;
+                    }
+                }
+
+                if (m_dockingNodeModule == null)
+                {
+                    Debug.LogError($"[FreeIva] No ModuleDockingNode with nodeTransformName '{dockingPortNodeName}' found in part {part.partInfo.name} for prop {internalProp.propName} in internal {internalModel.internalName}");
+                }
+            }
 
             var internalModule = InternalModuleFreeIva.GetForModel(internalModel);
             if (internalModule == null)
@@ -242,15 +265,33 @@ namespace FreeIva
             ToggleHatch();
         }
 
-
         private FreeIvaHatch FindConnectedHatch()
         {
-            AttachNode currentNode = part.FindAttachNode(attachNodeId);
-            if (currentNode == null) return null;
-
             // these variables are set in the below loop
             AttachNode otherNode = null;
             InternalModuleFreeIva otherIvaModule = null;
+
+            // if we're docked, find the hatch on the other side (these don't use AttachNodes)
+            if (m_dockingNodeModule != null && m_dockingNodeModule.state.Contains("Docked"))
+            {
+                ModuleDockingNode otherDockingNode = m_dockingNodeModule.otherNode;
+                otherIvaModule = InternalModuleFreeIva.GetForModel(otherDockingNode.part.internalModel);
+                if (otherIvaModule != null)
+                {
+                    foreach (var otherHatch in otherIvaModule.Hatches)
+                    {
+                        if (otherHatch.m_dockingNodeModule == otherDockingNode)
+                        {
+                            return otherHatch;
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            AttachNode currentNode = part.FindAttachNode(attachNodeId);
+            if (currentNode == null) return null;
 
             // find the Iva module and attachnode that this hatch connects to, possibly through a chain of passthrough parts
             Part currentPart = part;
@@ -296,19 +337,7 @@ namespace FreeIva
                 otherPart = currentNode.attachedPart;
             }
 
-            // if we didn't find anything, check for a docking node module (these won't set up the connection through the AttachNode)
-            if (otherIvaModule == null)
-            {
-                var dockingModule = part.GetModule<ModuleDockingNode>();
-                if (dockingModule != null && dockingModule.referenceAttachNode == attachNodeId && dockingModule.otherNode != null)
-                {
-                    // TODO: do we need to check the current state?  otherNode might not be null for the acquire etc state...
-
-                    otherPart = dockingModule.otherNode.part;
-                    otherNode = dockingModule.otherNode.referenceNode;
-                    otherIvaModule = InternalModuleFreeIva.GetForModel(otherPart.internalModel);
-                }
-            }
+            if (otherIvaModule == null) return null;
 
             // look for a hatch that is on the node we're connected to
             foreach (var otherHatch in otherIvaModule.Hatches)
