@@ -152,6 +152,12 @@ namespace FreeIva
             }
         }
 
+        void Update()
+		{
+            this.internalModel.transform.position = InternalSpace.WorldToInternal(part.transform.position);
+            this.internalModel.transform.rotation = InternalSpace.WorldToInternal(part.transform.rotation) * Quaternion.Euler(90, 0, 180);
+		}
+
         void ExecuteMeshCuts()
         {
             if (HighLogic.LoadedScene != GameScenes.LOADING) return;
