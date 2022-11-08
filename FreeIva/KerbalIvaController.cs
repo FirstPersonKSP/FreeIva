@@ -495,6 +495,16 @@ namespace FreeIva
             currentRelativeOrientation = cameraRotationSurface.eulerAngles;
             currentRelativeOrientation.z = 0; // roll
 
+            if (currentRelativeOrientation.x > 180)
+            {
+                currentRelativeOrientation.x -= 360;
+            }
+            if (currentRelativeOrientation.x > 90 || currentRelativeOrientation.x < -90)
+            {
+                currentRelativeOrientation.y += 180;
+                currentRelativeOrientation.x = Mathf.Clamp(currentRelativeOrientation.x, -90, 90);
+            }
+
             previousRotation = InternalCamera.Instance.transform.rotation;
             InternalCamera.Instance.ManualReset(false);
 
