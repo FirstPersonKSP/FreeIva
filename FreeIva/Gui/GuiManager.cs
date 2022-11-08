@@ -704,8 +704,21 @@ namespace FreeIva
 
             if (showLookGui)
             {
-                GuiUtils.editFloat("Relative Vector X", KerbalIvaController.targetDirection.x);
-                GuiUtils.editFloat("Relative Vector Y", KerbalIvaController.targetDirection.y);
+
+                Vector3 rotation = InternalCamera.Instance.transform.rotation.eulerAngles;
+                GuiUtils.label("Camera absolute", rotation);
+
+                Quaternion FoR = FlightGlobals.GetFoR(FoRModes.SRF_NORTH);
+                Vector3 relativeAngles = (Quaternion.Inverse(FoR) * InternalCamera.Instance.transform.rotation).eulerAngles;
+
+                GuiUtils.label("camera relative", relativeAngles);
+
+                Vector3 cameraForwardPlanet = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation) * Vector3.forward;
+                GuiUtils.label("Camera forward planet", cameraForwardPlanet);
+
+                Vector3 cameraForwardSurface = Quaternion.Inverse(FlightGlobals.GetFoR(FoRModes.SRF_NORTH)) * cameraForwardPlanet;
+                GuiUtils.label("camera forward surface", cameraForwardSurface);
+
 
                 var flightForces = KerbalIvaController.Instance.GetFlightForcesWorldSpace();
                 GuiUtils.label("Absolute X", flightForces.x);

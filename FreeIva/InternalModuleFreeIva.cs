@@ -165,12 +165,13 @@ namespace FreeIva
             cutParameters = null;
         }
 
-        void Awake()
+        new void Awake()
         {
             if (HighLogic.LoadedScene == GameScenes.FLIGHT)
             {
                 perModelCache[internalModel] = this;
             }
+            base.Awake();
         }
 
         void OnDestroy()

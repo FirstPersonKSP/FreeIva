@@ -490,9 +490,11 @@ namespace FreeIva
         {
             if (!buckled) return;
 
+            currentRelativeOrientation = InternalCamera.Instance.transform.localEulerAngles;
+            currentRelativeOrientation.z = 0; // roll
+
             previousRotation = InternalCamera.Instance.transform.rotation;
             InternalCamera.Instance.ManualReset(false);
-
 
             _previousPos = Vector3.zero;
             FreeIva.EnableInternals();
@@ -516,14 +518,7 @@ namespace FreeIva
             KerbalIva.GetComponentCached<SphereCollider>(ref KerbalCollider).enabled = true;
             buckled = false;
 
-            InitialiseFpsControls();
             DisablePartHighlighting(true);
-        }
-
-        private void InitialiseFpsControls()
-        {
-            // Set target direction to the camera's initial orientation.
-            targetDirection = InternalCamera.Instance.transform.rotation.eulerAngles;
         }
 
         private void UpdateActiveKerbal()
@@ -720,7 +715,13 @@ namespace FreeIva
             }
         }
 
-        private bool _wasFreeControls = true;
+        bool UseRelativeMovement()
+		{
+            // eventually we might want to include flying in atmosphere, etc
+            return FlightGlobals.ActiveVessel.LandedOrSplashed;
+		}
+
+        public Vector3 currentRelativeOrientation;
 
         public void UpdateOrientation(Vector3 rotationInput)
         {
@@ -734,135 +735,34 @@ namespace FreeIva
             previousRotation = cameraRotation;
             FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);*/
 
-            if (Gravity && GetFlightForcesWorldSpace().magnitude > 1)
-            {
-                if (_wasFreeControls)
-                    InitialiseFpsControls();
+            Vector3 angularSpeed = Time.deltaTime * new Vector3(
+                rotationInput.x * Settings.PitchSpeed,
+                rotationInput.y * Settings.YawSpeed,
+                rotationInput.z * Settings.RollSpeed);
 
-                RelativeOrientation(rotationInput);
-                _wasFreeControls = false;
+            if (UseRelativeMovement())
+            {
+                currentRelativeOrientation.x += InternalCamera.Instance.currentPitch;
+                currentRelativeOrientation.y += InternalCamera.Instance.currentRot;
+                currentRelativeOrientation += angularSpeed;
+                currentRelativeOrientation.z = 0;
+
+                currentRelativeOrientation.x = Mathf.Clamp(currentRelativeOrientation.x, -90, 90);
+                currentRelativeOrientation.y = currentRelativeOrientation.y % 360;
+
+                KerbalIva.transform.rotation = InternalSpace.WorldToInternal(FlightGlobals.GetFoR(FoRModes.SRF_NORTH) * Quaternion.Euler(currentRelativeOrientation));
             }
             else
             {
-                FreeOrientation(rotationInput);
-                _wasFreeControls = true;
+                Quaternion rotYaw = Quaternion.AngleAxis(angularSpeed.y, previousRotation * Vector3.up);
+                Quaternion rotPitch = Quaternion.AngleAxis(angularSpeed.x, previousRotation * Vector3.right);// *Quaternion.Euler(0, 90, 0);
+                Quaternion rotRoll = Quaternion.AngleAxis(angularSpeed.z, previousRotation * Vector3.forward);
+
+                KerbalIva.transform.rotation = rotRoll * rotPitch * rotYaw * previousRotation;
             }
-        }
 
-        // Free movement with no "down".
-        private void FreeOrientation(Vector3 rotationInput)
-        {
-            Vector3 angularSpeed = Time.deltaTime * new Vector3(
-                rotationInput.x * Settings.PitchSpeed,
-                rotationInput.y * Settings.YawSpeed,
-                rotationInput.z * Settings.RollSpeed);
-
-            Quaternion rotYaw = Quaternion.AngleAxis(angularSpeed.y, previousRotation * Vector3.up);
-            Quaternion rotPitch = Quaternion.AngleAxis(angularSpeed.x, previousRotation * Vector3.right);// *Quaternion.Euler(0, 90, 0);
-
-            /*Vector3 gForce = FlightGlobals.getGeeForceAtPosition(FlightCamera.fetch.transform.position);
-            Vector3 gDirection = gForce.normalized;
-            Vector3 gDirectionInternal = InternalSpace.WorldToInternal(-gDirection).normalized;*/
-
-            //Utils.line.SetPosition(0, InternalCamera.Instance.transform.localPosition);
-            //Utils.line.SetPosition(1, InternalCamera.Instance.transform.localPosition - Quaternion.AngleAxis(90, Vector3.up) * gDirectionInternal);
-
-            /*float angle = Vector3.Angle(Vector3.Project(gDirectionInternal, cameraTransform.forward).normalized, cameraTransform.up);
-            Quaternion rotRoll = Quaternion.AngleAxis(angle, previousRotation * Vector3.forward);*/
-            //Quaternion.LookRotation
-
-
-
-            Quaternion rotRoll = Quaternion.AngleAxis(angularSpeed.z, previousRotation * Vector3.forward);
-            /* new *
-            if (Gravity)
-            {
-                gForce = FlightGlobals.getGeeForceAtPosition(KerbalCollider.transform.position);
-                gForce = InternalSpace.WorldToInternal(gForce);
-                Quaternion rotation = Quaternion.LookRotation(-gForce, Vector3.forward);
-                Quaternion current = cameraTransform.rotation;
-                rotRoll = Quaternion.Slerp(current, rotation, Time.deltaTime);
-            }*/
-
-
-            KerbalIva.transform.rotation = rotRoll * rotPitch * rotYaw * previousRotation;
             previousRotation = InternalCamera.Instance.transform.rotation;
-			InternalCamera.Instance.ManualReset(false);
-        }
-
-
-
-
-        public static Vector2 clampInDegrees = new Vector2(360, 180);
-        public static Vector2 sensitivity = new Vector2(Settings.YawSensitivity, Settings.PitchSensitivity);
-        public static Vector2 smoothing = new Vector2(3, 3);
-        public static Vector2 targetDirection;
-        public static Vector2 targetCharacterDirection;
-
-        /*/ FPS-style movement relative to a downward force.
-        // This works fine, but downwards is always relative to the IVA itself.
-        // Uses smooth mouselook from here: http://forum.unity3d.com/threads/a-free-simple-smooth-mouselook.73117/
-        private void IvaRelativeOrientation()
-        {
-            // Allow the script to clamp based on a desired target value.
-            var targetOrientation = Quaternion.Euler(targetDirection);
-
-            if (!cameraPositionLocked)
-            {
-                // Get raw mouse input for a cleaner reading on more sensitive mice.
-                Vector2 mouseDelta = new Vector2(-Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
-
-                // Scale input against the sensitivity setting and multiply that against the smoothing value.
-                mouseDelta = Vector2.Scale(mouseDelta, new Vector2(sensitivity.x * smoothing.x, sensitivity.y * smoothing.y));
-
-                // Interpolate mouse movement over time to apply smoothing delta.
-                _smoothMouse.x = Mathf.Lerp(_smoothMouse.x, mouseDelta.x, 1f / smoothing.x);
-                _smoothMouse.y = Mathf.Lerp(_smoothMouse.y, mouseDelta.y, 1f / smoothing.y);
-
-                // Find the absolute mouse movement value from point zero.
-                _mouseAbsolute += _smoothMouse;
-            }
-
-            // Clamp and apply the local x value first, so as not to be affected by world transforms.
-            if (clampInDegrees.x < 360)
-                _mouseAbsolute.x = Mathf.Clamp(_mouseAbsolute.x, -clampInDegrees.x * 0.5f, clampInDegrees.x * 0.5f);
-
-            Quaternion xRotation = Quaternion.AngleAxis(-_mouseAbsolute.y, targetOrientation * Vector3.right);
-            InternalCamera.Instance.transform.rotation = xRotation;
-            
-            // Then clamp and apply the global y value.
-            if (clampInDegrees.y < 360)
-                _mouseAbsolute.y = Mathf.Clamp(_mouseAbsolute.y, -clampInDegrees.y * 0.5f, clampInDegrees.y * 0.5f);
-
-            InternalCamera.Instance.transform.rotation *= targetOrientation;
-
-            Quaternion yRotation = Quaternion.AngleAxis(_mouseAbsolute.x, InternalCamera.Instance.transform.InverseTransformDirection(Vector3.forward));
-            InternalCamera.Instance.transform.rotation *= yRotation;
-
-            FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
-        }*/
-
-        private void RelativeOrientation(Vector3 rotationInput)
-        {
-            // Allow the script to clamp based on a desired target value.
-            //var targetOrientation = Quaternion.Euler(targetDirection);
-
-            Vector3 angularSpeed = Time.deltaTime * new Vector3(
-                rotationInput.x * Settings.PitchSpeed,
-                rotationInput.y * Settings.YawSpeed,
-                rotationInput.z * Settings.RollSpeed);
-
-            Vector3 totalForce = KerbalRigidbody.velocity; /*new Vector3(0f, 0f, -9.81f);*/ //GetFlightForces();
-            var targetOrientation = Quaternion.Euler(totalForce);
-
-            //InternalCamera.Instance.transform.rotation *= targetOrientation;
-
-            KerbalIva.transform.localRotation = InternalSpace.WorldToInternal(Quaternion.AngleAxis(angularSpeed.x, targetOrientation * Vector3.up/*right*/) * targetOrientation); // Pitch
-            Quaternion yaw = Quaternion.AngleAxis(angularSpeed.y, /*-gForce);*/ InternalCamera.Instance.transform.InverseTransformDirection(totalForce));//Vector3.up));
-            KerbalIva.transform.localRotation *= yaw;
-
-            Quaternion roll = Quaternion.Euler(0, 0, 90);
-            KerbalIva.transform.localRotation *= roll;
+            InternalCamera.Instance.ManualReset(false);
         }
 
         private void UpdatePosition(Vector3 movementThrottle, bool jump)
@@ -872,8 +772,16 @@ namespace FreeIva
                 movementThrottle.y * Settings.VerticalSpeed,
                 movementThrottle.z * Settings.ForwardSpeed);
 
-            // Make the movement relative to the camera rotation.
             Quaternion orientation = previousRotation;
+
+            if (UseRelativeMovement())
+            {
+                // take the yaw angle but nothing else (maintain global up)
+                
+                orientation = InternalSpace.WorldToInternal(FlightGlobals.GetFoR(FoRModes.SRF_NORTH) * Quaternion.Euler(0, currentRelativeOrientation.y, 0));
+            }
+
+            // Make the movement relative to the camera rotation.
             Vector3 newPos = KerbalIva.transform.localPosition + (orientation * movement);
 
             //KerbalCollider.rigidbody.velocity = new Vector3(0, 0, 0);
