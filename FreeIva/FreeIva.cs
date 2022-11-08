@@ -79,7 +79,12 @@ namespace FreeIva
         public void Start()
         {
             CurrentPart = FlightGlobals.ActiveVessel.rootPart;
-            GuiUtils.DrawGui = true;
+            GuiUtils.DrawGui =
+#if DEBUG
+            true;
+#else
+            false;
+#endif
 
             Paused = false;
             GameEvents.onGamePause.Add(OnPause);

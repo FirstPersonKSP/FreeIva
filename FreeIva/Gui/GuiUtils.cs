@@ -111,12 +111,7 @@ namespace FreeIva
             return new KeyValuePair<float, float>(x, y);
         }
 
-        public static bool DrawGui =
-#if DEBUG
-            true;
-#else
-            false;
-#endif
+        public static bool DrawGui = false;
     }
 
     [KSPAddon(KSPAddon.Startup.Flight, false)]
