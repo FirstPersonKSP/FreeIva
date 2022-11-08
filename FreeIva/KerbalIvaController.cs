@@ -490,7 +490,9 @@ namespace FreeIva
         {
             if (!buckled) return;
 
-            currentRelativeOrientation = InternalCamera.Instance.transform.localEulerAngles;
+            Quaternion cameraRotationSurface = Quaternion.Inverse(FlightGlobals.GetFoR(FoRModes.SRF_NORTH)) * InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
+
+            currentRelativeOrientation = cameraRotationSurface.eulerAngles;
             currentRelativeOrientation.z = 0; // roll
 
             previousRotation = InternalCamera.Instance.transform.rotation;
