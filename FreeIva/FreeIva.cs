@@ -143,12 +143,13 @@ namespace FreeIva
 		{
 			Profiler.BeginSample("SetRenderQueues");
 
-			visibleParts.Clear();
-			GetVisibleParts(CurrentPart, visibleParts);
+			//visibleParts.Clear();
+			//GetVisibleParts(CurrentPart, visibleParts);
+
 			for (int i = 0; i < FlightGlobals.ActiveVessel.Parts.Count; i++)
 			{
 				Part p = FlightGlobals.ActiveVessel.Parts[i];
-				bool partVisible = visibleParts.Contains(p);
+				//bool partVisible = visibleParts.Contains(p);
 
 				if (p.internalModel != null)
 				{
@@ -186,8 +187,6 @@ namespace FreeIva
 		/// <returns></returns>
 		private static void GetVisibleParts(Part part, HashSet<Part> visibleParts)
 		{
-			Profiler.BeginSample("GetVisibleParts");
-
 			InternalModuleFreeIva iva = InternalModuleFreeIva.GetForModel(part.internalModel);
 			if (iva != null)
 			{
@@ -198,14 +197,14 @@ namespace FreeIva
 				{
 					FreeIvaHatch h = iva.Hatches[i];
 
-					if (h.IsOpen && h.ConnectedHatch != null && h.ConnectedHatch.IsOpen && h.ConnectedHatch.part != null && !visibleParts.Contains(h.ConnectedHatch.part))
+					// TODO: Hatches can have windows in them, and parts may have windows facing against connected parts.
+					var canSeeMoreIvaThroughTheHatch = h.IsOpen && h.ConnectedHatch != null && h.ConnectedHatch.IsOpen && h.ConnectedHatch.part != null;
+					if (canSeeMoreIvaThroughTheHatch && !visibleParts.Contains(h.ConnectedHatch.part))
 					{
 						GetVisibleParts(h.ConnectedHatch.part, visibleParts);
 					}
 				}
 			}
-
-			Profiler.EndSample();
 		}
 
 		Vector3 _previousCameraPosition = Vector3.zero;
