@@ -114,6 +114,7 @@ namespace FreeIva
 		public static bool DrawGui = false;
 	}
 
+#if DEBUG
 	[KSPAddon(KSPAddon.Startup.Flight, false)]
 	public class FreeIvaGui : MonoBehaviour
 	{
@@ -137,4 +138,5 @@ namespace FreeIva
 			GUI.DragWindow();
 		}
 	}
+#endif
 }
