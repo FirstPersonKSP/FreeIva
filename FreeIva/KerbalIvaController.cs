@@ -785,6 +785,10 @@ namespace FreeIva
 
 			previousRotation = InternalCamera.Instance.transform.rotation;
 			InternalCamera.Instance.ManualReset(false);
+			// Normally the InternalCamera's transform is copied to the FlightCamera at the end of InternalCamera.Update, which will have happened right before this component updates.
+			// So we need to make sure the latest internal camera rotation gets copied to the flight camera.
+			FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
+			FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
 		}
 
 		private void UpdatePosition(Vector3 movementThrottle, bool jump)
