@@ -879,52 +879,56 @@ namespace FreeIva
             }
         }
 
-        public static void PositionIvaObject(IIvaObject o)
+        public static void PositionIvaObject(GameObject o)
         {
             GUILayout.BeginHorizontal();
-            if (o.IvaGameObject != null)
-                o.IvaGameObjectRigidbody = o.IvaGameObject.GetComponent<Rigidbody>();
 
-            float xPos = GuiUtils.editFloat("Position X", o.LocalPosition.x);
-            float yPos = GuiUtils.editFloat("Position Y", o.LocalPosition.y);
-            float zPos = GuiUtils.editFloat("Position Z", o.LocalPosition.z);
-            if (xPos != o.LocalPosition.x || yPos != o.LocalPosition.y || zPos != o.LocalPosition.z)
+            var rigidbody = o.GetComponent<Rigidbody>();
+
+            Vector3 newLocalPosition = new Vector3(
+                GuiUtils.editFloat("Position X", o.transform.localPosition.x),
+                GuiUtils.editFloat("Position Y", o.transform.localPosition.y),
+                GuiUtils.editFloat("Position Z", o.transform.localPosition.z));
+            if (newLocalPosition != o.transform.localPosition)
             {
-                o.LocalPosition = new Vector3(xPos, yPos, zPos);
-                if (o.IvaGameObjectRigidbody != null)
+                o.transform.localPosition = newLocalPosition;
+                if (rigidbody != null)
                 {
-                    o.IvaGameObjectRigidbody.velocity = Vector3.zero;
-                    o.IvaGameObjectRigidbody.angularVelocity = Vector3.zero;
+                    rigidbody.velocity = Vector3.zero;
+                    rigidbody.angularVelocity = Vector3.zero;
                 }
             }
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            float xSc = GuiUtils.editFloat("Scale X", o.Scale.x);
-            float ySc = GuiUtils.editFloat("Scale Y", o.Scale.y);
-            float zSc = GuiUtils.editFloat("Scale Z", o.Scale.z);
-            if (xSc != o.Scale.x || ySc != o.Scale.y || zSc != o.Scale.z)
+            Vector3 newLocalScale = new Vector3(
+                GuiUtils.editFloat("Scale X", o.transform.localScale.x),
+                GuiUtils.editFloat("Scale Y", o.transform.localScale.y),
+                GuiUtils.editFloat("Scale Z", o.transform.localScale.z));
+            if (newLocalScale != o.transform.localScale)
             {
-                o.Scale = new Vector3(xSc, ySc, zSc);
-                if (o.IvaGameObjectRigidbody != null)
+                o.transform.localScale = newLocalScale;
+                if (rigidbody != null)
                 {
-                    o.IvaGameObjectRigidbody.velocity = Vector3.zero;
-                    o.IvaGameObjectRigidbody.angularVelocity = Vector3.zero;
+                    rigidbody.velocity = Vector3.zero;
+                    rigidbody.angularVelocity = Vector3.zero;
                 }
             }
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            float xRot = GuiUtils.editFloat("Rotation X", o.Rotation.eulerAngles.x);
-            float yRot = GuiUtils.editFloat("Rotation Y", o.Rotation.eulerAngles.y);
-            float zRot = GuiUtils.editFloat("Rotation Z", o.Rotation.eulerAngles.z);
-            if (xRot != o.Rotation.eulerAngles.x || yRot != o.Rotation.eulerAngles.y || zRot != o.Rotation.eulerAngles.z)
+            Vector3 localRotation = o.transform.localRotation.eulerAngles;
+            Vector3 newLocalRotation = new Vector3(
+                GuiUtils.editFloat("Rotation X", localRotation.x),
+                GuiUtils.editFloat("Rotation Y", localRotation.y),
+                GuiUtils.editFloat("Rotation Z", localRotation.z));
+            if (newLocalRotation != localRotation)
             {
-                o.Rotation = Quaternion.Euler(xRot, yRot, zRot);
-                if (o.IvaGameObjectRigidbody != null)
+                o.transform.localRotation = Quaternion.Euler(newLocalRotation);
+                if (rigidbody != null)
                 {
-                    o.IvaGameObjectRigidbody.velocity = Vector3.zero;
-                    o.IvaGameObjectRigidbody.angularVelocity = Vector3.zero;
+                    rigidbody.velocity = Vector3.zero;
+                    rigidbody.angularVelocity = Vector3.zero;
                 }
             }
             GUILayout.EndHorizontal();

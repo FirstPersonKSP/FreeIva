@@ -101,7 +101,6 @@
     <Compile Include="InternalModuleFreeIva.cs" />
     <Compile Include="IvaObjects\DepthMask.cs" />
     <Compile Include="IvaObjects\Hatches\HatchConfig.cs" />
-    <Compile Include="IvaObjects\IIvaObject.cs" />
     <Compile Include="Experimental\InteractionCollider.cs" />
     <Compile Include="Experimental\InteractiveIvaProp.cs" />
     <Compile Include="Experimental\ModuleInternalPressure.cs" />
@@ -115,7 +114,6 @@
     <Compile Include="FreeIva.cs" />
     <Compile Include="Gui\GuiUtils.cs" />
     <Compile Include="IvaObjects\Hatches\Hatch.cs" />
-    <Compile Include="IvaObjects\IvaObject.cs" />
     <Compile Include="ModuleFreeIva.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IvaObjects\Hatches\PropHatch.cs" />
