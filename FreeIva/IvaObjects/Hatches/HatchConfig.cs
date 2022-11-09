@@ -18,11 +18,11 @@ namespace FreeIva
 			{
 				if (internalProp.hasModel)
 				{
-					Debug.Log($"[FreeIva] PropHatchConfig in internal {internalModel.internalName} placed in prop {internalProp.propName} that does not have a FreeIvaHatch module");
+					Debug.Log($"[FreeIva] HatchConfig in internal {internalModel.internalName} placed in prop {internalProp.propName} that does not have a FreeIvaHatch module");
 				}
 				else
 				{
-					Debug.LogError($"[FreeIva] PropHatchConfig in internal {internalModel.internalName} was placed outside of a PROP node");
+					Debug.LogError($"[FreeIva] HatchConfig in internal {internalModel.internalName} was placed outside of a PROP node");
 				}
 				return;
 			}
