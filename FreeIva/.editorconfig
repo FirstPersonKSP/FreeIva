@@ -7,7 +7,7 @@
 #Core editorconfig formatting - indentation
 
 #use soft tabs (spaces) for indentation
-indent_style = space
+indent_style = tabs
 
 #Formatting - indentation options
 

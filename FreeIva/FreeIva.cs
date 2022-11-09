@@ -52,350 +52,350 @@ using UnityEngine;
 // Assistance received from: egg
 namespace FreeIva
 {
-    /// <summary>
-    /// Main controller for FreeIva behaviours.
-    /// </summary>
-    [KSPAddon(KSPAddon.Startup.Flight, false)]
-    public class FreeIva : MonoBehaviour
-    {
-        public static EventData<Part> OnIvaPartChanged = new EventData<Part>("OnIvaPartChanged");
-        public static Part InitialPart;
-        public static Part CurrentPart;
-        public static GameObject SelectedObject = null;
-        private static InternalModuleFreeIva _currentInternalModuleFreeIva = null;
-        public static InternalModuleFreeIva CurrentInternalModuleFreeIva
-        {
-            get
-            {
-                if (_currentInternalModuleFreeIva == null || _currentInternalModuleFreeIva.part != CurrentPart)
-                {
-                    _currentInternalModuleFreeIva = InternalModuleFreeIva.GetForModel(CurrentPart.internalModel);
-                    return _currentInternalModuleFreeIva;
-                }
-                return _currentInternalModuleFreeIva;
-            }
-        }
+	/// <summary>
+	/// Main controller for FreeIva behaviours.
+	/// </summary>
+	[KSPAddon(KSPAddon.Startup.Flight, false)]
+	public class FreeIva : MonoBehaviour
+	{
+		public static EventData<Part> OnIvaPartChanged = new EventData<Part>("OnIvaPartChanged");
+		public static Part InitialPart;
+		public static Part CurrentPart;
+		public static GameObject SelectedObject = null;
+		private static InternalModuleFreeIva _currentInternalModuleFreeIva = null;
+		public static InternalModuleFreeIva CurrentInternalModuleFreeIva
+		{
+			get
+			{
+				if (_currentInternalModuleFreeIva == null || _currentInternalModuleFreeIva.part != CurrentPart)
+				{
+					_currentInternalModuleFreeIva = InternalModuleFreeIva.GetForModel(CurrentPart.internalModel);
+					return _currentInternalModuleFreeIva;
+				}
+				return _currentInternalModuleFreeIva;
+			}
+		}
 
-        public void Start()
-        {
-            CurrentPart = FlightGlobals.ActiveVessel.rootPart;
-            GuiUtils.DrawGui =
+		public void Start()
+		{
+			CurrentPart = FlightGlobals.ActiveVessel.rootPart;
+			GuiUtils.DrawGui =
 #if DEBUG
-            true;
+			true;
 #else
             false;
 #endif
 
-            Paused = false;
-            GameEvents.onGamePause.Add(OnPause);
-            GameEvents.onGameUnpause.Add(OnUnPause);
-            GameEvents.onVesselWasModified.Add(OnVesselWasModified);
+			Paused = false;
+			GameEvents.onGamePause.Add(OnPause);
+			GameEvents.onGameUnpause.Add(OnUnPause);
+			GameEvents.onVesselWasModified.Add(OnVesselWasModified);
 
-            Settings.LoadSettings();
-            OnIvaPartChanged.Add(IvaPartChanged);
-            SetRenderQueues(FlightGlobals.ActiveVessel.rootPart);
+			Settings.LoadSettings();
+			OnIvaPartChanged.Add(IvaPartChanged);
+			SetRenderQueues(FlightGlobals.ActiveVessel.rootPart);
 
 			Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.InternalSpace);
 			Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.Kerbals, false);
-        }
+		}
 
 		public static bool Paused = false;
-        public void OnPause()
-        {
-            Paused = true;
-        }
+		public void OnPause()
+		{
+			Paused = true;
+		}
 
-        public void OnUnPause()
-        {
-            Paused = false;
-        }
-        private void OnVesselWasModified(Vessel vessel)
-        {
-            if (vessel == FlightGlobals.ActiveVessel)
-            {
-                EnableInternals();
-                InternalModuleFreeIva.OnVesselWasModified(vessel);
-            }
-        }
+		public void OnUnPause()
+		{
+			Paused = false;
+		}
+		private void OnVesselWasModified(Vessel vessel)
+		{
+			if (vessel == FlightGlobals.ActiveVessel)
+			{
+				EnableInternals();
+				InternalModuleFreeIva.OnVesselWasModified(vessel);
+			}
+		}
 
-        public void OnDestroy()
-        {
-            GameEvents.onGamePause.Remove(OnPause);
-            GameEvents.onGameUnpause.Remove(OnUnPause);
-            GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
-            OnIvaPartChanged.Remove(IvaPartChanged);
-            InputLockManager.RemoveControlLock("FreeIVA");
-        }
+		public void OnDestroy()
+		{
+			GameEvents.onGamePause.Remove(OnPause);
+			GameEvents.onGameUnpause.Remove(OnUnPause);
+			GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
+			OnIvaPartChanged.Remove(IvaPartChanged);
+			InputLockManager.RemoveControlLock("FreeIVA");
+		}
 
-        public void FixedUpdate()
-        {
-            UpdateCurrentPart();
-        }
+		public void FixedUpdate()
+		{
+			UpdateCurrentPart();
+		}
 
-        public static int DepthMaskQueue = 999;
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="activePart">The part that the IVA player is currently inside.</param>
-        public static void SetRenderQueues(Part activePart)
-        {
-            List<Part> visibleParts = new List<Part>();
-            GetVisibleParts(CurrentPart, ref visibleParts);
-            for (int i = 0; i < FlightGlobals.ActiveVessel.Parts.Count; i++)
-            {
-                Part p = FlightGlobals.ActiveVessel.Parts[i];
-                bool partVisible = visibleParts.Contains(p);
+		public static int DepthMaskQueue = 999;
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="activePart">The part that the IVA player is currently inside.</param>
+		public static void SetRenderQueues(Part activePart)
+		{
+			List<Part> visibleParts = new List<Part>();
+			GetVisibleParts(CurrentPart, ref visibleParts);
+			for (int i = 0; i < FlightGlobals.ActiveVessel.Parts.Count; i++)
+			{
+				Part p = FlightGlobals.ActiveVessel.Parts[i];
+				bool partVisible = visibleParts.Contains(p);
 
-                if (p.internalModel != null)
-                {
-                    Renderer[] renderers = p.internalModel.GetComponentsInChildren<Renderer>();
-                    foreach (var r in renderers)
-                    {
-                        foreach (var m in r.materials)
-                        {
-                            // Geometry is rendered at 2000. The depth mask will be rendered over it at 1999.
-                            // Render the next visible area (behind the depth mask) before it, over the top of it, at 1998.
-                            if (m.shader.name.Contains("DepthMask") || r.name == "HatchDoor" || r.name == "hatchCombing" || r.name == "mk2CrewCabinExtHatchCut")
-                            {
-                                m.renderQueue = DepthMaskQueue;
-                            }
-                            else
-                            {
-                                m.renderQueue = DepthMaskQueue - 1;
+				if (p.internalModel != null)
+				{
+					Renderer[] renderers = p.internalModel.GetComponentsInChildren<Renderer>();
+					foreach (var r in renderers)
+					{
+						foreach (var m in r.materials)
+						{
+							// Geometry is rendered at 2000. The depth mask will be rendered over it at 1999.
+							// Render the next visible area (behind the depth mask) before it, over the top of it, at 1998.
+							if (m.shader.name.Contains("DepthMask") || r.name == "HatchDoor" || r.name == "hatchCombing" || r.name == "mk2CrewCabinExtHatchCut")
+							{
+								m.renderQueue = DepthMaskQueue;
+							}
+							else
+							{
+								m.renderQueue = DepthMaskQueue - 1;
 
-                                //if (p == activePart || !partVisible)
-                                //    m.renderQueue = 2000; // Hide the part the player is inside, and parts with closed hatches.
-                                //else
-                                //    m.renderQueue = DepthMaskQueue - 1; //1998;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+								//if (p == activePart || !partVisible)
+								//    m.renderQueue = 2000; // Hide the part the player is inside, and parts with closed hatches.
+								//else
+								//    m.renderQueue = DepthMaskQueue - 1; //1998;
+							}
+						}
+					}
+				}
+			}
+		}
 
-        /// <summary>
-        /// Gets a list of parts that have
-        /// </summary>
-        /// <returns></returns>
-        private static List<Part> GetVisibleParts(Part part, ref List<Part> visibleParts)
-        {
-            InternalModuleFreeIva iva = InternalModuleFreeIva.GetForModel(part.internalModel);
-            if (iva != null)
-            {
-                if (!visibleParts.Contains(part))
-                    visibleParts.Add(part);
+		/// <summary>
+		/// Gets a list of parts that have
+		/// </summary>
+		/// <returns></returns>
+		private static List<Part> GetVisibleParts(Part part, ref List<Part> visibleParts)
+		{
+			InternalModuleFreeIva iva = InternalModuleFreeIva.GetForModel(part.internalModel);
+			if (iva != null)
+			{
+				if (!visibleParts.Contains(part))
+					visibleParts.Add(part);
 
-                for (int i = 0; i < iva.Hatches.Count; i++)
-                {
-                    FreeIvaHatch h = iva.Hatches[i];
+				for (int i = 0; i < iva.Hatches.Count; i++)
+				{
+					FreeIvaHatch h = iva.Hatches[i];
 
-                    if (h.IsOpen && h.ConnectedHatch != null && h.ConnectedHatch.IsOpen &&
-                        h.ConnectedHatch.part != null && !visibleParts.Contains(h.ConnectedHatch.part))
-                        visibleParts.AddRange(GetVisibleParts(h.ConnectedHatch.part, ref visibleParts));
-                }
-            }
+					if (h.IsOpen && h.ConnectedHatch != null && h.ConnectedHatch.IsOpen &&
+						h.ConnectedHatch.part != null && !visibleParts.Contains(h.ConnectedHatch.part))
+						visibleParts.AddRange(GetVisibleParts(h.ConnectedHatch.part, ref visibleParts));
+				}
+			}
 
-            return visibleParts;
-        }
+			return visibleParts;
+		}
 
-        Vector3 _previousCameraPosition = Vector3.zero;
-        public void UpdateCurrentPart()
-        {
-            if (InternalCamera.Instance == null)
-            {
-                Debug.LogError("InternalCamera was null");
-                Debug.Log("Searching for camera: " + InternalCamera.FindObjectOfType<Camera>());
-                return;
-            }
+		Vector3 _previousCameraPosition = Vector3.zero;
+		public void UpdateCurrentPart()
+		{
+			if (InternalCamera.Instance == null)
+			{
+				Debug.LogError("InternalCamera was null");
+				Debug.Log("Searching for camera: " + InternalCamera.FindObjectOfType<Camera>());
+				return;
+			}
 
-            if (_previousCameraPosition == InternalCamera.Instance.transform.position)
-                return;
-            //Debug.Log("###########################");
-            _previousCameraPosition = InternalCamera.Instance.transform.position;
-            Vector3 camPos = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-            Part lastPart = CurrentPart;
+			if (_previousCameraPosition == InternalCamera.Instance.transform.position)
+				return;
+			//Debug.Log("###########################");
+			_previousCameraPosition = InternalCamera.Instance.transform.position;
+			Vector3 camPos = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
+			Part lastPart = CurrentPart;
 
-            // Part colliders are larger than the parts themselves and overlap.
-            // Find which of the containing parts we're nearest to.
-            List<Part> possibleParts = new List<Part>();
+			// Part colliders are larger than the parts themselves and overlap.
+			// Find which of the containing parts we're nearest to.
+			List<Part> possibleParts = new List<Part>();
 
-            if (CurrentPart != null) // e.g. on part destroyed.
-            {
-                if (PartBoundsCamera(CurrentPart))
-                {
-                    //Debug.Log("# Adding previous currentpart.");
-                    possibleParts.Add(CurrentPart);
-                }
-                // Check all attached parts.
-                if (CurrentPart.parent != null && PartBoundsCamera(CurrentPart.parent))
-                {
-                    //Debug.Log("# Adding parent " + CurrentPart.parent);
-                    possibleParts.Add(CurrentPart.parent);
-                }
-            foreach (Part c in CurrentPart.children)
-            {
-                if (PartBoundsCamera(c))
-                {
-                    //Debug.Log("# Adding child " + c);
-                    possibleParts.Add(c);
-                }
-                }
-            }
-            if (possibleParts.Count == 0)
-            {
-                //Debug.Log("# Zero connected parts found, checking everything.");
-                foreach (Part p in FlightGlobals.ActiveVessel.parts)
-                {
-                    if (PartBoundsCamera(p))
-                    {
-                        //Debug.Log("# Adding vessel part " + p);
-                        possibleParts.Add(p);
-                    }
-                }
-            }
+			if (CurrentPart != null) // e.g. on part destroyed.
+			{
+				if (PartBoundsCamera(CurrentPart))
+				{
+					//Debug.Log("# Adding previous currentpart.");
+					possibleParts.Add(CurrentPart);
+				}
+				// Check all attached parts.
+				if (CurrentPart.parent != null && PartBoundsCamera(CurrentPart.parent))
+				{
+					//Debug.Log("# Adding parent " + CurrentPart.parent);
+					possibleParts.Add(CurrentPart.parent);
+				}
+				foreach (Part c in CurrentPart.children)
+				{
+					if (PartBoundsCamera(c))
+					{
+						//Debug.Log("# Adding child " + c);
+						possibleParts.Add(c);
+					}
+				}
+			}
+			if (possibleParts.Count == 0)
+			{
+				//Debug.Log("# Zero connected parts found, checking everything.");
+				foreach (Part p in FlightGlobals.ActiveVessel.parts)
+				{
+					if (PartBoundsCamera(p))
+					{
+						//Debug.Log("# Adding vessel part " + p);
+						possibleParts.Add(p);
+					}
+				}
+			}
 
-            if (possibleParts.Count == 0)
-            {
-                //Debug.Log("# No potential parts found");
-                return;
-            }
+			if (possibleParts.Count == 0)
+			{
+				//Debug.Log("# No potential parts found");
+				return;
+			}
 
-            if (possibleParts.Count == 1)
-            {
-                //Debug.Log("# Only one part found: " + possibleParts[0]);
-                CurrentPart = possibleParts[0];
-                if (CurrentPart != lastPart)
-                    OnIvaPartChanged.Fire(CurrentPart);
-                /*else
+			if (possibleParts.Count == 1)
+			{
+				//Debug.Log("# Only one part found: " + possibleParts[0]);
+				CurrentPart = possibleParts[0];
+				if (CurrentPart != lastPart)
+					OnIvaPartChanged.Fire(CurrentPart);
+				/*else
                     Debug.Log("# Same part as before: " + CurrentPart + " at " + CurrentPart.transform.position);*/
-                return;
-            }
+				return;
+			}
 
-            float minDistance = float.MaxValue;
-            Part closestPart = null;
-            //Debug.Log("# Checking " + possibleParts.Count + " possibilities.");
-            foreach (Part pp in possibleParts)
-            {
-                // Raycast from the camera to the centre of the collider.
-                // TODO: Figure out how to deal with multi-collider parts.
-                Vector3 c = pp.collider.bounds.center;
-                Vector3 direction = c - camPos;
-                Ray ray = new Ray(camPos, direction);
-                RaycastHit hitInfo;
-                if (!pp.collider.Raycast(ray, out hitInfo, direction.magnitude))
-                {
-                    //Debug.Log("# Raycast missed part from inside: " + pp);
-                    // Ray didn't hit the collider => we are inside the collider.
-                    float dist = Vector3.Distance(pp.collider.bounds.center, camPos);
-                    if (dist < minDistance)
-                    {
-                        closestPart = pp;
-                        minDistance = dist;
-                    }
-                    /*else
+			float minDistance = float.MaxValue;
+			Part closestPart = null;
+			//Debug.Log("# Checking " + possibleParts.Count + " possibilities.");
+			foreach (Part pp in possibleParts)
+			{
+				// Raycast from the camera to the centre of the collider.
+				// TODO: Figure out how to deal with multi-collider parts.
+				Vector3 c = pp.collider.bounds.center;
+				Vector3 direction = c - camPos;
+				Ray ray = new Ray(camPos, direction);
+				RaycastHit hitInfo;
+				if (!pp.collider.Raycast(ray, out hitInfo, direction.magnitude))
+				{
+					//Debug.Log("# Raycast missed part from inside: " + pp);
+					// Ray didn't hit the collider => we are inside the collider.
+					float dist = Vector3.Distance(pp.collider.bounds.center, camPos);
+					if (dist < minDistance)
+					{
+						closestPart = pp;
+						minDistance = dist;
+					}
+					/*else
                         Debug.Log("# Part was further away: " + minDistance + " vs part's " + dist);*/
-                }
-                /*else
+				}
+				/*else
                     Debug.Log("# Raycast hit part from outside: " + pp);*/
-            }
-            if (closestPart != null)
-            {
-                //Debug.Log("# New closest part found: " + closestPart);
-                CurrentPart = closestPart;
-                if (CurrentPart != lastPart)
-                    OnIvaPartChanged.Fire(CurrentPart);
-                /*else
+			}
+			if (closestPart != null)
+			{
+				//Debug.Log("# New closest part found: " + closestPart);
+				CurrentPart = closestPart;
+				if (CurrentPart != lastPart)
+					OnIvaPartChanged.Fire(CurrentPart);
+				/*else
                     Debug.Log("# Same part as before: " + CurrentPart + " at " + CurrentPart.transform.position);*/
-            }
-            /*else
+			}
+			/*else
                 Debug.Log("# No closest part found.");*/
-            // Keep the last part we were inside as the current part: We could be transitioning between hatches.
-            // TODO: Idendify/store when we are outside all parts (EVA from IVA?).
-        }
+			// Keep the last part we were inside as the current part: We could be transitioning between hatches.
+			// TODO: Idendify/store when we are outside all parts (EVA from IVA?).
+		}
 
-        public static bool PartBoundsCamera(Part p)
-        {
-            return GameObjectBoundsCamera(p.gameObject);
-        }
+		public static bool PartBoundsCamera(Part p)
+		{
+			return GameObjectBoundsCamera(p.gameObject);
+		}
 
-        private static bool GameObjectBoundsCamera(GameObject go)
-        {
-            // The transform containing the mesh can be buried several levels deep.
-            int childCount = go.transform.childCount;
-            for (int i = 0; i < childCount; i++)
-            {
-                Transform child = go.transform.GetChild(i);
-                if (child.name != "main camera pivot" && child.GetComponent<Part>() == null)
-                {
-                    GameObject goc = child.gameObject;
-                    MeshFilter[] meshc = goc.GetComponents<MeshFilter>();
-                    for (int m = 0; m < meshc.Length; m++)
-                    {
-                        Bounds meshBounds = meshc[m].mesh.bounds;
-                        if (meshBounds != null)
-                        {
-                            Vector3 camPos = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-                            // Bounds are relative to the transform position, not the world.
-                            camPos -= goc.transform.position;
+		private static bool GameObjectBoundsCamera(GameObject go)
+		{
+			// The transform containing the mesh can be buried several levels deep.
+			int childCount = go.transform.childCount;
+			for (int i = 0; i < childCount; i++)
+			{
+				Transform child = go.transform.GetChild(i);
+				if (child.name != "main camera pivot" && child.GetComponent<Part>() == null)
+				{
+					GameObject goc = child.gameObject;
+					MeshFilter[] meshc = goc.GetComponents<MeshFilter>();
+					for (int m = 0; m < meshc.Length; m++)
+					{
+						Bounds meshBounds = meshc[m].mesh.bounds;
+						if (meshBounds != null)
+						{
+							Vector3 camPos = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
+							// Bounds are relative to the transform position, not the world.
+							camPos -= goc.transform.position;
 
-                            if (meshBounds.Contains(camPos))
-                                return true;
-                        }
-                    }
-                    bool foundGrandChild = GameObjectBoundsCamera(goc);
-                    if (foundGrandChild)
-                        return true;
-                }
-            }
-            return false;
-        }
+							if (meshBounds.Contains(camPos))
+								return true;
+						}
+					}
+					bool foundGrandChild = GameObjectBoundsCamera(goc);
+					if (foundGrandChild)
+						return true;
+				}
+			}
+			return false;
+		}
 
-        public static void UpdateCurrentPart(Part newCurrentPart)
-        {
-            if (FreeIva.CurrentPart != newCurrentPart)
-            {
-                CurrentPart = newCurrentPart;
-                OnIvaPartChanged.Fire(CurrentPart);
-            }
-        }
+		public static void UpdateCurrentPart(Part newCurrentPart)
+		{
+			if (FreeIva.CurrentPart != newCurrentPart)
+			{
+				CurrentPart = newCurrentPart;
+				OnIvaPartChanged.Fire(CurrentPart);
+			}
+		}
 
-        public void IvaPartChanged(Part newPart)
-        {
-            SetRenderQueues(newPart);
-        }
+		public void IvaPartChanged(Part newPart)
+		{
+			SetRenderQueues(newPart);
+		}
 
-        //static bool _initialised = false;
-        public static void EnableInternals()
-        {
-            try
-            {
-                //if (_initialised) return;
+		//static bool _initialised = false;
+		public static void EnableInternals()
+		{
+			try
+			{
+				//if (_initialised) return;
 
-                foreach (Part p in FlightGlobals.ActiveVessel.parts)
-                {
-                    if (p.internalModel == null)
-                    {
-                        p.CreateInternalModel();
-                        if (p.internalModel != null)
-                        {
-                            p.internalModel.Initialize(p);
-                            p.internalModel.SpawnCrew();
-                        }
-                    }
+				foreach (Part p in FlightGlobals.ActiveVessel.parts)
+				{
+					if (p.internalModel == null)
+					{
+						p.CreateInternalModel();
+						if (p.internalModel != null)
+						{
+							p.internalModel.Initialize(p);
+							p.internalModel.SpawnCrew();
+						}
+					}
 
-                    if (p.internalModel != null)
-                    {
-                        p.internalModel.SetVisible(true);
-                    }
-                }
+					if (p.internalModel != null)
+					{
+						p.internalModel.SetVisible(true);
+					}
+				}
 
-                //_initialised = true;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError("[FreeIVA] Error enabling internals: " + ex.Message + ", " + ex.StackTrace);
-            }
-        }
-    }
+				//_initialised = true;
+			}
+			catch (Exception ex)
+			{
+				Debug.LogError("[FreeIVA] Error enabling internals: " + ex.Message + ", " + ex.StackTrace);
+			}
+		}
+	}
 }

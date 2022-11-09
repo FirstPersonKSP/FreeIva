@@ -83,63 +83,63 @@ namespace FreeIva
 			float radius = 0, height = 0;
 			CapsuleAxis axis = CapsuleAxis.X;
 			string colliderShape = string.Empty;
-			
+
 			if (!cfg.TryGetValue("shape", ref colliderShape))
 			{
 				Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.name} does not have a collider in the model and does not have a shape field");
 			}
 			else switch (colliderShape)
-			{
-				case "Capsule":
-					if (cfg.TryGetValue("center", ref center) &&
-						cfg.TryGetValue("radius", ref radius) &&
-						cfg.TryGetValue("height", ref height) &&
-						cfg.TryGetEnum("axis", ref axis, CapsuleAxis.X))
-					{
-						var collider = t.gameObject.AddComponent<CapsuleCollider>();
-						collider.radius = radius;
-						collider.height = height;
-						collider.center = center;
-						collider.direction = (int)axis;
-						result = collider;
-					}
-					else
-					{
-						Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName}: capsule shape requires center, radius, height, and axis fields");
-					}
-					break;
-				case "Box":
-					if (cfg.TryGetValue("center", ref center) &&
-						cfg.TryGetValue("dimensions", ref boxDimensions))
-					{
-						var collider = t.gameObject.AddComponent<BoxCollider>();
-						collider.center = center;
-						collider.size = boxDimensions;
-						result = collider;
-					}
-					else
-					{
-						Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName}: box shape requires center and dimensions fields");
-					}
-					break;
-				case "Sphere":
-					if (cfg.TryGetValue("center", ref center) &&
-						cfg.TryGetValue("radius", ref radius))
-					{
-						var collider = t.gameObject.AddComponent<SphereCollider>();
-						collider.center = center;
-						collider.radius = radius;
-						result = collider;
-					}
-					else
-					{
-						Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName}: sphere shape requires center and radius fields");
-					}
-					break;
-				default:
-					Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName} has invalid collider shape '{colliderShape}");
-					break;
-			}
+				{
+					case "Capsule":
+						if (cfg.TryGetValue("center", ref center) &&
+							cfg.TryGetValue("radius", ref radius) &&
+							cfg.TryGetValue("height", ref height) &&
+							cfg.TryGetEnum("axis", ref axis, CapsuleAxis.X))
+						{
+							var collider = t.gameObject.AddComponent<CapsuleCollider>();
+							collider.radius = radius;
+							collider.height = height;
+							collider.center = center;
+							collider.direction = (int)axis;
+							result = collider;
+						}
+						else
+						{
+							Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName}: capsule shape requires center, radius, height, and axis fields");
+						}
+						break;
+					case "Box":
+						if (cfg.TryGetValue("center", ref center) &&
+							cfg.TryGetValue("dimensions", ref boxDimensions))
+						{
+							var collider = t.gameObject.AddComponent<BoxCollider>();
+							collider.center = center;
+							collider.size = boxDimensions;
+							result = collider;
+						}
+						else
+						{
+							Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName}: box shape requires center and dimensions fields");
+						}
+						break;
+					case "Sphere":
+						if (cfg.TryGetValue("center", ref center) &&
+							cfg.TryGetValue("radius", ref radius))
+						{
+							var collider = t.gameObject.AddComponent<SphereCollider>();
+							collider.center = center;
+							collider.radius = radius;
+							result = collider;
+						}
+						else
+						{
+							Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName}: sphere shape requires center and radius fields");
+						}
+						break;
+					default:
+						Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName} has invalid collider shape '{colliderShape}");
+						break;
+				}
 
 			return result;
 		}
