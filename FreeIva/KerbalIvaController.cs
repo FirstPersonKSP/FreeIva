@@ -678,7 +678,12 @@ namespace FreeIva
 
 			if (targetedHatch != null)
 			{
-				if (targetedHatch.ConnectedHatch == null)
+				if (targetedHatch.IsBlockedByAnimation())
+				{
+					ScreenMessages.PostScreenMessage("Hatch is locked",
+							0.1f, ScreenMessageStyle.LOWER_CENTER);
+				}
+				else if (targetedHatch.ConnectedHatch == null)
 				{
 					bool canEVA = true;
 

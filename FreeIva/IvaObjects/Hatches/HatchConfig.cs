@@ -27,11 +27,12 @@ namespace FreeIva
 				return;
 			}
 
-			node.TryGetValue("attachNodeId", ref propHatch.attachNodeId);
-			node.TryGetValue("airlockName", ref propHatch.airlockName);
-			node.TryGetValue("tubeExtent", ref propHatch.tubeExtent);
-			node.TryGetValue("hideDoorWhenConnected", ref propHatch.hideDoorWhenConnected);
-			node.TryGetValue("dockingPortNodeName", ref propHatch.dockingPortNodeName);
+			node.TryGetValue(nameof(FreeIvaHatch.attachNodeId), ref propHatch.attachNodeId);
+			node.TryGetValue(nameof(FreeIvaHatch.airlockName), ref propHatch.airlockName);
+			node.TryGetValue(nameof(FreeIvaHatch.tubeExtent), ref propHatch.tubeExtent);
+			node.TryGetValue(nameof(FreeIvaHatch.hideDoorWhenConnected), ref propHatch.hideDoorWhenConnected);
+			node.TryGetValue(nameof(FreeIvaHatch.dockingPortNodeName), ref propHatch.dockingPortNodeName);
+			node.TryGetValue(nameof(FreeIvaHatch.requiredAnimationName), ref propHatch.requiredAnimationName);
 
 			ConfigNode[] hideNodes = node.GetNodes("HideWhenOpen");
 			if (hideNodes != null && hideNodes.Length > 0)

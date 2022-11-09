@@ -42,6 +42,8 @@ namespace FreeIva
 		// some docking ports don't use AttachNodes (inline ports, inflatable airlock, shielded)
 		public string dockingPortNodeName = string.Empty;
 
+		public string requiredAnimationName = string.Empty;
+
 		[SerializeReference]
 		public ObjectsToHide HideWhenOpen;
 
@@ -67,8 +69,8 @@ namespace FreeIva
 		}
 
 		Transform m_doorTransform;
-
 		ModuleDockingNode m_dockingNodeModule;
+		ModuleAnimateGeneric m_animationModule;
 
 		// Where the GameObject is located. Used for basic interaction targeting (i.e. when to show the "Open hatch?" prompt).
 		public virtual Vector3 WorldPosition => transform.position;
@@ -148,6 +150,28 @@ namespace FreeIva
 				}
 			}
 
+			if (requiredAnimationName != string.Empty)
+			{
+				foreach (var module in part.modules.OfType<ModuleAnimateGeneric>())
+				{
+					if (module.animationName == requiredAnimationName)
+					{
+						m_animationModule = module;
+						break;
+					}
+				}
+
+				if (m_animationModule != null)
+				{
+					m_animationModule.OnStop.Add(OnAnimationModuleStop);
+					m_animationModule.OnMoving.Add(OnAnimationModuleMoving);
+				}
+				else
+				{
+					Debug.LogError($"[FreeIva] No ModuleAnimateGeneric with animationName '{requiredAnimationName}' found in part {part.partInfo.name} for prop {internalProp.propName} in internal {internalModel.internalName}");
+				}
+			}
+
 			var internalModule = InternalModuleFreeIva.GetForModel(internalModel);
 			if (internalModule == null)
 			{
@@ -157,6 +181,38 @@ namespace FreeIva
 			internalModule.Hatches.Add(this);
 
 			RefreshConnection();
+		}
+
+		void OnDestroy()
+		{
+			if (m_animationModule != null)
+			{
+				m_animationModule.OnStop.Remove(OnAnimationModuleStop);
+				m_animationModule.OnMoving.Remove(OnAnimationModuleMoving);
+			}
+		}
+
+		private void OnAnimationModuleMoving(float data0, float data1)
+		{
+			Open(false);
+		}
+
+		private void OnAnimationModuleStop(float data)
+		{
+			if (data == 1.0f && hideDoorWhenConnected)
+			{
+				Open(true);
+			}
+		}
+
+		public bool IsBlockedByAnimation(bool checkConnectedHatch = true)
+		{
+			if (checkConnectedHatch && _connectedHatch != null && _connectedHatch.IsBlockedByAnimation(false))
+			{
+				return true;
+			}
+
+			return m_animationModule != null && m_animationModule.GetState().normalizedTime != 1.0f;
 		}
 
 		void SetTubeScale()
@@ -381,8 +437,12 @@ namespace FreeIva
 		{
 			var connectedHatch = ConnectedHatch;
 
+			if (open && IsBlockedByAnimation())
+			{
+				// can't do anything.
+			}
 			// if we're trying to open a door to space, just go EVA
-			if (connectedHatch == null && open)
+			else if (connectedHatch == null && open)
 			{
 				GoEVA();
 			}
