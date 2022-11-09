@@ -108,8 +108,8 @@ namespace FreeIva
 
 			Debug.Log($"# Creating hatch {internalProp.propName} for part {part.partInfo.name}");
 
-			HatchOpenSound = SetupAudio(hatchOpenSoundFile);
-			HatchCloseSound = SetupAudio(hatchCloseSoundFile);
+			HatchOpenSound = SetupAudio(hatchOpenSoundFile, "HatchOpen");
+			HatchCloseSound = SetupAudio(hatchCloseSoundFile, "HatchClose");
 
 			if (handleTransformName != string.Empty)
 			{
@@ -412,16 +412,16 @@ namespace FreeIva
 			return null;
 		}
 
-		public FXGroup SetupAudio(string soundFile)
+		public FXGroup SetupAudio(string soundFile, string id)
 		{
 			FXGroup result = null;
 			if (!string.IsNullOrEmpty(soundFile))
 			{
-				result = new FXGroup("HatchOpen");
+				result = new FXGroup(id);
 				result.audio = gameObject.AddComponent<AudioSource>(); // TODO: if we deactivate this object when the hatch opens, do we need to put the sound on a different object?
 				result.audio.dopplerLevel = 0f;
 				result.audio.Stop();
-				result.audio.clip = GameDatabase.Instance.GetAudioClip(hatchOpenSoundFile);
+				result.audio.clip = GameDatabase.Instance.GetAudioClip(soundFile);
 				result.audio.loop = false;
 			}
 
