@@ -638,6 +638,18 @@ namespace FreeIva
 			}
 		}
 
+		void TargetHatchesInPart(Part part, ref FreeIvaHatch targetedHatch, ref float closestDistance)
+		{
+			InternalModuleFreeIva ivaModule = InternalModuleFreeIva.GetForModel(part.internalModel);
+			if (ivaModule != null)
+			{
+				foreach (FreeIvaHatch h in ivaModule.Hatches)
+				{
+					ConsiderHatch(ref targetedHatch, ref closestDistance, h);
+				}
+			}
+		}
+
 		public void TargetHatches(bool openHatch, bool openFarHatch)
 		{
 			FreeIvaHatch targetedHatch = null;
@@ -648,31 +660,26 @@ namespace FreeIva
 				foreach (FreeIvaHatch h in FreeIva.CurrentInternalModuleFreeIva.Hatches)
 				{
 					ConsiderHatch(ref targetedHatch, ref closestDistance, h);
+
+					// if this hatch is open, consider other hatches in the adjacent part
+					if (h.IsOpen && h.ConnectedHatch != null)
+					{
+						TargetHatchesInPart(h.ConnectedHatch.part, ref targetedHatch, ref closestDistance);
+					}
 				}
 			}
 
 			// try neighboring parts
 			if (targetedHatch == null)
 			{
-				InternalModuleFreeIva parentModule = InternalModuleFreeIva.GetForModel(FreeIva.CurrentPart.parent?.internalModel);
-				if (parentModule != null)
+				if (FreeIva.CurrentPart.parent != null)
 				{
-					foreach (FreeIvaHatch h in parentModule.Hatches)
-					{
-						ConsiderHatch(ref targetedHatch, ref closestDistance, h);
-					}
+					TargetHatchesInPart(FreeIva.CurrentPart.parent, ref targetedHatch, ref closestDistance);
 				}
 
 				foreach (Part child in FreeIva.CurrentPart.children)
 				{
-					InternalModuleFreeIva childModule = InternalModuleFreeIva.GetForModel(child.internalModel);
-
-					if (childModule == null)
-						continue;
-					foreach (FreeIvaHatch h in childModule.Hatches)
-					{
-						ConsiderHatch(ref targetedHatch, ref closestDistance, h);
-					}
+					TargetHatchesInPart(child, ref targetedHatch, ref closestDistance);
 				}
 			}
 
