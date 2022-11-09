@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 /* Quick list
  * 
@@ -133,14 +134,17 @@ namespace FreeIva
 		}
 
 		public static int DepthMaskQueue = 999;
+		private static HashSet<Part> visibleParts = new HashSet<Part>();
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="activePart">The part that the IVA player is currently inside.</param>
 		public static void SetRenderQueues(Part activePart)
 		{
-			List<Part> visibleParts = new List<Part>();
-			GetVisibleParts(CurrentPart, ref visibleParts);
+			Profiler.BeginSample("SetRenderQueues");
+
+			visibleParts.Clear();
+			GetVisibleParts(CurrentPart, visibleParts);
 			for (int i = 0; i < FlightGlobals.ActiveVessel.Parts.Count; i++)
 			{
 				Part p = FlightGlobals.ActiveVessel.Parts[i];
@@ -172,14 +176,18 @@ namespace FreeIva
 					}
 				}
 			}
+
+			Profiler.EndSample();
 		}
 
 		/// <summary>
 		/// Gets a list of parts that have
 		/// </summary>
 		/// <returns></returns>
-		private static List<Part> GetVisibleParts(Part part, ref List<Part> visibleParts)
+		private static void GetVisibleParts(Part part, HashSet<Part> visibleParts)
 		{
+			Profiler.BeginSample("GetVisibleParts");
+
 			InternalModuleFreeIva iva = InternalModuleFreeIva.GetForModel(part.internalModel);
 			if (iva != null)
 			{
@@ -190,13 +198,14 @@ namespace FreeIva
 				{
 					FreeIvaHatch h = iva.Hatches[i];
 
-					if (h.IsOpen && h.ConnectedHatch != null && h.ConnectedHatch.IsOpen &&
-						h.ConnectedHatch.part != null && !visibleParts.Contains(h.ConnectedHatch.part))
-						visibleParts.AddRange(GetVisibleParts(h.ConnectedHatch.part, ref visibleParts));
+					if (h.IsOpen && h.ConnectedHatch != null && h.ConnectedHatch.IsOpen && h.ConnectedHatch.part != null && !visibleParts.Contains(h.ConnectedHatch.part))
+					{
+						GetVisibleParts(h.ConnectedHatch.part, visibleParts);
+					}
 				}
 			}
 
-			return visibleParts;
+			Profiler.EndSample();
 		}
 
 		Vector3 _previousCameraPosition = Vector3.zero;
@@ -277,6 +286,7 @@ namespace FreeIva
 			//Debug.Log("# Checking " + possibleParts.Count + " possibilities.");
 			foreach (Part pp in possibleParts)
 			{
+				Profiler.BeginSample("Testing possible part");
 				// Raycast from the camera to the centre of the collider.
 				// TODO: Figure out how to deal with multi-collider parts.
 				Vector3 c = pp.collider.bounds.center;
@@ -298,13 +308,16 @@ namespace FreeIva
 				}
 				/*else
                     Debug.Log("# Raycast hit part from outside: " + pp);*/
+				Profiler.EndSample();
 			}
 			if (closestPart != null)
 			{
+				Profiler.BeginSample("OnIvaPartChanged");
 				//Debug.Log("# New closest part found: " + closestPart);
 				CurrentPart = closestPart;
 				if (CurrentPart != lastPart)
 					OnIvaPartChanged.Fire(CurrentPart);
+				Profiler.EndSample();
 				/*else
                     Debug.Log("# Same part as before: " + CurrentPart + " at " + CurrentPart.transform.position);*/
 			}
@@ -316,7 +329,10 @@ namespace FreeIva
 
 		public static bool PartBoundsCamera(Part p)
 		{
-			return GameObjectBoundsCamera(p.gameObject);
+			Profiler.BeginSample("PartBoundsCamera");
+			var part = GameObjectBoundsCamera(p.gameObject);
+			Profiler.EndSample();
+			return part;
 		}
 
 		private static bool GameObjectBoundsCamera(GameObject go)
