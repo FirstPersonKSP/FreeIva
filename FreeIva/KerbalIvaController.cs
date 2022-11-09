@@ -640,12 +640,10 @@ namespace FreeIva
 
         public void TargetHatches(bool openHatch, bool openFarHatch)
         {
-            if (FreeIva.CurrentInternalModuleFreeIva == null) return;
-
             FreeIvaHatch targetedHatch = null;
             float closestDistance = Settings.MaxInteractDistance;
 
-            if (FreeIva.CurrentInternalModuleFreeIva.Hatches.Count != 0)
+            if (FreeIva.CurrentInternalModuleFreeIva != null && FreeIva.CurrentInternalModuleFreeIva.Hatches.Count != 0)
             {
                 foreach (FreeIvaHatch h in FreeIva.CurrentInternalModuleFreeIva.Hatches)
                 {
