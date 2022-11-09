@@ -120,7 +120,7 @@ namespace FreeIva
 			{
 				foreach (var moduleNode in propNode.GetNodes("MODULE"))
 				{
-					if (moduleNode.GetValue("name") == nameof(PropHatchConfig) && moduleNode.HasValue("cutoutTargetTransformName"))
+					if (moduleNode.GetValue("name") == nameof(HatchConfig) && moduleNode.HasValue("cutoutTargetTransformName"))
 					{
 						++count;
 					}

@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace FreeIva
 {
-	// this module just contains per-placement data for hatches.  It's named badly because it's no longer specific to PropHatch
-	public class PropHatchConfig : InternalModule
+	// this module just contains per-placement data for hatches.
+	public class HatchConfig : InternalModule
 	{
 		public override void OnLoad(ConfigNode node)
 		{

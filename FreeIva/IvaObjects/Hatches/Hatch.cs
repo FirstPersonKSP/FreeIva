@@ -33,7 +33,7 @@ namespace FreeIva
 		[KSPField]
 		public string cutoutTransformName = string.Empty;
 
-		// ----- the following fields are set via PropHatchConfig, so that they can be different per placement of the prop
+		// ----- the following fields are set via HatchConfig, so that they can be different per placement of the prop
 
 		// The name of the part attach node this hatch is positioned on, as defined in the part.cfg's "node definitions".
 		// e.g. top => node_stack_top.  Do not include the prefixes (they are stripped out during loading in the stock code).
