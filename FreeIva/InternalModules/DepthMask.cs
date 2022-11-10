@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace FreeIva.IvaObjects
+namespace FreeIva
 {
 	// changes the shader on a model to the depth mask
 	// intended to be used for "open" props
