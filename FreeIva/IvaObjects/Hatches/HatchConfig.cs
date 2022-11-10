@@ -33,6 +33,7 @@ namespace FreeIva
 			node.TryGetValue(nameof(FreeIvaHatch.hideDoorWhenConnected), ref propHatch.hideDoorWhenConnected);
 			node.TryGetValue(nameof(FreeIvaHatch.dockingPortNodeName), ref propHatch.dockingPortNodeName);
 			node.TryGetValue(nameof(FreeIvaHatch.requiredAnimationName), ref propHatch.requiredAnimationName);
+			node.TryGetValue(nameof(FreeIvaHatch.cutoutTargetTransformName), ref propHatch.cutoutTargetTransformName);
 
 			ConfigNode[] hideNodes = node.GetNodes("HideWhenOpen");
 			if (hideNodes != null && hideNodes.Length > 0)
@@ -61,11 +62,16 @@ namespace FreeIva
 				}
 			}
 
-			var cutoutTargetTransformName = node.GetValue("cutoutTargetTransformName");
-			if (propHatch.cutoutTransformName != string.Empty && cutoutTargetTransformName != null)
+			if (propHatch.cutoutTransformName != string.Empty && propHatch.cutoutTargetTransformName != string.Empty)
 			{
 				var freeIvaModule = internalModel.GetComponentInChildren<InternalModuleFreeIva>();
-				freeIvaModule.AddPropCut(cutoutTargetTransformName, propHatch);
+				
+				// it's possible that this prop is before the FreeIva module in the INTERNAL node.
+				// skip adding the cut for now, and the module will pick it up in its OnLoad function
+				if (freeIvaModule != null)
+				{
+					freeIvaModule.AddPropCut(propHatch);
+				}
 			}
 		}
 	}

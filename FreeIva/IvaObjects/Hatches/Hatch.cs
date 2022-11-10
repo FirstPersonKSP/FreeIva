@@ -47,6 +47,8 @@ namespace FreeIva
 		[SerializeReference]
 		public ObjectsToHide HideWhenOpen;
 
+		public string cutoutTargetTransformName = string.Empty;
+
 		public string airlockName = string.Empty;
 
 		public float tubeExtent = 0;

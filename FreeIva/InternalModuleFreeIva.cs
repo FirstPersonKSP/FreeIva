@@ -110,6 +110,20 @@ namespace FreeIva
 			{
 				ExecuteMeshCuts();
 			}
+			else
+			{
+				// need to add cuts from props that are already loaded
+				foreach (var prop in internalModel.props)
+				{
+					foreach (var hatchModule in prop.internalModules.OfType<FreeIvaHatch>())
+					{
+						if (hatchModule.cutoutTransformName != string.Empty && hatchModule.cutoutTargetTransformName != string.Empty)
+						{
+							AddPropCut(hatchModule);
+						}
+					}
+				}
+			}
 		}
 
 		int CountPropCuts()
@@ -130,13 +144,13 @@ namespace FreeIva
 			return count;
 		}
 
-		public void AddPropCut(string target, FreeIvaHatch hatch)
+		public void AddPropCut(FreeIvaHatch hatch)
 		{
 			var tool = hatch.internalProp.FindModelTransform(hatch.cutoutTransformName);
 			if (tool != null)
 			{
 				CutParameter cp = new CutParameter();
-				cp.target = target;
+				cp.target = hatch.cutoutTargetTransformName;
 				cp.tool = tool.gameObject;
 				cp.type = CutParameter.Type.Mesh;
 				cutParameters.Add(cp);
