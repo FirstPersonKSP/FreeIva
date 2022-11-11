@@ -68,6 +68,10 @@ namespace FreeIva
 						meshCollider.convex = false;
 					}
 				}
+				else
+				{
+					Debug.LogError($"[FreeIva] shellCollider {shellColliderName} not found in internal {internalModel.internalName}");
+				}
 			}
 
 			if (CopyPartCollidersToInternalColliders)
