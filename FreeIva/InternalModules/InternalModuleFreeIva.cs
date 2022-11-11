@@ -92,6 +92,12 @@ namespace FreeIva
 				}
 			}
 
+			var disableColliderNode = node.GetNode("DisableCollider");
+			if (disableColliderNode != null)
+			{
+				DisableCollider.DisableColliders(internalProp, disableColliderNode);
+			}
+
 			var cutNodes = node.GetNodes("Cut");
 			foreach (var cutNode in cutNodes)
 			{
