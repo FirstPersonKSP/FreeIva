@@ -93,6 +93,7 @@
     <Compile Include="CSG\VertexUtility.cs" />
     <Compile Include="CutParameter.cs" />
     <Compile Include="Experimental\ColliderManipulator.cs" />
+    <Compile Include="InternalModules\DeleteInternalObject.cs" />
     <Compile Include="InternalModules\DisableCollider.cs" />
     <Compile Include="InternalModules\FreeIvaInternalCameraSwitch.cs" />
     <Compile Include="Gui\DrawLine.cs" />

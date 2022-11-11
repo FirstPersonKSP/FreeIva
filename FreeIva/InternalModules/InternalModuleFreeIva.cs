@@ -98,6 +98,12 @@ namespace FreeIva
 				DisableCollider.DisableColliders(internalProp, disableColliderNode);
 			}
 
+			var deleteObjectsNode = node.GetNode("DeleteInternalObject");
+			if (deleteObjectsNode != null)
+			{
+				DeleteInternalObject.DeleteObjects(internalProp, deleteObjectsNode);
+			}
+
 			var cutNodes = node.GetNodes("Cut");
 			foreach (var cutNode in cutNodes)
 			{
