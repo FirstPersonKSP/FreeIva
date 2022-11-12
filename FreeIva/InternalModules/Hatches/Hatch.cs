@@ -103,6 +103,22 @@ namespace FreeIva
 					transform.localRotation = rotation;
 				}
 			}
+
+			var doorTransform = internalProp.FindModelTransform(doorTransformName);
+
+			if (doorTransform != null)
+			{
+				doorTransform.gameObject.layer = (int)Layers.Kerbals;
+
+				foreach (var colliderNode in node.GetNodes("DoorCollider"))
+				{
+					ColliderUtil.CreateCollider(doorTransform, colliderNode, internalProp.propName);
+				}
+			}
+			else if (doorTransformName != string.Empty)
+			{
+				Debug.LogError($"[FreeIva] doorTransform {doorTransformName} not found in {internalProp.propName}");
+			}
 		}
 		public override void OnAwake()
 		{

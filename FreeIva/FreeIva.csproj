@@ -83,6 +83,7 @@
     <Publicize Include="Assembly-CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ColliderUtil.cs" />
     <Compile Include="CSG\CSG.cs" />
     <Compile Include="CSG\Model.cs" />
     <Compile Include="CSG\Node.cs" />
