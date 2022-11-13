@@ -789,8 +789,10 @@ namespace FreeIva
 				KerbalIva.transform.rotation = rotRoll * rotPitch * rotYaw * previousRotation;
 			}
 
-			previousRotation = InternalCamera.Instance.transform.rotation;
 			InternalCamera.Instance.ManualReset(false);
+			InternalCamera.Instance.transform.localPosition = Vector3.zero;
+			InternalCamera.Instance.transform.localRotation = Quaternion.identity;
+			previousRotation = InternalCamera.Instance.transform.rotation;
 			// Normally the InternalCamera's transform is copied to the FlightCamera at the end of InternalCamera.Update, which will have happened right before this component updates.
 			// So we need to make sure the latest internal camera rotation gets copied to the flight camera.
 			FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
