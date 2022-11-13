@@ -559,6 +559,12 @@ namespace FreeIva
 						r.enabled = !hidden;
 					}
 				}
+
+				if (!hidden)
+				{
+					// hides the head renderers
+					ActiveKerbal.KerbalRef.IVAEnable();
+				}
 			}
 			catch (Exception ex)
 			{
