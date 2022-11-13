@@ -91,6 +91,8 @@ namespace FreeIva
 			GameEvents.onGamePause.Add(OnPause);
 			GameEvents.onGameUnpause.Add(OnUnPause);
 			GameEvents.onVesselWasModified.Add(OnVesselWasModified);
+			GameEvents.onSameVesselDock.Add(OnSameVesselDockingChange);
+			GameEvents.onSameVesselUndock.Add(OnSameVesselDockingChange);
 
 			Settings.LoadSettings();
 			OnIvaPartChanged.Add(IvaPartChanged);
@@ -110,6 +112,7 @@ namespace FreeIva
 		{
 			Paused = false;
 		}
+
 		private void OnVesselWasModified(Vessel vessel)
 		{
 			if (vessel == FlightGlobals.ActiveVessel)
@@ -119,11 +122,22 @@ namespace FreeIva
 			}
 		}
 
+		private void OnSameVesselDockingChange(GameEvents.FromToAction<ModuleDockingNode, ModuleDockingNode> data)
+		{
+			OnVesselWasModified(data.to.vessel);
+			if (data.from.vessel != data.to.vessel)
+			{
+				OnVesselWasModified(data.from.vessel);
+			}
+		}
+
 		public void OnDestroy()
 		{
 			GameEvents.onGamePause.Remove(OnPause);
 			GameEvents.onGameUnpause.Remove(OnUnPause);
 			GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
+			GameEvents.onSameVesselDock.Remove(OnSameVesselDockingChange);
+			GameEvents.onSameVesselUndock.Remove(OnSameVesselDockingChange);
 			OnIvaPartChanged.Remove(IvaPartChanged);
 			InputLockManager.RemoveControlLock("FreeIVA");
 		}
