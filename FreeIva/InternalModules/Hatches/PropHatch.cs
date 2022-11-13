@@ -61,7 +61,7 @@ namespace FreeIva
 			}
 		}
 
-		public override void Open(bool open)
+		public override void Open(bool open, bool allowSounds = true)
 		{
 			if (ClosedProp != null)
 			{
@@ -80,7 +80,7 @@ namespace FreeIva
 				Debug.Log("# OpenProp was null");
 			}
 
-			base.Open(open);
+			base.Open(open, allowSounds);
 		}
 	}
 }

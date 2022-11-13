@@ -324,7 +324,7 @@ namespace FreeIva
 
 			if (_connectedHatch != null && hideDoorWhenConnected)
 			{
-				Open(true);
+				Open(true, false);
 				HideOnOpen(true, true);
 				_connectedHatch.HideOnOpen(true, true);
 				if (m_doorTransform != null)
@@ -456,7 +456,7 @@ namespace FreeIva
 			Open(!IsOpen);
 		}
 
-		public virtual void Open(bool open)
+		public virtual void Open(bool open, bool allowSounds = true)
 		{
 			var connectedHatch = ConnectedHatch;
 
@@ -480,9 +480,12 @@ namespace FreeIva
 
 				if (open != IsOpen)
 				{
-					var sound = open ? HatchOpenSound : HatchCloseSound;
-					if (sound != null && sound.audio != null)
-						sound.audio.Play();
+					if (allowSounds)
+					{
+						var sound = open ? HatchOpenSound : HatchCloseSound;
+						if (sound != null && sound.audio != null)
+							sound.audio.Play();
+					}
 				}
 
 				IsOpen = open;
@@ -490,7 +493,7 @@ namespace FreeIva
 				// automatically toggle the far hatch too
 				if (connectedHatch != null && connectedHatch.IsOpen != open)
 				{
-					connectedHatch.Open(open);
+					connectedHatch.Open(open, allowSounds);
 					FreeIva.SetRenderQueues(FreeIva.CurrentPart);
 				}
 			}
