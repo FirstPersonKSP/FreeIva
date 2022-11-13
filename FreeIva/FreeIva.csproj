@@ -120,6 +120,7 @@
     <Compile Include="ModuleFreeIva.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="InternalModules\Hatches\PropHatch.cs" />
+    <Compile Include="ReparentUtil.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Experimental\WorldCollisionTracker.cs" />

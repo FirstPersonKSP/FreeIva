@@ -104,6 +104,11 @@ namespace FreeIva
 				}
 			}
 
+			foreach (var reparentNode in node.GetNodes("Reparent"))
+			{
+				ReparentUtil.Reparent(internalProp, reparentNode);
+			}
+
 			var doorTransform = internalProp.FindModelTransform(doorTransformName);
 
 			if (doorTransform != null)
