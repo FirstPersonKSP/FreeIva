@@ -14,13 +14,33 @@ namespace FreeIva
 	{
 		public static bool Enabled = false;
 
+		void PrintCollisionInfo(string eventName, Collision collision)
+		{
+			var internalModel = collision.gameObject.GetComponentUpwards<InternalModel>();
+			var prop = collision.gameObject.GetComponentUpwards<InternalProp>();
+
+			string context = "unknown";
+
+			if (prop != null)
+			{
+				context = $"prop '{prop.propName}' in internal '{prop.internalModel.internalName}'";
+			}
+			else if (internalModel != null)
+			{
+				context = $"internal '{internalModel.internalName}'";
+			}
+
+
+			ScreenMessages.PostScreenMessage($"{eventName} {name} with {collision.gameObject} in {context} on layer {collision.gameObject.layer}",
+					1f, ScreenMessageStyle.LOWER_CENTER);
+		}
+
 		public void OnCollisionEnter(Collision collision)
 		{
 			if (Enabled)
 			{
-				//Debug.Log("# OnCollisionEnter " + name + " with " + collision.gameObject + " layer " + collision.gameObject.layer);
-				ScreenMessages.PostScreenMessage("OnCollisionEnter " + name + " with " + collision.gameObject + " layer " + collision.gameObject.layer,
-					1f, ScreenMessageStyle.LOWER_CENTER);
+				PrintCollisionInfo("OnCollisionEnter", collision);
+				
 			}
 		}
 
@@ -28,9 +48,7 @@ namespace FreeIva
 		{
 			if (Enabled)
 			{
-				//Debug.Log("# OnCollisionStay " + collision.gameObject + " with " + collision.transform);
-				ScreenMessages.PostScreenMessage("OnCollisionStay " + collision.gameObject + " with " + collision.transform + " layer " + collision.gameObject.layer,
-				1f, ScreenMessageStyle.LOWER_CENTER);
+				PrintCollisionInfo("OnCollisionStay", collision);
 			}
 		}
 
@@ -38,9 +56,7 @@ namespace FreeIva
 		{
 			if (Enabled)
 			{
-				//Debug.Log("# OnCollisionExit " + collision.gameObject + " with " + collision.transform);
-				ScreenMessages.PostScreenMessage("OnCollisionExit " + collision.gameObject + " with " + collision.transform + " layer " + collision.gameObject.layer,
-				1f, ScreenMessageStyle.LOWER_CENTER);
+				PrintCollisionInfo("OnCollisionExit", collision);
 			}
 		}
 
