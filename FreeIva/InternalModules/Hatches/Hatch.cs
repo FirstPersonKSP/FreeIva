@@ -109,6 +109,17 @@ namespace FreeIva
 				ReparentUtil.Reparent(internalProp, reparentNode);
 			}
 
+			var handleTransform = TransformUtil.FindPropTransform(internalProp, handleTransformName);
+			if (handleTransform != null)
+			{
+				handleTransform.gameObject.layer = (int)Layers.InternalSpace;
+
+				foreach (var collidernode in node.GetNodes("HandleCollider"))
+				{
+					ColliderUtil.CreateCollider(handleTransform, collidernode, internalProp.propName);
+				}
+			}
+
 			var doorTransform = TransformUtil.FindPropTransform(internalProp, doorTransformName);
 
 			if (doorTransform != null)
