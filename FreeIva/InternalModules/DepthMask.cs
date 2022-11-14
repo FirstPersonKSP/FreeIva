@@ -18,7 +18,7 @@ namespace FreeIva
 		{
 			base.OnLoad(node);
 
-			var depthMaskTransform = internalProp.FindModelTransform(depthMaskTransformName);
+			var depthMaskTransform = TransformUtil.FindPropTransform(internalProp, depthMaskTransformName);
 			if (depthMaskTransform != null)
 			{
 				var depthMaskRenderer = depthMaskTransform.GetComponentInChildren<Renderer>();

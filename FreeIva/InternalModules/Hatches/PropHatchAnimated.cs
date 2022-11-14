@@ -157,7 +157,7 @@ namespace FreeIva
 			// Events
 			if (!string.IsNullOrEmpty(unlockTriggerTransform))
 			{
-				Transform unlockTransform = internalProp.FindModelTransform(unlockTriggerTransform);
+				Transform unlockTransform = TransformUtil.FindPropTransform(internalProp, unlockTriggerTransform);
 				if (unlockTransform != null)
 				{
 					GameObject unlockTriggerObject = unlockTransform.gameObject;
@@ -178,7 +178,7 @@ namespace FreeIva
 			}
 			if (!string.IsNullOrEmpty(openTriggerTransform))
 			{
-				Transform openTransform = internalProp.FindModelTransform(openTriggerTransform);
+				Transform openTransform = TransformUtil.FindPropTransform(internalProp, openTriggerTransform);
 				if (openTransform != null)
 				{
 					GameObject openTriggerObject = openTransform.gameObject;

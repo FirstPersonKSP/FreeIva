@@ -13,7 +13,7 @@ namespace FreeIva
 		{
 			foreach (var colliderName in node.GetValues("colliderName"))
 			{
-				var colliderTransform = prop.FindModelTransform(colliderName);
+				var colliderTransform = TransformUtil.FindPropTransform(prop, colliderName);
 				if (colliderTransform != null)
 				{
 					var collider = colliderTransform.GetComponent<Collider>();

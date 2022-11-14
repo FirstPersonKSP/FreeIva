@@ -109,7 +109,7 @@ namespace FreeIva
 				ReparentUtil.Reparent(internalProp, reparentNode);
 			}
 
-			var doorTransform = internalProp.FindModelTransform(doorTransformName);
+			var doorTransform = TransformUtil.FindPropTransform(internalProp, doorTransformName);
 
 			if (doorTransform != null)
 			{
@@ -136,7 +136,7 @@ namespace FreeIva
 
 			if (handleTransformName != string.Empty)
 			{
-				var handleTransform = internalProp.FindModelTransform(handleTransformName);
+				var handleTransform = TransformUtil.FindPropTransform(internalProp, handleTransformName);
 				if (handleTransform != null)
 				{
 					var clickWatcher = handleTransform.gameObject.AddComponent<ClickWatcher>();
@@ -147,14 +147,14 @@ namespace FreeIva
 			// if the cutout didn't get removed at load time, do it now
 			if (cutoutTransformName != string.Empty)
 			{
-				var cutoutTransform = internalProp.FindModelTransform(cutoutTransformName);
+				var cutoutTransform = TransformUtil.FindPropTransform(internalProp, cutoutTransformName, false);
 				if (cutoutTransform != null)
 				{
 					GameObject.Destroy(cutoutTransform.gameObject);
 				}
 			}
 
-			m_doorTransform = internalProp.FindModelTransform(doorTransformName);
+			m_doorTransform = TransformUtil.FindPropTransform(internalProp, doorTransformName);
 
 			if (dockingPortNodeName != string.Empty)
 			{
@@ -241,7 +241,7 @@ namespace FreeIva
 		void SetTubeScale()
 		{
 			// scale tube appropriately
-			var tubeTransform = internalProp.FindModelTransform(tubeTransformName);
+			var tubeTransform = TransformUtil.FindPropTransform(internalProp, tubeTransformName);
 			if (tubeTransform != null)
 			{
 				float tubeScale = 0;
@@ -251,7 +251,7 @@ namespace FreeIva
 				// but with passthrough, we need to find a point to meet
 				if (_connectedHatch != null)
 				{
-					var otherTubeTransform = _connectedHatch.internalProp.FindModelTransform(_connectedHatch.tubeTransformName);
+					var otherTubeTransform = TransformUtil.FindPropTransform(_connectedHatch.internalProp, _connectedHatch.tubeTransformName);
 
 					// if the other transform doesn't have a tube, then we scale ours to reach the other prop's origin
 					if (otherTubeTransform == null)
@@ -542,7 +542,7 @@ namespace FreeIva
 		{
 			if (!string.IsNullOrEmpty(airlockName))
 			{
-				var childTransform = part.FindModelTransform(airlockName);
+				var childTransform = TransformUtil.FindPartTransform(part, airlockName);
 
 				if (childTransform != null && childTransform.CompareTag("Airlock"))
 				{

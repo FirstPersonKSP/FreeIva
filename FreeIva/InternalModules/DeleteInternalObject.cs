@@ -13,21 +13,11 @@ namespace FreeIva
 		{
 			foreach (var objectName in node.GetValues("objectName"))
 			{
-				var transforms = prop.FindModelTransforms(objectName);
+				var transform = TransformUtil.FindPropTransform(prop, objectName);
 
-				if (transforms.Length == 0)
+				if (transform != null)
 				{
-					var typeContext = prop.hasModel ? "prop" : "internal";
-					var nameContext = prop.hasModel ? prop.propName : prop.internalModel.internalName;
-
-					Debug.LogError($"[FreeIva] no transform named {objectName} found in {typeContext} {nameContext}");
-				}
-				else
-				{
-					foreach (var t in transforms)
-					{
-						GameObject.Destroy(t.gameObject);
-					}
+					GameObject.Destroy(transform.gameObject);
 				}
 			}
 		}

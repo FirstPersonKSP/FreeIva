@@ -17,8 +17,8 @@ namespace FreeIva
 			if (node.TryGetValue("childTransformName", ref childTransformName) &&
 				node.TryGetValue("parentTransformName", ref parentTransformName))
 			{
-				var childTransform = prop.FindModelTransform(childTransformName);
-				var parentTransform = prop.FindModelTransform(parentTransformName);
+				var childTransform = TransformUtil.FindPropTransform(prop, childTransformName);
+				var parentTransform = TransformUtil.FindPropTransform(prop, parentTransformName);
 
 				if (parentTransformName == String.Empty)
 				{

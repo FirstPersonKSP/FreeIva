@@ -25,7 +25,7 @@ namespace FreeIva
 			foreach (string targetName in targets)
 			{
 				Debug.Log($"[FreeIVA/MeshCutter] Cutting on target '{targetName}' on internal '{model.internalName}'");
-				MeshFilter target = model.FindModelTransform(targetName).gameObject.GetComponent<MeshFilter>();
+				MeshFilter target = TransformUtil.FindInternalModelTransform(model, targetName).gameObject.GetComponent<MeshFilter>();
 				List<GameObject> tools = parameters.Where(x => x.target == targetName).Select(parameter => CreateTool(model, parameter)).ToList();
 				ApplyCut(target, tools);
 			}
@@ -108,7 +108,7 @@ namespace FreeIva
 		{
 			if (parameter.type == CutParameter.Type.Mesh)
 			{
-				return parameter.tool != null ? parameter.tool : model.FindModelTransform(parameter.toolName).gameObject;
+				return parameter.tool != null ? parameter.tool : TransformUtil.FindInternalModelTransform(model, parameter.toolName).gameObject;
 			}
 			else
 			{

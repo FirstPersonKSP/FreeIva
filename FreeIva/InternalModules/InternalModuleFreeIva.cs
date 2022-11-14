@@ -60,7 +60,7 @@ namespace FreeIva
 
 			if (shellColliderName != string.Empty)
 			{
-				var transform = internalProp.FindModelTransform(shellColliderName);
+				var transform = TransformUtil.FindPropTransform(internalProp, shellColliderName);
 				if (transform != null)
 				{
 					foreach (var meshCollider in transform.GetComponentsInChildren<MeshCollider>())
@@ -162,7 +162,7 @@ namespace FreeIva
 
 		public void AddPropCut(FreeIvaHatch hatch)
 		{
-			var tool = hatch.internalProp.FindModelTransform(hatch.cutoutTransformName);
+			var tool = TransformUtil.FindPropTransform(hatch.internalProp, hatch.cutoutTransformName);
 			if (tool != null)
 			{
 				CutParameter cp = new CutParameter();

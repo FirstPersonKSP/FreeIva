@@ -18,7 +18,7 @@ namespace FreeIva
 
 			if (HighLogic.LoadedScene == GameScenes.LOADING)
 			{
-				Transform buttonTransform = internalProp.FindModelTransform(transformName);
+				Transform buttonTransform = TransformUtil.FindPropTransform(internalProp, transformName);
 				if (buttonTransform != null)
 				{
 					var collider = buttonTransform.GetComponent<Collider>();
@@ -58,7 +58,7 @@ namespace FreeIva
 		{
 			if (!HighLogic.LoadedSceneIsFlight) return;
 
-			Transform buttonTransform = internalProp.FindModelTransform(transformName);
+			Transform buttonTransform = TransformUtil.FindPropTransform(internalProp, transformName);
 			if (buttonTransform != null)
 			{
 				ClickWatcher clickWatcher = buttonTransform.gameObject.GetOrAddComponent<ClickWatcher>();
