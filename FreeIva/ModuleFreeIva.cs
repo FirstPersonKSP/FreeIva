@@ -16,6 +16,9 @@ namespace FreeIva
 		[KSPField]
 		public bool doesNotBlockEVA = false;
 
+		[KSPField]
+		public bool autoCreateInternals = true;
+
 		public override string GetModuleDisplayName()
 		{
 			return "FreeIVA";

@@ -474,19 +474,24 @@ namespace FreeIva
 
 				foreach (Part p in FlightGlobals.ActiveVessel.parts)
 				{
-					if (p.internalModel == null)
+					var ivaModule = p.GetModule<ModuleFreeIva>();
+
+					if (ivaModule == null || ivaModule.autoCreateInternals)
 					{
-						p.CreateInternalModel();
+						if (p.internalModel == null)
+						{
+							p.CreateInternalModel();
+							if (p.internalModel != null)
+							{
+								p.internalModel.Initialize(p);
+								p.internalModel.SpawnCrew();
+							}
+						}
+
 						if (p.internalModel != null)
 						{
-							p.internalModel.Initialize(p);
-							p.internalModel.SpawnCrew();
+							p.internalModel.SetVisible(true);
 						}
-					}
-
-					if (p.internalModel != null)
-					{
-						p.internalModel.SetVisible(true);
 					}
 				}
 
