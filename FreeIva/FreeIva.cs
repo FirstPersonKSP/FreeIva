@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -93,6 +94,7 @@ namespace FreeIva
 			GameEvents.onVesselWasModified.Add(OnVesselWasModified);
 			GameEvents.onSameVesselDock.Add(OnSameVesselDockingChange);
 			GameEvents.onSameVesselUndock.Add(OnSameVesselDockingChange);
+			GameEvents.onCrewOnEva.Add(OnCrewOnEva);
 
 			Settings.LoadSettings();
 			OnIvaPartChanged.Add(IvaPartChanged);
@@ -100,6 +102,74 @@ namespace FreeIva
 
 			Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.InternalSpace);
 			Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.Kerbals, false);
+		}
+
+		private void OnCrewOnEva(GameEvents.FromToAction<Part, Part> data)
+		{
+			StartCoroutine(ModifyEvaFsm(data.to));
+		}
+
+
+		Part FindPartWithEmptySeat(Part sourcePart)
+		{
+			if (sourcePart.protoModuleCrew.Count < sourcePart.CrewCapacity)
+			{
+				return sourcePart;
+			}
+
+			// search for a nearby part that we could sit in
+			HashSet<Part> visitedParts = new HashSet<Part>();
+			Queue<Part> partQueue = new Queue<Part>();
+			partQueue.Enqueue(sourcePart);
+			visitedParts.Add(sourcePart);
+
+			Action<Part> EnqueuePart = (Part part) =>
+			{
+				// NOTE: checking for a FreeIva module doesn't necessarily mean they are traversible by hatches (could be surface-attached, etc)
+				// We'd need to spawn all the internal models to figure out if the hatches were connected
+				if (!visitedParts.Contains(part) && part.HasModuleImplementing<ModuleFreeIva>())
+				{
+					partQueue.Enqueue(part);
+					visitedParts.Add(part);
+				}
+			};
+
+			while (partQueue.Count > 0)
+			{
+				Part part = partQueue.Dequeue();
+				if (part.protoModuleCrew.Count < part.CrewCapacity)
+				{
+					return part;
+				}
+
+				EnqueuePart(part.parent);
+				foreach (var childPart in part.children)
+				{
+					EnqueuePart(childPart);
+				}
+			}
+
+			// failure case: return original part so the user gets a message about the module being full
+			return sourcePart;
+		}
+
+		private IEnumerator ModifyEvaFsm(Part kerbalPart)
+		{
+			var kerbalEva = kerbalPart.GetModule<KerbalEVA>();
+
+			while (!kerbalEva.Ready)
+			{
+				yield return null;
+			}
+
+			kerbalEva.On_boardPart.OnEvent = delegate
+			{
+				kerbalEva.On_boardPart.GoToStateOnEvent = kerbalEva.fsm.CurrentState;
+
+				var targetPart = FindPartWithEmptySeat(kerbalEva.currentAirlockPart);
+
+				kerbalEva.BoardPart(targetPart);
+			};
 		}
 
 		public static bool Paused = false;
@@ -138,6 +208,7 @@ namespace FreeIva
 			GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
 			GameEvents.onSameVesselDock.Remove(OnSameVesselDockingChange);
 			GameEvents.onSameVesselUndock.Remove(OnSameVesselDockingChange);
+			GameEvents.onCrewOnEva.Remove(OnCrewOnEva);
 			OnIvaPartChanged.Remove(IvaPartChanged);
 			InputLockManager.RemoveControlLock("FreeIVA");
 		}
