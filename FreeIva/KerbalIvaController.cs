@@ -22,7 +22,7 @@ namespace FreeIva
 		public static SphereCollider KerbalCollider; // this may eventually change to a Capsule
 		public static Rigidbody KerbalRigidbody;
 		// TODO: Vary this by kerbal stats and equipment carried: 45kg for a kerbal, 94kg with full jetpack and parachute.
-		public static float KerbalMass = 0.03125f; // From persistent file for EVA kerbal. Use PhysicsGlobals.KerbalCrewMass instead?
+		public static float KerbalMass = 1000f * 0.03125f; // From persistent file for EVA kerbal. Use PhysicsGlobals.KerbalCrewMass instead?
 
 		/*public static GameObject KerbalFeet;
         public static Collider KerbalFeetCollider;
@@ -154,13 +154,13 @@ namespace FreeIva
 		}
 
 		// Returns (8.018946, 0.0083341, -5.557827) while clamped to the runway.
-		public Vector3 GetFlightForcesWorldSpace()
+		public Vector3 GetFlightAccelerationWorldSpace()
 		{
-			Vector3 gForce = FlightGlobals.getGeeForceAtPosition(KerbalIva.transform.position);
-			Vector3 centrifugalForce = FlightGlobals.getCentrifugalAcc(KerbalIva.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
-			Vector3 coriolisForce = FlightGlobals.getCoriolisAcc(FreeIva.CurrentPart.vessel.rb_velocity + Krakensbane.GetFrameVelocityV3f(), FreeIva.CurrentPart.orbit.referenceBody);
+			Vector3 gravityAccel = FlightGlobals.getGeeForceAtPosition(KerbalIva.transform.position);
+			Vector3 centrifugalAccel = FlightGlobals.getCentrifugalAcc(KerbalIva.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
+			Vector3 coriolisAccel = FlightGlobals.getCoriolisAcc(FreeIva.CurrentPart.vessel.rb_velocity + Krakensbane.GetFrameVelocityV3f(), FreeIva.CurrentPart.orbit.referenceBody);
 
-			return gForce + centrifugalForce + coriolisForce;
+			return gravityAccel + centrifugalAccel + coriolisAccel;
 		}
 
 		public void FixedUpdate()
@@ -202,7 +202,7 @@ namespace FreeIva
 			}
 			else
 			{
-				KerbalRigidbody.velocity = Vector3.zero;
+				// KerbalRigidbody.velocity = Vector3.zero;
 			}
 		}
 
@@ -235,9 +235,15 @@ namespace FreeIva
 			KerbalIva.name = "Kerbal collider";
 			KerbalIva.GetComponentCached<SphereCollider>(ref KerbalCollider);
 			KerbalCollider.enabled = false;
+			KerbalCollider.material.staticFriction = 0.0f;
+			KerbalCollider.material.dynamicFriction = 0.0f;
+			KerbalCollider.material.bounciness = 0.0f;
+			KerbalCollider.material.frictionCombine = PhysicMaterialCombine.Minimum;
+			KerbalCollider.material.bounceCombine = PhysicMaterialCombine.Minimum;
 			KerbalRigidbody = KerbalIva.AddComponent<Rigidbody>();
 			KerbalRigidbody.useGravity = false;
 			KerbalRigidbody.mass = KerbalMass;
+			KerbalRigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
 			// Rotating the object would offset the rotation of the controls from the camera position.
 			KerbalRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
 #if DEBUG
@@ -357,6 +363,8 @@ namespace FreeIva
 					input.MovementThrottle.z = GetKeyInputAxis(Settings.ForwardKey, Settings.BackwardKey);
 					input.MovementThrottle.x = GetKeyInputAxis(Settings.RightKey, Settings.LeftKey);
 					input.MovementThrottle.y = GetKeyInputAxis(Settings.UpKey, Settings.DownKey);
+
+					input.MovementThrottle.Normalize();
 				}
 
 				input.Jump = Input.GetKeyDown(Settings.JumpKey);
@@ -782,6 +790,8 @@ namespace FreeIva
 			}
 			else
 			{
+				previousRotation = InternalCamera.Instance.transform.rotation;
+
 				Quaternion rotYaw = Quaternion.AngleAxis(angularSpeed.y, previousRotation * Vector3.up);
 				Quaternion rotPitch = Quaternion.AngleAxis(angularSpeed.x, previousRotation * Vector3.right);// *Quaternion.Euler(0, 90, 0);
 				Quaternion rotRoll = Quaternion.AngleAxis(angularSpeed.z, previousRotation * Vector3.forward);
@@ -799,33 +809,76 @@ namespace FreeIva
 			FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
 		}
 
+		float GetMaxDeltaSpeed(bool accelerating, bool isGrounded)
+		{
+			float result;
+			if (accelerating)
+			{
+				result = Settings.MaxAcceleration;
+			}
+			else
+			{
+				result = isGrounded ? Settings.MaxDecelerationGrounded : Settings.MaxDecelerationWeightless;
+			}
+
+			return result * Time.deltaTime;
+		}
+
 		private void UpdatePosition(Vector3 movementThrottle, bool jump)
 		{
-			Vector3 movement = Time.deltaTime * new Vector3(
+			Vector3 desiredLocalSpeed = new Vector3(
 				movementThrottle.x * Settings.HorizontalSpeed,
 				movementThrottle.y * Settings.VerticalSpeed,
 				movementThrottle.z * Settings.ForwardSpeed);
 
 			Quaternion orientation = previousRotation;
 
-			if (UseRelativeMovement())
+			Vector3 flightAccel = InternalSpace.WorldToInternal(GetFlightAccelerationWorldSpace());
+			bool isGrounded = UseRelativeMovement();
+			bool tryingToMove = desiredLocalSpeed != Vector3.zero;
+
+			if (isGrounded)
 			{
 				// take the yaw angle but nothing else (maintain global up)
 
 				orientation = InternalSpace.WorldToInternal(FlightGlobals.GetFoR(FoRModes.SRF_NORTH) * Quaternion.Euler(0, currentRelativeOrientation.y, 0));
+
+				if (movementThrottle.y == 0)
+				{
+					// KerbalRigidbody.AddForce(flightAccel, ForceMode.Acceleration);
+				}
+
 			}
 
 			// Make the movement relative to the camera rotation.
-			Vector3 newPos = KerbalIva.transform.localPosition + (orientation * movement);
+			Vector3 desiredWorldVelocity = orientation * desiredLocalSpeed;
 
-			//KerbalCollider.rigidbody.velocity = new Vector3(0, 0, 0);
 			KerbalIva.GetComponentCached<Rigidbody>(ref KerbalRigidbody);
-			KerbalRigidbody.MovePosition(newPos);
+			
+			Vector3 velocityDelta = desiredWorldVelocity - KerbalRigidbody.velocity;
+
+			float desiredDeltaSpeed = velocityDelta.magnitude;
+			float maxDeltaSpeed = GetMaxDeltaSpeed(tryingToMove, isGrounded);
+			if (desiredDeltaSpeed > maxDeltaSpeed)
+			{
+				velocityDelta = velocityDelta.normalized * maxDeltaSpeed;
+			}
+
+			if (KerbalRigidbody.velocity.magnitude < 0.01f && !tryingToMove && desiredDeltaSpeed < maxDeltaSpeed)
+			{
+				KerbalRigidbody.velocity = Vector3.zero;
+			}
+			else
+			{
+				KerbalRigidbody.AddForce(velocityDelta, ForceMode.VelocityChange);
+			}
 
 			// Jump. TODO: Detect when not in contact with the ground to prevent jetpacking (Physics.CapsuleCast).
 			if (jump)
+			{
 				// Jump in the opposite direction to gravity.
-				KerbalRigidbody.AddForce(-InternalSpace.WorldToInternal(GetFlightForcesWorldSpace()) * Settings.JumpForce * Time.deltaTime);
+				// KerbalRigidbody.AddForce(-flightAccel * Settings.JumpForce, ForceMode.Acceleration);
+			}
 
 #if Experimental
 			// Move the world space collider.

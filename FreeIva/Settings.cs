@@ -22,9 +22,14 @@ namespace FreeIva
 		public static KeyCode DownKey = KeyCode.LeftControl;
 		public static KeyCode JumpKey = KeyCode.Space;
 
-		public static float ForwardSpeed = 2f;
-		public static float HorizontalSpeed = 1.5f;
-		public static float VerticalSpeed = 1f;
+		public static float ForwardSpeed = 1f;
+		public static float HorizontalSpeed = 0.75f;
+		public static float VerticalSpeed = 0.75f;
+
+		public static float MaxAcceleration = 4;
+		public static float MaxDecelerationGrounded = 5;
+		public static float MaxDecelerationWeightless = 1;
+
 		// TODO: Free look
 		public static float YawSpeed = 360f; // deg/s at 1.0 input
 		public static float PitchSpeed = 360f;
@@ -63,6 +68,8 @@ namespace FreeIva
 				return;
 			}
 
+			// TODO: replace this with [Persistent] attribute and use ConfigNode.LoadObjectFromConfig
+
 			// Keys
 			if (settings.HasValue("UnbuckleKey")) UnbuckleKey = (KeyCode)Enum.Parse(typeof(KeyCode), settings.GetValue("UnbuckleKey"));
 			if (settings.HasValue("OpenHatchKey")) OpenHatchKey = (KeyCode)Enum.Parse(typeof(KeyCode), settings.GetValue("OpenHatchKey"));
@@ -80,6 +87,9 @@ namespace FreeIva
 			if (settings.HasValue("ForwardSpeed")) ForwardSpeed = float.Parse(settings.GetValue("ForwardSpeed"));
 			if (settings.HasValue("HorizontalSpeed")) HorizontalSpeed = float.Parse(settings.GetValue("HorizontalSpeed"));
 			if (settings.HasValue("VerticalSpeed")) VerticalSpeed = float.Parse(settings.GetValue("VerticalSpeed"));
+			settings.TryGetValue(nameof(MaxAcceleration), ref MaxAcceleration);
+			settings.TryGetValue(nameof(MaxDecelerationGrounded), ref MaxDecelerationGrounded);
+			settings.TryGetValue(nameof(MaxDecelerationWeightless), ref MaxDecelerationWeightless);
 			if (settings.HasValue("YawSpeed")) YawSpeed = float.Parse(settings.GetValue("YawSpeed"));
 			if (settings.HasValue("PitchSpeed")) PitchSpeed = float.Parse(settings.GetValue("PitchSpeed"));
 			if (settings.HasValue("RollSpeed")) RollSpeed = float.Parse(settings.GetValue("RollSpeed"));
