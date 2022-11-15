@@ -3,7 +3,13 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Airlock
+  - Ladder
+  - Icon_Hidden
+  - Icon_Only
+  - NoAttach
+  - Drag_Hidden
   layers:
   - Default
   - TransparentFX
@@ -13,30 +19,30 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - PartsList_Icons
+  - Atmosphere
+  - Scaled Scenery
+  - UIDialog
+  - UIVectors
+  - UI_Mask
+  - Screens
+  - Local SceneryLayer
+  - Kerbals
+  - EVA
+  - SkySphere
+  - PhysicalObjects
+  - Internal Space
+  - Part Triggers
+  - KerbalInstructors
+  - AeroFXIgnore
+  - MapFX
+  - UIAdditional
+  - WheelCollidersIgnore
+  - WheelColliders
+  - TerrainColliders
+  - DragRender
+  - SurfaceFX
+  - Vectors
   m_SortingLayers:
   - name: Default
     uniqueID: 0

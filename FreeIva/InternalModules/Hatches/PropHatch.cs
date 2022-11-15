@@ -37,28 +37,43 @@ namespace FreeIva
 		{
 			if (string.IsNullOrEmpty(openPropName)) return;
 
-			OpenProp = PartLoader.GetInternalProp(openPropName);
-			if (OpenProp == null)
+			OpenProp = CreateProp(openPropName, internalProp, openPropPosition, Quaternion.Euler(openPropRotation), openPropScale);
+
+			if (OpenProp != null)
 			{
-				Debug.LogError("[FreeIVA] Unable to load open prop hatch \"" + openPropName + "\" in part " + part.name);
+				OpenProp.gameObject.SetActive(false);
+			}
+		}
+
+		public static InternalProp CreateProp(string propName, InternalProp atProp)
+		{
+			return CreateProp(propName, atProp, Vector3.zero, Quaternion.identity, Vector3.one);
+		}
+
+		public static InternalProp CreateProp(string propName, InternalProp atProp, Vector3 localPosition, Quaternion localRotation, Vector3 localScale)
+		{
+			InternalProp result = PartLoader.GetInternalProp(propName);
+			if (result == null)
+			{
+				Debug.LogError("[FreeIVA] Unable to load open prop hatch \"" + propName + "\" in internal " + atProp.internalModel.internalName);
 			}
 			else
 			{
-				Debug.Log("# Adding PropHatch to part " + part.name);
-				OpenProp.propID = FreeIva.CurrentPart.internalModel.props.Count;
-				OpenProp.internalModel = part.internalModel;
+				result.propID = FreeIva.CurrentPart.internalModel.props.Count;
+				result.internalModel = atProp.internalModel;
 
 				// position the prop relative to this one, then attach it to the internal model
-				OpenProp.transform.SetParent(transform, false);
-				OpenProp.transform.localRotation = Quaternion.Euler(openPropRotation);
-				OpenProp.transform.localPosition = openPropPosition;
-				OpenProp.transform.localScale = openPropScale;
-				OpenProp.transform.SetParent(internalModel.transform, true);
+				result.transform.SetParent(atProp.transform, false);
+				result.transform.localRotation = localRotation;
+				result.transform.localPosition = localPosition;
+				result.transform.localScale = localScale;
+				result.transform.SetParent(atProp.internalModel.transform, true);
 
-				OpenProp.hasModel = true;
-				part.internalModel.props.Add(OpenProp);
-				OpenProp.gameObject.SetActive(false);
+				result.hasModel = true;
+				atProp.internalModel.props.Add(result);
 			}
+
+			return result;
 		}
 
 		public override void Open(bool open, bool allowSounds = true)

@@ -33,6 +33,9 @@ namespace FreeIva
 		[KSPField]
 		public string cutoutTransformName = string.Empty;
 
+		[KSPField]
+		public string blockedPropName = string.Empty;
+
 		// ----- the following fields are set via HatchConfig, so that they can be different per placement of the prop
 
 		// The name of the part attach node this hatch is positioned on, as defined in the part.cfg's "node definitions".
@@ -73,6 +76,7 @@ namespace FreeIva
 		Transform m_doorTransform;
 		ModuleDockingNode m_dockingNodeModule;
 		ModuleAnimateGeneric m_animationModule;
+		InternalProp m_blockedProp;
 
 		// Where the GameObject is located. Used for basic interaction targeting (i.e. when to show the "Open hatch?" prompt).
 		public virtual Vector3 WorldPosition => transform.position;
@@ -85,6 +89,8 @@ namespace FreeIva
 		public FXGroup HatchCloseSound = null;
 
 		public bool IsOpen { get; private set; }
+
+		public bool CanEVA { get; private set; }
 
 		public override void OnLoad(ConfigNode node)
 		{
@@ -328,9 +334,48 @@ namespace FreeIva
 				_connectedHatch = FindConnectedHatch();
 			}
 
+			bool useBlockedProp = false;
+
 			if (_connectedHatch != null)
 			{
+				CanEVA = false;
 				_connectedHatch._connectedHatch = this;
+			}
+			else
+			{
+				CanEVA = airlockName != string.Empty;
+
+				var attachNode = part.FindAttachNode(attachNodeId);
+				var attachedPart = attachNode?.attachedPart;
+				if (attachedPart != null)
+				{
+					var attachedIvaModule = attachedPart.GetModule<ModuleFreeIva>();
+					CanEVA = attachedIvaModule == null ? false : attachedIvaModule.doesNotBlockEVA;
+				}
+
+				useBlockedProp = !CanEVA && blockedPropName != string.Empty;
+			}
+
+			if (useBlockedProp && m_blockedProp == null)
+			{
+				m_blockedProp = PropHatch.CreateProp(blockedPropName, internalProp);
+				if (m_blockedProp == null)
+				{
+					blockedPropName = string.Empty; // clear this so that we'll get a message about the hatch being blocked
+				}
+			}
+
+			if (m_blockedProp != null)
+			{
+				gameObject.SetActive(!useBlockedProp);
+				m_blockedProp.gameObject.SetActive(useBlockedProp);
+
+				if (!useBlockedProp)
+				{
+					internalModel.props.Remove(m_blockedProp);
+					GameObject.Destroy(m_blockedProp);
+					m_blockedProp = null;
+				}
 			}
 
 			if (_connectedHatch != null && hideDoorWhenConnected)

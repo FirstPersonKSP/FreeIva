@@ -716,38 +716,22 @@ namespace FreeIva
 				}
 				else if (targetedHatch.ConnectedHatch == null)
 				{
-					bool canEVA = true;
-
-					var attachNode = targetedHatch.part.FindAttachNode(targetedHatch.attachNodeId);
-					var attachedPart = attachNode?.attachedPart;
-					if (attachedPart != null)
+					if (targetedHatch.CanEVA)
 					{
-						var attachedIvaModule = attachedPart.GetModule<ModuleFreeIva>();
-						canEVA = attachedIvaModule == null ? false : attachedIvaModule.doesNotBlockEVA;
+						ScreenMessages.PostScreenMessage("Go EVA [" + Settings.OpenHatchKey + "]", 0.1f, ScreenMessageStyle.LOWER_CENTER);
+
+						if (openHatch)
+						{
+							targetedHatch.GoEVA();
+						}
 					}
-
-					if (canEVA)
+					else if (targetedHatch.airlockName == string.Empty)
 					{
-						if (targetedHatch.airlockName == String.Empty)
-						{
-							ScreenMessages.PostScreenMessage("No airlock found",
-								0.1f, ScreenMessageStyle.LOWER_CENTER);
-						}
-						else
-						{
-							ScreenMessages.PostScreenMessage("Go EVA [" + Settings.OpenHatchKey + "]",
-								0.1f, ScreenMessageStyle.LOWER_CENTER);
-
-							if (openHatch)
-							{
-								targetedHatch.GoEVA();
-							}
-						}
+						ScreenMessages.PostScreenMessage("No airlock found", 0.1f, ScreenMessageStyle.LOWER_CENTER);
 					}
 					else
 					{
-						ScreenMessages.PostScreenMessage("Hatch is blocked",
-							0.1f, ScreenMessageStyle.LOWER_CENTER);
+						ScreenMessages.PostScreenMessage("Hatch is blocked", 0.1f, ScreenMessageStyle.LOWER_CENTER);
 					}
 				}
 				else
