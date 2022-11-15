@@ -467,7 +467,17 @@ namespace FreeIva
 				sourceModel.part.RemoveCrewmember(crewMember);
 				destModel.part.AddCrewmemberAt(crewMember, destModel.seats.IndexOf(newSeat));
 
+				// suppress the portrait system's response to this message because it messes with internal model visibility
+				bool removePortraitEventHandler = !KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.portraitContainer.isActiveAndEnabled;
+				if (removePortraitEventHandler)
+				{
+					GameEvents.onCrewTransferred.Remove(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.onCrewTransferred);
+				}
 				GameEvents.onCrewTransferred.Fire(new GameEvents.HostedFromToAction<ProtoCrewMember, Part>(crewMember, sourceModel.part, destModel.part));
+				if (removePortraitEventHandler)
+				{
+					GameEvents.onCrewTransferred.Add(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.onCrewTransferred);
+				}
 				Vessel.CrewWasModified(sourceModel.part.vessel, destModel.part.vessel);
 			}
 
