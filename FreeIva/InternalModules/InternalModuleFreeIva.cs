@@ -63,9 +63,15 @@ namespace FreeIva
 				var transform = TransformUtil.FindPropTransform(internalProp, shellColliderName);
 				if (transform != null)
 				{
-					foreach (var meshCollider in transform.GetComponentsInChildren<MeshCollider>())
+					var colliders = transform.GetComponentsInChildren<MeshCollider>();
+					foreach (var meshCollider in colliders)
 					{
 						meshCollider.convex = false;
+					}
+
+					if (colliders.Length == 0)
+					{
+						Debug.LogError($"[FreeIva] shellCollider {shellColliderName} in internal {internalModel.internalName} exists but does not have a MeshCollider");
 					}
 				}
 				else
