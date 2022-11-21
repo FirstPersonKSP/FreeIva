@@ -521,7 +521,7 @@ namespace FreeIva
 				// can't do anything.
 			}
 			// if we're trying to open a door to space, just go EVA
-			else if (connectedHatch == null && open)
+			else if (connectedHatch == null && open && airlockName != string.Empty)
 			{
 				GoEVA();
 			}

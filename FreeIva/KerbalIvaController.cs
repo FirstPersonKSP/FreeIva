@@ -709,6 +709,8 @@ namespace FreeIva
 
 			if (targetedHatch != null)
 			{
+				bool canOpenHatch = false;
+
 				if (targetedHatch.IsBlockedByAnimation())
 				{
 					ScreenMessages.PostScreenMessage("Hatch is locked",
@@ -725,16 +727,21 @@ namespace FreeIva
 							targetedHatch.GoEVA();
 						}
 					}
-					else if (targetedHatch.airlockName == string.Empty)
-					{
-						ScreenMessages.PostScreenMessage("No airlock found", 0.1f, ScreenMessageStyle.LOWER_CENTER);
-					}
-					else
+					else if (targetedHatch.attachNodeId != string.Empty)
 					{
 						ScreenMessages.PostScreenMessage("Hatch is blocked", 0.1f, ScreenMessageStyle.LOWER_CENTER);
 					}
+					else
+					{
+						canOpenHatch = true;
+					}
 				}
 				else
+				{
+					canOpenHatch = true;
+				}
+				
+				if (canOpenHatch)
 				{
 					ScreenMessages.PostScreenMessage((targetedHatch.IsOpen ? "Close" : "Open") + " hatch [" + Settings.OpenHatchKey + "]",
 						0.1f, ScreenMessageStyle.LOWER_CENTER);
