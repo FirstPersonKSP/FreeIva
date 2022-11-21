@@ -82,12 +82,15 @@ namespace FreeIva
 				break;
 			}
 
+			AddColliderVisualizer(result);
+
 			return result;
 		}
 
 		public static void AddColliderVisualizer(Collider collider)
 		{
-#if false
+#if true
+			if (collider == null) return;
 			if (collider is BoxCollider box)
 			{
 				var debugObject = GameObject.CreatePrimitive(PrimitiveType.Cube);

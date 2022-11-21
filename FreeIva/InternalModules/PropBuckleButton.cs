@@ -34,7 +34,6 @@ namespace FreeIva
 							foreach (var colliderNode in colliderNodes)
 							{
 								var c = ColliderUtil.CreateCollider(buttonTransform, colliderNode, dbgName);
-								ColliderUtil.AddColliderVisualizer(c);
 							}
 						}
 						else
