@@ -139,7 +139,7 @@ namespace FreeIva
 #if Experimental
 				KerbalWorldSpaceCollider.enabled = false;
 #endif
-				if (!buckled)
+				if (!buckled && ActiveKerbal != null)
 				{
 					ReturnToSeat();
 				}
