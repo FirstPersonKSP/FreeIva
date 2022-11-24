@@ -18,7 +18,7 @@ namespace FreeIva
 			return module;
 		}
 
-		public static void OnVesselWasModified(Vessel vessel)
+		public static void RefreshInternals()
 		{
 			foreach (var ivaModule in perModelCache.Values)
 			{

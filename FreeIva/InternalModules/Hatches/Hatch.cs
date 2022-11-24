@@ -317,6 +317,7 @@ namespace FreeIva
 		public void RefreshConnection()
 		{
 			// start a coroutine so that all the hatches have been initialized
+			gameObject.SetActive(true);
 			StartCoroutine(CheckForConnection());
 		}
 
