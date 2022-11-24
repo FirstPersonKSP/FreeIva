@@ -303,11 +303,9 @@ namespace FreeIva
 					}
 				}
 
-				if (tubeScale <= 0)
-				{
-					GameObject.Destroy(tubeTransform.gameObject);
-				}
-				else
+				tubeTransform.gameObject.SetActive(tubeScale > 0);
+
+				if (tubeScale > 0)
 				{
 					tubeTransform.localScale = new Vector3(1.0f, tubeScale, 1.0f);
 				}
