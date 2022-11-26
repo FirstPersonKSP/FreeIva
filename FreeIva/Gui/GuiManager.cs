@@ -104,7 +104,7 @@ namespace FreeIva
 			KerbalIvaController.KerbalIva.GetComponentCached<SphereCollider>(ref KerbalIvaController.KerbalCollider);
 			KerbalIvaController.KerbalCollider.enabled = !GUILayout.Toggle(!KerbalIvaController.KerbalCollider.enabled, "Disable collisions");
 			KerbalIvaController.Gravity = GUILayout.Toggle(KerbalIvaController.Gravity, "Gravity");
-			IvaCollisionPrinter.Enabled = GUILayout.Toggle(IvaCollisionPrinter.Enabled, "Print collisions");
+			IvaCollisionTracker.PrintingEnabled = GUILayout.Toggle(IvaCollisionTracker.PrintingEnabled, "Print collisions");
 			//KerbalIva.KerbalFeetCollider.enabled = !GUILayout.Toggle(!KerbalIva.KerbalColliderCollider.enabled, "Feet") && KerbalIva.KerbalColliderCollider.enabled;
 #if Experimental
 			KerbalIvaController.CanHoldItems = GUILayout.Toggle(KerbalIvaController.CanHoldItems, "Can move objects");
@@ -805,6 +805,8 @@ namespace FreeIva
 				GuiUtils.label("Main G Internal Y", gForceInt.y);
 				GuiUtils.label("Main G Internal Z", gForceInt.z);
 				GUILayout.EndHorizontal();
+
+				GuiUtils.label("Physics.Gravity ", Physics.gravity);
 			}
 		}
 

@@ -38,7 +38,8 @@ namespace FreeIva
 		public static float YawSensitivity = 1.0f;
 		public static float PitchSensitivity = 1.0f;
 
-		public static float JumpForce = 10f;
+		public static float JumpForce = 3f;
+		public static float WalkableSlope = 75f;
 
 		public static float KerbalHeight = 0.4f;
 		public static float KerbalHeightWithHelmet = 2.5f;

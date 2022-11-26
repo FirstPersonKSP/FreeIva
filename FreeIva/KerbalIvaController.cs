@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace FreeIva
@@ -246,9 +247,7 @@ namespace FreeIva
 			KerbalRigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
 			// Rotating the object would offset the rotation of the controls from the camera position.
 			KerbalRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
-#if DEBUG
-			KerbalIva.AddComponent<IvaCollisionPrinter>();
-#endif
+			KerbalCollisionTracker = KerbalIva.AddComponent<IvaCollisionTracker>();
 			KerbalCollider.isTrigger = false;
 			KerbalIva.layer = (int)Layers.Kerbals; //KerbalCollider.layer = (int)Layers.Kerbals; 2021-02-26
 			var renderer = KerbalIva.GetComponent<Renderer>();
@@ -752,8 +751,9 @@ namespace FreeIva
 		}
 
 		public Vector3 currentRelativeOrientation;
+        private IvaCollisionTracker KerbalCollisionTracker;
 
-		public void UpdateOrientation(Vector3 rotationInput)
+        public void UpdateOrientation(Vector3 rotationInput)
 		{
 			/*Vector3 gForce = FlightGlobals.getGeeForceAtPosition(FlightCamera.fetch.transform.position);
             Vector3 gForceInternal = InternalSpace.WorldToInternal(gForce);
@@ -818,6 +818,55 @@ namespace FreeIva
 			return result * Time.deltaTime;
 		}
 
+		List<ContactPoint> contactPoints = new List<ContactPoint>();
+
+
+		bool GetGroundPlane(Vector3 gravity, out Plane plane)
+        {
+			Vector3 up = -Vector3.Normalize(gravity);
+			float cosWalkableSlope = Mathf.Cos(Mathf.Deg2Rad * Settings.WalkableSlope);
+
+			Vector3 accumulatedPosition = Vector3.zero;
+			Vector3 accumulatedNormal = Vector3.zero;
+			int contactPointCount = 0;
+
+			foreach (var collision in KerbalCollisionTracker.Collisions)
+            {
+				if (collision.contactCount > contactPoints.Capacity)
+                {
+					contactPoints.Capacity = collision.contactCount;
+                }
+
+				contactPoints.Clear();
+
+				collision.GetContacts(contactPoints);
+
+				foreach (var contactPoint in contactPoints)
+                {
+					if (Vector3.Dot(contactPoint.normal, up) >= cosWalkableSlope)
+                    {
+						accumulatedNormal += contactPoint.normal;
+						accumulatedPosition += contactPoint.point;
+						++contactPointCount;
+
+						Debug.DrawRay(contactPoint.point, contactPoint.normal, Color.red, 0, true);
+                    }
+                }
+            }
+
+			if (contactPointCount > 0)
+            {
+				accumulatedNormal.Normalize();
+				accumulatedPosition /= contactPointCount;
+
+				plane = new Plane(accumulatedNormal, accumulatedPosition);
+				return true;
+            }
+
+			plane = new Plane();
+			return false;
+        }
+
 		private void UpdatePosition(Vector3 movementThrottle, bool jump)
 		{
 			Vector3 desiredLocalSpeed = new Vector3(
@@ -828,18 +877,32 @@ namespace FreeIva
 			Quaternion orientation = previousRotation;
 
 			Vector3 flightAccel = InternalSpace.WorldToInternal(GetFlightAccelerationWorldSpace());
-			bool isGrounded = UseRelativeMovement();
+			bool useGroundSystem = UseRelativeMovement();
 			bool tryingToMove = desiredLocalSpeed != Vector3.zero;
 
-			if (isGrounded)
+			if (useGroundSystem)
 			{
 				// take the yaw angle but nothing else (maintain global up)
 
 				orientation = InternalSpace.WorldToInternal(FlightGlobals.GetFoR(FoRModes.SRF_NORTH) * Quaternion.Euler(0, currentRelativeOrientation.y, 0));
 
+				bool grounded = GetGroundPlane(flightAccel, out Plane groundPlane);
+
+				// for now, allow free movement vertically
 				if (movementThrottle.y == 0)
 				{
-					// KerbalRigidbody.AddForce(flightAccel, ForceMode.Acceleration);
+					float gravityScale = grounded ? 0.5f : 1f;
+					KerbalRigidbody.AddForce(gravityScale * flightAccel, ForceMode.Acceleration);
+				}
+
+				if (grounded)
+                {
+					// TODO: orient desired velocity along ground plane
+					if (jump)
+					{
+						// Jump in the opposite direction to gravity.
+						KerbalRigidbody.AddForce(-flightAccel.normalized * Settings.JumpForce, ForceMode.VelocityChange);
+					}
 				}
 
 			}
@@ -852,7 +915,7 @@ namespace FreeIva
 			Vector3 velocityDelta = desiredWorldVelocity - KerbalRigidbody.velocity;
 
 			float desiredDeltaSpeed = velocityDelta.magnitude;
-			float maxDeltaSpeed = GetMaxDeltaSpeed(tryingToMove, isGrounded);
+			float maxDeltaSpeed = GetMaxDeltaSpeed(tryingToMove, useGroundSystem);
 			if (desiredDeltaSpeed > maxDeltaSpeed)
 			{
 				velocityDelta = velocityDelta.normalized * maxDeltaSpeed;
@@ -865,13 +928,6 @@ namespace FreeIva
 			else
 			{
 				KerbalRigidbody.AddForce(velocityDelta, ForceMode.VelocityChange);
-			}
-
-			// Jump. TODO: Detect when not in contact with the ground to prevent jetpacking (Physics.CapsuleCast).
-			if (jump)
-			{
-				// Jump in the opposite direction to gravity.
-				// KerbalRigidbody.AddForce(-flightAccel * Settings.JumpForce, ForceMode.Acceleration);
 			}
 
 #if Experimental
