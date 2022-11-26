@@ -25,8 +25,9 @@ namespace FreeIva
 		// TODO: Vary this by kerbal stats and equipment carried: 45kg for a kerbal, 94kg with full jetpack and parachute.
 		public static float KerbalMass = 1000f * 0.03125f; // From persistent file for EVA kerbal. Use PhysicsGlobals.KerbalCrewMass instead?
 
+		public static SphereCollider KerbalFeetCollider;
 		/*public static GameObject KerbalFeet;
-        public static Collider KerbalFeetCollider;
+
         public static PhysicMaterial KerbalFeetPhysics;
         public static Rigidbody KerbalFeetRigidbody;
         public static Renderer KerbalFeetRenderer;*/
@@ -255,20 +256,20 @@ namespace FreeIva
 
 			KerbalCollider.radius = Settings.NoHelmetSize;
 
+			KerbalFeetCollider = KerbalIva.AddComponent<SphereCollider>();
+			KerbalFeetCollider.enabled = false;
+			KerbalFeetCollider.isTrigger = false;
+			KerbalFeetCollider.radius = Settings.NoHelmetSize * 0.9f;
+			KerbalFeetCollider.center = new Vector3(0, -Settings.NoHelmetSize, 0);
 
 			/*KerbalFeet = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             KerbalFeet.name = "Kerbal feet collider";
             KerbalFeet.GetComponentCached<Collider>(ref KerbalFeetCollider);
-            KerbalFeetCollider.enabled = false;
             KerbalFeetPhysics = KerbalFeetCollider.material;
             KerbalFeetRigidbody = KerbalFeet.AddComponent<Rigidbody>();
             KerbalFeetRigidbody.useGravity = false;
             KerbalFeetRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
-            KerbalFeetCollider.isTrigger = false;
-            KerbalFeet.layer = (int)Layers.InternalSpace; //KerbalFeet.layer = (int)Layers.Kerbals; 2021-02-26
-            KerbalFeet.transform.parent = KerbalCollider.transform;
-            KerbalFeet.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.NoHelmetSize, Settings.NoHelmetSize);
-            KerbalFeet.transform.localPosition = new Vector3(0, 0, 0.2f);
+            
             KerbalFeet.GetComponentCached<Renderer>(ref KerbalFeetRenderer);
             KerbalFeetRenderer.enabled = false;*/
 
@@ -419,6 +420,7 @@ namespace FreeIva
 			MoveKerbalToSeat(ActiveKerbal, TargetedSeat);
 			KerbalIva.GetComponentCached<SphereCollider>(ref KerbalCollider);
 			KerbalCollider.enabled = false;
+			KerbalFeetCollider.enabled = false;
 			HideCurrentKerbal(false);
 			DisablePartHighlighting(false);
 			InputLockManager.RemoveControlLock("FreeIVA");
@@ -431,6 +433,7 @@ namespace FreeIva
 			// some of this stuff should probably get moved to a common function
 			KerbalIva.GetComponentCached<SphereCollider>(ref KerbalCollider);
 			KerbalCollider.enabled = false;
+			KerbalFeetCollider.enabled = false;
 			buckled = true;
 			DisablePartHighlighting(false);
 			InputLockManager.RemoveControlLock("FreeIVA");
@@ -544,7 +547,8 @@ namespace FreeIva
 			InputLockManager.SetControlLock(ControlTypes.ALL_SHIP_CONTROLS, "FreeIVA");
 			//ActiveKerbal.flightLog.AddEntry("Unbuckled");
 			ScreenMessages.PostScreenMessage("Unbuckled", 1f, ScreenMessageStyle.LOWER_CENTER);
-			KerbalIva.GetComponentCached<SphereCollider>(ref KerbalCollider).enabled = true;
+			KerbalCollider.enabled = true;
+			KerbalFeetCollider.enabled = true;
 			buckled = false;
 
 			DisablePartHighlighting(true);

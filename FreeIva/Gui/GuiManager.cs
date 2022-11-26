@@ -761,52 +761,22 @@ namespace FreeIva
 					GuiUtils.label("Velocity relative to part", FreeIva.CurrentPart.Rigidbody.velocity - KerbalIvaController.KerbalRigidbody.velocity);
 				}
 
-				GUILayout.Label("Flight forces (world space)");
-				GUILayout.BeginHorizontal();
-				GuiUtils.label("X", KerbalIvaController.flightForces.x);
-				GuiUtils.label("Y", KerbalIvaController.flightForces.y);
-				GuiUtils.label("Z", KerbalIvaController.flightForces.z);
-				GUILayout.EndHorizontal();
-				GUILayout.Label("Flight forces (IVA space)");
-				GUILayout.BeginHorizontal();
-				var ivaForces = InternalSpace.WorldToInternal(KerbalIvaController.flightForces);
-				GuiUtils.label("X", ivaForces.x);
-				GuiUtils.label("Y", ivaForces.y);
-				GuiUtils.label("Z", ivaForces.z);
-				GUILayout.EndHorizontal();
-				GuiUtils.label("IVA rot X", InternalSpace.WorldToInternal(Quaternion.identity).x);
-				GuiUtils.label("IVA rot Y", InternalSpace.WorldToInternal(Quaternion.identity).y);
-				GuiUtils.label("IVA rot Z", InternalSpace.WorldToInternal(Quaternion.identity).z);
+				GuiUtils.label("Flight forces (world space)", KerbalIvaController.flightForces);
+				GuiUtils.label("Flight forces (IVA space)", InternalSpace.WorldToInternal(KerbalIvaController.flightForces));
+				GuiUtils.label("IVA Rot", InternalSpace.WorldToInternal(Quaternion.identity).eulerAngles);
 
 				// Debug
 				Vector3 gForce = FlightGlobals.getGeeForceAtPosition(KerbalIvaController.KerbalIva.transform.position);
 				Vector3 centrifugalForce = FlightGlobals.getCentrifugalAcc(KerbalIvaController.KerbalIva.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
 				Vector3 coriolisForce = FlightGlobals.getCoriolisAcc(FreeIva.CurrentPart.vessel.rb_velocity + Krakensbane.GetFrameVelocityV3f(), FreeIva.CurrentPart.orbit.referenceBody);
 
-				GUILayout.BeginHorizontal();
-				GuiUtils.label("Main G-Force X", gForce.x);
-				GuiUtils.label("Main G-Force Y", gForce.y);
-				GuiUtils.label("Main G-Force Z", gForce.z);
-				GUILayout.EndHorizontal();
-				GUILayout.BeginHorizontal();
-				GuiUtils.label("Centrifugal force X", centrifugalForce.x);
-				GuiUtils.label("Centrifugal force Y", centrifugalForce.y);
-				GuiUtils.label("Centrifugal force Z", centrifugalForce.z);
-				GUILayout.EndHorizontal();
-				GUILayout.BeginHorizontal();
-				GuiUtils.label("Coriolis force X", coriolisForce.x);
-				GuiUtils.label("Coriolis force Y", coriolisForce.y);
-				GuiUtils.label("Coriolis force Z", coriolisForce.z);
-				GUILayout.EndHorizontal();
+				GuiUtils.label("Main G-Force", gForce);
+				GuiUtils.label("Centrifugal force", centrifugalForce);
+				GuiUtils.label("Coriolis force", coriolisForce);
 
-				Vector3 gForceInt = InternalSpace.InternalToWorld(gForce);
-				GUILayout.BeginHorizontal();
-				GuiUtils.label("Main G Internal X", gForceInt.x);
-				GuiUtils.label("Main G Internal Y", gForceInt.y);
-				GuiUtils.label("Main G Internal Z", gForceInt.z);
-				GUILayout.EndHorizontal();
+				GuiUtils.label("Main G Internal", InternalSpace.InternalToWorld(gForce));
 
-				GuiUtils.label("Physics.Gravity ", Physics.gravity);
+				KerbalIvaController.KerbalFeetCollider.center = GuiUtils.editVector("KerbalFeet Center", KerbalIvaController.KerbalFeetCollider.center);
 			}
 		}
 

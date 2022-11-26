@@ -18,6 +18,18 @@ namespace FreeIva
 			GUILayout.EndHorizontal();
 		}
 
+		public static Vector3 editVector(string displayText, Vector3 value)
+		{
+			Vector3 result = value;
+			GUILayout.BeginHorizontal();
+			GUILayout.Label(displayText);
+			result.x = editFloat("X", value.x);
+			result.y = editFloat("Y", value.y);
+			result.z = editFloat("Z", value.z);
+
+			return result;
+		}
+
 		public static float editFloat(string displayText, float value)
 		{
 			GUILayout.BeginHorizontal();
