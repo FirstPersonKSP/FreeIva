@@ -893,7 +893,7 @@ namespace FreeIva
 				bool grounded = GetGroundPlane(flightAccel, out Plane groundPlane);
 
 				// for now, allow free movement vertically
-				if (movementThrottle.y == 0)
+				if (movementThrottle.y == 0 && Gravity)
 				{
 					float gravityScale = grounded ? 0.5f : 1f;
 					KerbalRigidbody.AddForce(gravityScale * flightAccel, ForceMode.Acceleration);
