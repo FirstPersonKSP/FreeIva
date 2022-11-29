@@ -665,12 +665,14 @@ namespace FreeIva
 		void TargetHatchesInPart(Part part, ref FreeIvaHatch targetedHatch, ref float closestDistance)
 		{
 			InternalModuleFreeIva ivaModule = InternalModuleFreeIva.GetForModel(part.internalModel);
-			if (ivaModule != null)
+			while (ivaModule != null)
 			{
 				foreach (FreeIvaHatch h in ivaModule.Hatches)
 				{
 					ConsiderHatch(ref targetedHatch, ref closestDistance, h);
 				}
+
+				ivaModule = InternalModuleFreeIva.GetForModel(ivaModule.SecondaryInternalModel);
 			}
 		}
 
