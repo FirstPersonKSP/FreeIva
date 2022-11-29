@@ -477,15 +477,18 @@ namespace FreeIva
 				otherPart = currentNode.attachedPart;
 			}
 
-			if (otherIvaModule == null) return null;
-
-			// look for a hatch that is on the node we're connected to
-			foreach (var otherHatch in otherIvaModule.Hatches)
+			while (otherIvaModule != null)
 			{
-				if (otherHatch.attachNodeId == otherNode.id)
+				// look for a hatch that is on the node we're connected to
+				foreach (var otherHatch in otherIvaModule.Hatches)
 				{
-					return otherHatch;
+					if (otherHatch.attachNodeId == otherNode.id)
+					{
+						return otherHatch;
+					}
 				}
+
+				otherIvaModule = InternalModuleFreeIva.GetForModel(otherIvaModule.SecondaryInternalModel);
 			}
 
 			return null;
