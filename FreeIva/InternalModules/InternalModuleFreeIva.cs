@@ -44,9 +44,6 @@ namespace FreeIva
 		#endregion
 
 		[KSPField]
-		public string shellColliderName = string.Empty;
-
-		[KSPField]
 		public bool CopyPartCollidersToInternalColliders = false;
 
 		public List<FreeIvaHatch> Hatches = new List<FreeIvaHatch>(); // hatches will register themselves with us
@@ -58,7 +55,7 @@ namespace FreeIva
 		{
 			base.OnLoad(node);
 
-			if (shellColliderName != string.Empty)
+			foreach (var shellColliderName in node.GetValues("shellColliderName"))
 			{
 				var transform = TransformUtil.FindPropTransform(internalProp, shellColliderName);
 				if (transform != null)
