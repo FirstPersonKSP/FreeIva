@@ -91,16 +91,37 @@ namespace FreeIva
 		{
 #if true
 			if (collider == null) return;
+
+			GameObject debugObject = null;
+
 			if (collider is BoxCollider box)
 			{
-				var debugObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-				Component.Destroy(debugObject.GetComponent<Collider>());
-				debugObject.transform.SetParent(collider.transform, false);
+				debugObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
 				debugObject.transform.localPosition = box.center;
 				debugObject.transform.localScale = box.size;
+			}
+			else if (collider is SphereCollider sphereCollider)
+			{
+				debugObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+				debugObject.transform.localPosition = sphereCollider.center;
+				debugObject.transform.localScale = sphereCollider.radius * 2 * Vector3.one; // sphere primitive is 0.5 radius
+			}
+			else if (collider is CapsuleCollider capsule)
+			{
+				debugObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+				debugObject.transform.localPosition = capsule.center;
+				debugObject.transform.localScale = new Vector3(capsule.radius * 2, capsule.height / 2, capsule.radius); // primitive is 0.5 radius and 2.0 height
+
+				Vector3 axis = new Vector3(capsule.direction == 0 ? 1 : 0, capsule.direction == 1 ? 1 : 0, capsule.direction == 2 ? 1 : 0);
+				debugObject.transform.up = axis;
+			}
+
+			if (debugObject != null)
+			{
+				Component.Destroy(debugObject.GetComponent<Collider>());
+				debugObject.transform.SetParent(collider.transform, false);
 				debugObject.layer = 20;
 			}
-			// TODO:
 #endif
 		}
 	}
