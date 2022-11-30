@@ -548,7 +548,7 @@ namespace FreeIva
 			//ActiveKerbal.flightLog.AddEntry("Unbuckled");
 			ScreenMessages.PostScreenMessage("Unbuckled", 1f, ScreenMessageStyle.LOWER_CENTER);
 			KerbalCollider.enabled = true;
-			KerbalFeetCollider.enabled = true;
+			KerbalFeetCollider.enabled = Gravity;
 			buckled = false;
 
 			DisablePartHighlighting(true);
