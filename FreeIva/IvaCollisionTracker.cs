@@ -38,7 +38,7 @@ namespace FreeIva
 			}
 
 
-			ScreenMessages.PostScreenMessage($"{eventName} {name} with {collision.gameObject} in {context} on layer {collision.gameObject.layer}",
+			ScreenMessages.PostScreenMessage($"{eventName} {name} with {collision.gameObject.name} in {context} on layer {collision.gameObject.layer}",
 					1f, ScreenMessageStyle.LOWER_CENTER);
 #endif
 		}
