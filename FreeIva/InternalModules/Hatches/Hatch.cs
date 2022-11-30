@@ -58,6 +58,8 @@ namespace FreeIva
 
 		public bool hideDoorWhenConnected = false;
 
+		public bool sspx_requireDeployment = false;
+
 		// -----
 
 		[Serializable]
@@ -68,6 +70,7 @@ namespace FreeIva
 		}
 
 		// this bullshit brought to you by the Unity serialization system
+		// specifically: you can't serialize a list of a custom struct, but you can serialize a reference to a class containing one
 		public class ObjectsToHide : ScriptableObject
 		{
 			public List<ObjectToHide> objects = new List<ObjectToHide>();
@@ -77,6 +80,7 @@ namespace FreeIva
 		ModuleDockingNode m_dockingNodeModule;
 		ModuleAnimateGeneric m_animationModule;
 		InternalProp m_blockedProp;
+		SSPX_ModuleDeployableHabitat m_sspx_moduleDeployableHabitat;
 
 		// Where the GameObject is located. Used for basic interaction targeting (i.e. when to show the "Open hatch?" prompt).
 		public virtual Vector3 WorldPosition => transform.position;
@@ -212,6 +216,15 @@ namespace FreeIva
 				}
 			}
 
+			if (sspx_requireDeployment)
+			{
+				m_sspx_moduleDeployableHabitat = SSPX_ModuleDeployableHabitat.Create(part);
+				if (m_sspx_moduleDeployableHabitat == null)
+				{
+					Debug.LogError($"[FreeIva] PROP '{internalProp.propName}' in INTERNAL '{internalModel.internalName}' has sspx_requireDeployment=true but could not find a ModuleDeployableHabitat in PART '{part.partInfo.name}'");
+				}
+			}
+
 			var internalModule = InternalModuleFreeIva.GetForModel(internalModel);
 			if (internalModule == null)
 			{
@@ -247,12 +260,29 @@ namespace FreeIva
 
 		public bool IsBlockedByAnimation(bool checkConnectedHatch = true)
 		{
+			// check the other hatch first (non-recursively)
 			if (checkConnectedHatch && _connectedHatch != null && _connectedHatch.IsBlockedByAnimation(false))
 			{
 				return true;
 			}
 
-			return m_animationModule != null && m_animationModule.GetState().normalizedTime != 1.0f;
+			if (sspx_requireDeployment)
+			{
+				if (m_sspx_moduleDeployableHabitat == null || !m_sspx_moduleDeployableHabitat.IsDeployed)
+				{
+					return true;
+				}
+			}
+
+			if (requiredAnimationName != string.Empty)
+			{
+				if (m_animationModule == null || m_animationModule.GetState().normalizedTime != 1.0f)
+				{
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		void SetTubeScale()
