@@ -99,6 +99,7 @@
     <Compile Include="InternalModules\FreeIvaInternalCameraSwitch.cs" />
     <Compile Include="Gui\DrawLine.cs" />
     <Compile Include="Gui\GuiManager.cs" />
+    <Compile Include="InternalModules\HandRail.cs" />
     <Compile Include="InternalModules\HideInternalMesh.cs" />
     <Compile Include="ClickWatcher.cs" />
     <Compile Include="InternalModules\InternalModuleFreeIva.cs" />

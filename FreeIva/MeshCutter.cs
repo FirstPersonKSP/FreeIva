@@ -25,9 +25,13 @@ namespace FreeIva
 			foreach (string targetName in targets)
 			{
 				Debug.Log($"[FreeIVA/MeshCutter] Cutting on target '{targetName}' on internal '{model.internalName}'");
-				MeshFilter target = TransformUtil.FindInternalModelTransform(model, targetName).gameObject.GetComponent<MeshFilter>();
-				List<GameObject> tools = parameters.Where(x => x.target == targetName).Select(parameter => CreateTool(model, parameter)).ToList();
-				ApplyCut(target, tools);
+				MeshFilter target = TransformUtil.FindInternalModelTransform(model, targetName)?.gameObject?.GetComponent<MeshFilter>();
+
+				if (target != null)
+				{
+					List<GameObject> tools = parameters.Where(x => x.target == targetName).Select(parameter => CreateTool(model, parameter)).ToList();
+					ApplyCut(target, tools);
+				}
 			}
 
 			Profiler.EndSample();
@@ -70,19 +74,26 @@ namespace FreeIva
 			target.transform.localScale = Vector3.one;
 
 			// majik!
-			Model model = CSG.SubtractMultiple(target.gameObject, tools);
+			try
+			{
+				Model model = CSG.SubtractMultiple(target.gameObject, tools);
 
-			// remove all but the first sub mesh
-			Mesh mesh = new Mesh();
-			mesh.vertices = model.mesh.vertices;
-			mesh.triangles = model.mesh.GetTriangles(0);
-			mesh.normals = model.mesh.normals;
-			mesh.tangents = model.mesh.tangents;
-			mesh.uv = model.mesh.uv;
-			mesh.Optimize();
+				// remove all but the first sub mesh
+				Mesh mesh = new Mesh();
+				mesh.vertices = model.mesh.vertices;
+				mesh.triangles = model.mesh.GetTriangles(0);
+				mesh.normals = model.mesh.normals;
+				mesh.tangents = model.mesh.tangents;
+				mesh.uv = model.mesh.uv;
+				mesh.Optimize();
 
-			// assign the result mesh back to target object
-			target.sharedMesh = mesh;
+				// assign the result mesh back to target object
+				target.sharedMesh = mesh;
+			}
+			catch (Exception ex)
+			{
+				Debug.LogException(ex);
+			}
 
 			// put target object back to where it belongs
 			target.transform.parent = temp.parent;

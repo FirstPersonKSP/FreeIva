@@ -44,9 +44,6 @@ namespace FreeIva
 		#endregion
 
 		[KSPField]
-		public string shellColliderName = string.Empty;
-
-		[KSPField]
 		public bool CopyPartCollidersToInternalColliders = false;
 
 		public List<FreeIvaHatch> Hatches = new List<FreeIvaHatch>(); // hatches will register themselves with us
@@ -54,18 +51,28 @@ namespace FreeIva
 		List<CutParameter> cutParameters = new List<CutParameter>();
 		int propCutsRemaining = 0;
 
+		[KSPField]
+		public string secondaryInternalName = string.Empty;
+		public InternalModel SecondaryInternalModel { get; private set; }
+
 		public override void OnLoad(ConfigNode node)
 		{
 			base.OnLoad(node);
 
-			if (shellColliderName != string.Empty)
+			foreach (var shellColliderName in node.GetValues("shellColliderName"))
 			{
 				var transform = TransformUtil.FindPropTransform(internalProp, shellColliderName);
 				if (transform != null)
 				{
-					foreach (var meshCollider in transform.GetComponentsInChildren<MeshCollider>())
+					var colliders = transform.GetComponentsInChildren<MeshCollider>();
+					foreach (var meshCollider in colliders)
 					{
 						meshCollider.convex = false;
+					}
+
+					if (colliders.Length == 0)
+					{
+						Debug.LogError($"[FreeIva] shellCollider {shellColliderName} in internal {internalModel.internalName} exists but does not have a MeshCollider");
 					}
 				}
 				else
@@ -179,6 +186,38 @@ namespace FreeIva
 			if (--propCutsRemaining == 0)
 			{
 				ExecuteMeshCuts();
+			}
+		}
+
+		InternalModel CreateInternalModel(string internalName)
+		{
+			InternalModel internalPart = PartLoader.GetInternalPart(internalName);
+			if (internalPart == null)
+			{
+				Debug.LogError($"[FreeIva] Could not find INTERNAL named '{internalName}' referenced from INTERNAL '{internalModel.name}'");
+				return null;
+			}
+			var result = UnityEngine.Object.Instantiate(internalPart);
+			result.gameObject.name = internalPart.internalName + " interior";
+			result.gameObject.SetActive(value: true);
+			if (result == null)
+			{
+				Debug.LogError($"[FreeIva] Failed to instantiate INTERNAL named '{internalName}' referenced from INTERNAL '{internalModel.name}'");
+				return null;
+			}
+			result.part = part;
+			result.Load(new ConfigNode());
+			result.Initialize(part);
+			return result;
+		}
+
+		void Start()
+		{
+			if (!HighLogic.LoadedSceneIsFlight) return;
+
+			if (secondaryInternalName != string.Empty)
+			{
+				SecondaryInternalModel = CreateInternalModel(secondaryInternalName);
 			}
 		}
 
