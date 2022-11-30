@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace FreeIva
@@ -24,8 +25,9 @@ namespace FreeIva
 		// TODO: Vary this by kerbal stats and equipment carried: 45kg for a kerbal, 94kg with full jetpack and parachute.
 		public static float KerbalMass = 1000f * 0.03125f; // From persistent file for EVA kerbal. Use PhysicsGlobals.KerbalCrewMass instead?
 
+		public static SphereCollider KerbalFeetCollider;
 		/*public static GameObject KerbalFeet;
-        public static Collider KerbalFeetCollider;
+
         public static PhysicMaterial KerbalFeetPhysics;
         public static Rigidbody KerbalFeetRigidbody;
         public static Renderer KerbalFeetRenderer;*/
@@ -139,7 +141,7 @@ namespace FreeIva
 #if Experimental
 				KerbalWorldSpaceCollider.enabled = false;
 #endif
-				if (!buckled)
+				if (!buckled && ActiveKerbal != null)
 				{
 					ReturnToSeat();
 				}
@@ -246,9 +248,7 @@ namespace FreeIva
 			KerbalRigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
 			// Rotating the object would offset the rotation of the controls from the camera position.
 			KerbalRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
-#if DEBUG
-			KerbalIva.AddComponent<IvaCollisionPrinter>();
-#endif
+			KerbalCollisionTracker = KerbalIva.AddComponent<IvaCollisionTracker>();
 			KerbalCollider.isTrigger = false;
 			KerbalIva.layer = (int)Layers.Kerbals; //KerbalCollider.layer = (int)Layers.Kerbals; 2021-02-26
 			var renderer = KerbalIva.GetComponent<Renderer>();
@@ -256,20 +256,20 @@ namespace FreeIva
 
 			KerbalCollider.radius = Settings.NoHelmetSize;
 
+			KerbalFeetCollider = KerbalIva.AddComponent<SphereCollider>();
+			KerbalFeetCollider.enabled = false;
+			KerbalFeetCollider.isTrigger = false;
+			KerbalFeetCollider.radius = Settings.NoHelmetSize * 0.9f;
+			KerbalFeetCollider.center = new Vector3(0, -Settings.NoHelmetSize, 0);
 
 			/*KerbalFeet = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             KerbalFeet.name = "Kerbal feet collider";
             KerbalFeet.GetComponentCached<Collider>(ref KerbalFeetCollider);
-            KerbalFeetCollider.enabled = false;
             KerbalFeetPhysics = KerbalFeetCollider.material;
             KerbalFeetRigidbody = KerbalFeet.AddComponent<Rigidbody>();
             KerbalFeetRigidbody.useGravity = false;
             KerbalFeetRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
-            KerbalFeetCollider.isTrigger = false;
-            KerbalFeet.layer = (int)Layers.InternalSpace; //KerbalFeet.layer = (int)Layers.Kerbals; 2021-02-26
-            KerbalFeet.transform.parent = KerbalCollider.transform;
-            KerbalFeet.transform.localScale = new Vector3(Settings.NoHelmetSize, Settings.NoHelmetSize, Settings.NoHelmetSize);
-            KerbalFeet.transform.localPosition = new Vector3(0, 0, 0.2f);
+            
             KerbalFeet.GetComponentCached<Renderer>(ref KerbalFeetRenderer);
             KerbalFeetRenderer.enabled = false;*/
 
@@ -420,6 +420,7 @@ namespace FreeIva
 			MoveKerbalToSeat(ActiveKerbal, TargetedSeat);
 			KerbalIva.GetComponentCached<SphereCollider>(ref KerbalCollider);
 			KerbalCollider.enabled = false;
+			KerbalFeetCollider.enabled = false;
 			HideCurrentKerbal(false);
 			DisablePartHighlighting(false);
 			InputLockManager.RemoveControlLock("FreeIVA");
@@ -432,6 +433,7 @@ namespace FreeIva
 			// some of this stuff should probably get moved to a common function
 			KerbalIva.GetComponentCached<SphereCollider>(ref KerbalCollider);
 			KerbalCollider.enabled = false;
+			KerbalFeetCollider.enabled = false;
 			buckled = true;
 			DisablePartHighlighting(false);
 			InputLockManager.RemoveControlLock("FreeIVA");
@@ -545,7 +547,8 @@ namespace FreeIva
 			InputLockManager.SetControlLock(ControlTypes.ALL_SHIP_CONTROLS, "FreeIVA");
 			//ActiveKerbal.flightLog.AddEntry("Unbuckled");
 			ScreenMessages.PostScreenMessage("Unbuckled", 1f, ScreenMessageStyle.LOWER_CENTER);
-			KerbalIva.GetComponentCached<SphereCollider>(ref KerbalCollider).enabled = true;
+			KerbalCollider.enabled = true;
+			KerbalFeetCollider.enabled = true;
 			buckled = false;
 
 			DisablePartHighlighting(true);
@@ -761,8 +764,9 @@ namespace FreeIva
 		}
 
 		public Vector3 currentRelativeOrientation;
+        private IvaCollisionTracker KerbalCollisionTracker;
 
-		public void UpdateOrientation(Vector3 rotationInput)
+        public void UpdateOrientation(Vector3 rotationInput)
 		{
 			/*Vector3 gForce = FlightGlobals.getGeeForceAtPosition(FlightCamera.fetch.transform.position);
             Vector3 gForceInternal = InternalSpace.WorldToInternal(gForce);
@@ -827,6 +831,55 @@ namespace FreeIva
 			return result * Time.deltaTime;
 		}
 
+		List<ContactPoint> contactPoints = new List<ContactPoint>();
+
+
+		bool GetGroundPlane(Vector3 gravity, out Plane plane)
+        {
+			Vector3 up = -Vector3.Normalize(gravity);
+			float cosWalkableSlope = Mathf.Cos(Mathf.Deg2Rad * Settings.WalkableSlope);
+
+			Vector3 accumulatedPosition = Vector3.zero;
+			Vector3 accumulatedNormal = Vector3.zero;
+			int contactPointCount = 0;
+
+			foreach (var collision in KerbalCollisionTracker.Collisions)
+            {
+				if (collision.contactCount > contactPoints.Capacity)
+                {
+					contactPoints.Capacity = collision.contactCount;
+                }
+
+				contactPoints.Clear();
+
+				collision.GetContacts(contactPoints);
+
+				foreach (var contactPoint in contactPoints)
+                {
+					if (Vector3.Dot(contactPoint.normal, up) >= cosWalkableSlope)
+                    {
+						accumulatedNormal += contactPoint.normal;
+						accumulatedPosition += contactPoint.point;
+						++contactPointCount;
+
+						Debug.DrawRay(contactPoint.point, contactPoint.normal, Color.red, 0, true);
+                    }
+                }
+            }
+
+			if (contactPointCount > 0)
+            {
+				accumulatedNormal.Normalize();
+				accumulatedPosition /= contactPointCount;
+
+				plane = new Plane(accumulatedNormal, accumulatedPosition);
+				return true;
+            }
+
+			plane = new Plane();
+			return false;
+        }
+
 		private void UpdatePosition(Vector3 movementThrottle, bool jump)
 		{
 			Vector3 desiredLocalSpeed = new Vector3(
@@ -837,18 +890,32 @@ namespace FreeIva
 			Quaternion orientation = previousRotation;
 
 			Vector3 flightAccel = InternalSpace.WorldToInternal(GetFlightAccelerationWorldSpace());
-			bool isGrounded = UseRelativeMovement();
+			bool useGroundSystem = UseRelativeMovement();
 			bool tryingToMove = desiredLocalSpeed != Vector3.zero;
 
-			if (isGrounded)
+			if (useGroundSystem)
 			{
 				// take the yaw angle but nothing else (maintain global up)
 
 				orientation = InternalSpace.WorldToInternal(FlightGlobals.GetFoR(FoRModes.SRF_NORTH) * Quaternion.Euler(0, currentRelativeOrientation.y, 0));
 
-				if (movementThrottle.y == 0)
+				bool grounded = GetGroundPlane(flightAccel, out Plane groundPlane);
+
+				// for now, allow free movement vertically
+				if (movementThrottle.y == 0 && Gravity)
 				{
-					// KerbalRigidbody.AddForce(flightAccel, ForceMode.Acceleration);
+					float gravityScale = grounded ? 0.5f : 1f;
+					KerbalRigidbody.AddForce(gravityScale * flightAccel, ForceMode.Acceleration);
+				}
+
+				if (grounded)
+                {
+					// TODO: orient desired velocity along ground plane
+					if (jump)
+					{
+						// Jump in the opposite direction to gravity.
+						KerbalRigidbody.AddForce(-flightAccel.normalized * Settings.JumpForce, ForceMode.VelocityChange);
+					}
 				}
 
 			}
@@ -861,7 +928,7 @@ namespace FreeIva
 			Vector3 velocityDelta = desiredWorldVelocity - KerbalRigidbody.velocity;
 
 			float desiredDeltaSpeed = velocityDelta.magnitude;
-			float maxDeltaSpeed = GetMaxDeltaSpeed(tryingToMove, isGrounded);
+			float maxDeltaSpeed = GetMaxDeltaSpeed(tryingToMove, useGroundSystem);
 			if (desiredDeltaSpeed > maxDeltaSpeed)
 			{
 				velocityDelta = velocityDelta.normalized * maxDeltaSpeed;
@@ -874,13 +941,6 @@ namespace FreeIva
 			else
 			{
 				KerbalRigidbody.AddForce(velocityDelta, ForceMode.VelocityChange);
-			}
-
-			// Jump. TODO: Detect when not in contact with the ground to prevent jetpacking (Physics.CapsuleCast).
-			if (jump)
-			{
-				// Jump in the opposite direction to gravity.
-				// KerbalRigidbody.AddForce(-flightAccel * Settings.JumpForce, ForceMode.Acceleration);
 			}
 
 #if Experimental

@@ -188,7 +188,6 @@ namespace FreeIva
 			if (vessel == FlightGlobals.ActiveVessel)
 			{
 				EnableInternals();
-				InternalModuleFreeIva.OnVesselWasModified(vessel);
 			}
 		}
 
@@ -465,13 +464,10 @@ namespace FreeIva
 			SetRenderQueues(newPart);
 		}
 
-		//static bool _initialised = false;
 		public static void EnableInternals()
 		{
 			try
 			{
-				//if (_initialised) return;
-
 				foreach (Part p in FlightGlobals.ActiveVessel.parts)
 				{
 					var ivaModule = p.GetModule<ModuleFreeIva>();
@@ -495,7 +491,7 @@ namespace FreeIva
 					}
 				}
 
-				//_initialised = true;
+				InternalModuleFreeIva.RefreshInternals();
 			}
 			catch (Exception ex)
 			{
