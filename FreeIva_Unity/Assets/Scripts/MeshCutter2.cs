@@ -55,6 +55,20 @@ public class MeshCutter2 : MonoBehaviour
 		m_skipCuttingTriangle.Add(skipCutting);
 	}
 
+	void TransformPlanesToMeshSpace(List<Plane> planes)
+	{
+		for (int i = 0; i < planes.Count; i++)
+		{
+			Plane plane = planes[i];
+			Vector3 worldNormal = tool.transform.TransformDirection(plane.normal);
+			Vector3 worldPlanePoint = tool.transform.TransformPoint(plane.normal * -plane.distance);
+
+			Vector3 localNormal = transform.InverseTransformDirection(worldNormal);
+			Vector3 localPlanePoint = transform.InverseTransformPoint(worldPlanePoint);
+
+			planes[i] = new Plane(localNormal, localPlanePoint);
+		}
+	}
 	void Start()
 	{
 		m_mesh = GetComponent<MeshFilter>().mesh;
@@ -67,8 +81,9 @@ public class MeshCutter2 : MonoBehaviour
 		m_skipCuttingTriangle= new List<bool>();
 		m_skipCuttingTriangle.AddRange(Enumerable.Repeat(false, m_indices.Count / 3));
 
-		// note these planes are in the mesh's coordinate space
+		// note these planes are in the tool's coordinate space
 		var planes = GetPlanesFromTool(tool);
+		TransformPlanesToMeshSpace(planes);
 
 		m_vertexClassifications = new List<VertexClassification>(m_vertices.Count);
 		foreach (var vertex in m_vertices)
@@ -128,22 +143,7 @@ public class MeshCutter2 : MonoBehaviour
 			planes.Add(new Plane(vA, vB, vC));
 		}
 
-		planes = planes.Distinct(PlaneComparison.Instance).ToList();
-
-		// transform planes into local mesh space
-		for (int i = 0; i < planes.Count; i++)
-		{
-			Plane plane = planes[i];
-			Vector3 worldNormal = tool.transform.TransformDirection(plane.normal);
-			Vector3 worldPlanePoint = tool.transform.TransformPoint(plane.normal * -plane.distance);
-
-			Vector3 localNormal = transform.InverseTransformDirection(worldNormal);
-			Vector3 localPlanePoint = transform.InverseTransformPoint(worldPlanePoint);
-
-			planes[i] = new Plane(localNormal, localPlanePoint);
-		}
-
-		return planes;
+		return planes.Distinct(PlaneComparison.Instance).ToList();
 	}
 
 	// returns 0 for points that are approximately on the plane
