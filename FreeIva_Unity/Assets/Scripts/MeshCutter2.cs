@@ -13,7 +13,6 @@ public class MeshCutter2 : MonoBehaviour
 	private List<Vector3> m_vertices;
 	private List<Vector3> m_normals;
 	private List<Vector2> m_uvs;
-	private List<Vector4> m_tangents;
 	private List<int> m_indices;
 	private List<bool> m_skipCuttingTriangle;
 	private List<VertexClassification> m_vertexClassifications;
@@ -60,28 +59,70 @@ public class MeshCutter2 : MonoBehaviour
 		for (int i = 0; i < planes.Count; i++)
 		{
 			Plane plane = planes[i];
-			Vector3 worldNormal = tool.transform.TransformDirection(plane.normal);
+			Vector3 worldNormal = tool.transform.TransformVector(plane.normal);
 			Vector3 worldPlanePoint = tool.transform.TransformPoint(plane.normal * -plane.distance);
 
-			Vector3 localNormal = transform.InverseTransformDirection(worldNormal);
+			Vector3 localNormal = transform.InverseTransformVector(worldNormal);
 			Vector3 localPlanePoint = transform.InverseTransformPoint(worldPlanePoint);
 
 			planes[i] = new Plane(localNormal, localPlanePoint);
 		}
 	}
+
+	// removes a triangle and swaps the last one into its spot
+	void RemoveTriangle(int triangleIndex)
+	{
+		int firstIndexIndex = triangleIndex * 3;
+		int lastTriangleIndex = m_skipCuttingTriangle.Count - 1;
+		int lastTriangleFirstIndexIndex = lastTriangleIndex * 3;
+
+		m_indices[firstIndexIndex] = m_indices[lastTriangleFirstIndexIndex];
+		m_indices[firstIndexIndex + 1] = m_indices[lastTriangleFirstIndexIndex + 1];
+		m_indices[firstIndexIndex + 2] = m_indices[lastTriangleFirstIndexIndex + 2];
+
+		m_skipCuttingTriangle[triangleIndex] = m_skipCuttingTriangle[lastTriangleIndex];
+
+		m_skipCuttingTriangle.RemoveAt(lastTriangleIndex);
+		m_indices.RemoveRange(lastTriangleFirstIndexIndex, 3);
+	}
+
+	void RemoveInteriorTriangles()
+	{
+		int triangleIndex = 0;
+		while (triangleIndex < m_skipCuttingTriangle.Count)
+		{
+			int firstIndexIndex = triangleIndex * 3;
+			int indexA = m_indices[firstIndexIndex];
+			int indexB = m_indices[firstIndexIndex + 1];
+			int indexC = m_indices[firstIndexIndex + 2];
+
+			if (m_vertexClassifications[indexA] != VertexClassification.Outside && 
+				m_vertexClassifications[indexB] != VertexClassification.Outside &&
+				m_vertexClassifications[indexC] != VertexClassification.Outside)
+			{
+				RemoveTriangle(triangleIndex);
+			}
+			else
+			{
+				++triangleIndex;
+			}
+		}
+	}
+
 	void Start()
 	{
 		m_mesh = GetComponent<MeshFilter>().mesh;
-		
+
+		int initialvertexCount = m_mesh.vertexCount;
+
 		m_vertices = new List<Vector3>(m_mesh.vertices);
 		m_indices = new List<int>(m_mesh.triangles);
 		m_normals = new List<Vector3>(m_mesh.normals);
 		m_uvs = new List<Vector2>(m_mesh.uv);
-		m_tangents = new List<Vector4>(m_mesh.tangents);
 		m_skipCuttingTriangle= new List<bool>();
 		m_skipCuttingTriangle.AddRange(Enumerable.Repeat(false, m_indices.Count / 3));
 
-		// note these planes are in the tool's coordinate space
+		// note these planes are in the tool mesh's coordinate space
 		var planes = GetPlanesFromTool(tool);
 		TransformPlanesToMeshSpace(planes);
 
@@ -91,10 +132,20 @@ public class MeshCutter2 : MonoBehaviour
 			m_vertexClassifications.Add(ClassifyVertex(vertex, planes));
 		}
 
+		RemoveInteriorTriangles();
+
 		foreach (var plane in planes)
 		{
 			CutByPlane(plane);
 		}
+
+		// reclassify the new vertices
+		for (int i = initialvertexCount; i < m_vertexClassifications.Count; i++)
+		{
+			m_vertexClassifications[i] = ClassifyVertex(m_vertices[i], planes);
+		}
+
+		RemoveInteriorTriangles();
 
 		m_mesh.vertices = m_vertices.ToArray();
 		m_mesh.triangles = m_indices.ToArray();
@@ -151,7 +202,7 @@ public class MeshCutter2 : MonoBehaviour
 	{
 		float d = plane.GetDistanceToPoint(point);
 
-		if (Mathf.Abs(d) > Mathf.Epsilon)
+		if (Mathf.Abs(d) > 1e-4f)
 		{
 			return d;
 		}
@@ -181,6 +232,13 @@ public class MeshCutter2 : MonoBehaviour
 			float dA = PlaneGetDistanceToPoint(plane, vA);
 			float dB = PlaneGetDistanceToPoint(plane, vB);
 			float dC = PlaneGetDistanceToPoint(plane, vC);
+
+			// if all 3 vertices are above this plane, then it's completely outside the cutting tool and we never have to consider it again
+			if (dA >= 0 && dB >= 0 && dC >= 0)
+			{
+				m_skipCuttingTriangle[triangleIndex] = true;
+				continue;
+			}
 
 			bool abSameSide = dA * dB >= 0;
 			bool bcSameSide = dB * dC >= 0;
