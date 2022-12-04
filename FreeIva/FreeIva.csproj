@@ -83,15 +83,10 @@
     <Publicize Include="Assembly-CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\FreeIva_Unity\Assets\Scripts\MeshCutter2.cs">
+      <Link>MeshCutter2.cs</Link>
+    </Compile>
     <Compile Include="ColliderUtil.cs" />
-    <Compile Include="CSG\CSG.cs" />
-    <Compile Include="CSG\Model.cs" />
-    <Compile Include="CSG\Node.cs" />
-    <Compile Include="CSG\Plane.cs" />
-    <Compile Include="CSG\Polygon.cs" />
-    <Compile Include="CSG\Vertex.cs" />
-    <Compile Include="CSG\VertexAttributes.cs" />
-    <Compile Include="CSG\VertexUtility.cs" />
     <Compile Include="CutParameter.cs" />
     <Compile Include="Experimental\ColliderManipulator.cs" />
     <Compile Include="InternalModules\DeleteInternalObject.cs" />
@@ -108,7 +103,6 @@
     <Compile Include="Experimental\InteractionCollider.cs" />
     <Compile Include="Experimental\InteractiveIvaProp.cs" />
     <Compile Include="Experimental\ModuleInternalPressure.cs" />
-    <Compile Include="MeshCutter.cs" />
     <Compile Include="InternalModules\PropBuckleButton.cs" />
     <Compile Include="InternalModules\Hatches\PropHatchAnimated.cs" />
     <Compile Include="Enums.cs" />
@@ -118,6 +112,7 @@
     <Compile Include="FreeIva.cs" />
     <Compile Include="Gui\GuiUtils.cs" />
     <Compile Include="InternalModules\Hatches\Hatch.cs" />
+    <Compile Include="MeshCutter.cs" />
     <Compile Include="ModuleFreeIva.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="InternalModules\Hatches\PropHatch.cs" />

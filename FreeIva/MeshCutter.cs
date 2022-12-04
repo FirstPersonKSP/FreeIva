@@ -1,5 +1,4 @@
-﻿using Parabox.CSG;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -41,74 +40,24 @@ namespace FreeIva
 
 		private static void ApplyCut(MeshFilter target, List<GameObject> tools)
 		{
-			// All these transform nonsenses are for counteracting a bug in Paradox.CSG
-			//
-			// where the subtraction only works properly if the transform of the target
-			// is at world origin with no rotation and scaling
-			//
-			// It's probably fixable by editing its source code, but I won't touch that
-
-			// create a temp object to hold all the children
-			Transform temp = new GameObject("temp").transform;
-			temp.parent = target.transform.parent;
-			temp.localPosition = target.transform.localPosition;
-			temp.localRotation = target.transform.localRotation;
-			temp.localScale = target.transform.localScale;
-
-			// re-parent all the children
-			for (int i = target.transform.childCount - 1; i >= 0; i--)
-			{
-				target.transform.GetChild(i).SetParent(temp);
-			}
-
-			// re-parent all the tools to the target object
-			foreach (GameObject tool in tools)
-			{
-				tool.transform.parent = target.transform;
-			}
-
-			// reset target transform to world origin
-			target.transform.parent = null;
-			target.transform.position = Vector3.zero;
-			target.transform.rotation = Quaternion.identity;
-			target.transform.localScale = Vector3.one;
-
 			// majik!
 			try
 			{
-				Model model = CSG.SubtractMultiple(target.gameObject, tools);
+				var cutter = new MeshCutter2(target);
 
-				// remove all but the first sub mesh
-				Mesh mesh = new Mesh();
-				mesh.vertices = model.mesh.vertices;
-				mesh.triangles = model.mesh.GetTriangles(0);
-				mesh.normals = model.mesh.normals;
-				mesh.tangents = model.mesh.tangents;
-				mesh.uv = model.mesh.uv;
-				mesh.Optimize();
+				foreach (var tool in tools)
+				{
+					cutter.CutMesh(tool);
+				}
 
-				// assign the result mesh back to target object
-				target.sharedMesh = mesh;
+				cutter.FinalizeMesh();
 			}
 			catch (Exception ex)
 			{
 				Debug.LogException(ex);
 			}
 
-			// put target object back to where it belongs
-			target.transform.parent = temp.parent;
-			target.transform.localPosition = temp.localPosition;
-			target.transform.localRotation = temp.localRotation;
-			target.transform.localScale = temp.localScale;
 
-			// give all the children back
-			for (int i = temp.childCount - 1; i >= 0; i--)
-			{
-				temp.GetChild(i).SetParent(target.transform, false);
-			}
-
-			// destroy temp object and all the tools
-			UnityEngine.Object.Destroy(temp.gameObject);
 			foreach (GameObject tool in tools)
 			{
 				UnityEngine.Object.Destroy(tool);
