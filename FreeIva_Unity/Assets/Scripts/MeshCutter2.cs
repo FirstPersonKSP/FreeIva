@@ -5,10 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class MeshCutter2 : MonoBehaviour
+public class MeshCutter2
 {
-	public GameObject tool;
-
+	private Transform m_meshTransform;
 	private Mesh m_mesh;
 	private List<Vector3> m_vertices;
 	private List<Vector3> m_normals;
@@ -54,16 +53,16 @@ public class MeshCutter2 : MonoBehaviour
 		m_skipCuttingTriangle.Add(skipCutting);
 	}
 
-	void TransformPlanesToMeshSpace(List<Plane> planes)
+	void TransformPlanesToMeshSpace(List<Plane> planes, Transform cuttingToolTransform)
 	{
 		for (int i = 0; i < planes.Count; i++)
 		{
 			Plane plane = planes[i];
-			Vector3 worldNormal = tool.transform.TransformVector(plane.normal);
-			Vector3 worldPlanePoint = tool.transform.TransformPoint(plane.normal * -plane.distance);
+			Vector3 worldNormal = cuttingToolTransform.TransformVector(plane.normal);
+			Vector3 worldPlanePoint = cuttingToolTransform.TransformPoint(plane.normal * -plane.distance);
 
-			Vector3 localNormal = transform.InverseTransformVector(worldNormal);
-			Vector3 localPlanePoint = transform.InverseTransformPoint(worldPlanePoint);
+			Vector3 localNormal = m_meshTransform.InverseTransformVector(worldNormal);
+			Vector3 localPlanePoint = m_meshTransform.InverseTransformPoint(worldPlanePoint);
 
 			planes[i] = new Plane(localNormal, localPlanePoint);
 		}
@@ -109,22 +108,47 @@ public class MeshCutter2 : MonoBehaviour
 		}
 	}
 
-	void Start()
+	public MeshCutter2(MeshFilter target)
 	{
-		m_mesh = GetComponent<MeshFilter>().mesh;
-
-		int initialvertexCount = m_mesh.vertexCount;
+		m_mesh = target.mesh;
+		m_meshTransform = target.transform;
 
 		m_vertices = new List<Vector3>(m_mesh.vertices);
 		m_indices = new List<int>(m_mesh.triangles);
 		m_normals = new List<Vector3>(m_mesh.normals);
 		m_uvs = new List<Vector2>(m_mesh.uv);
-		m_skipCuttingTriangle= new List<bool>();
+		m_skipCuttingTriangle = new List<bool>();
 		m_skipCuttingTriangle.AddRange(Enumerable.Repeat(false, m_indices.Count / 3));
+	}
+	
+	public void FinalizeMesh()
+	{
+		m_mesh.vertices = m_vertices.ToArray();
+		m_mesh.triangles = m_indices.ToArray();
+		m_mesh.normals = m_normals.ToArray();
+		m_mesh.uv = m_uvs.ToArray();
+		m_mesh.RecalculateTangents();
+		m_mesh.Optimize();
+	}
 
-		// note these planes are in the tool mesh's coordinate space
+	public void CutMesh(GameObject tool)
+	{
 		var planes = GetPlanesFromTool(tool);
-		TransformPlanesToMeshSpace(planes);
+		CutMesh(planes, tool.transform);
+	}
+
+	public void CutMesh(List<Plane> cuttingPlanes, Transform cuttingToolTransform)
+	{
+		int initialvertexCount = m_vertices.Count;
+
+		// make a copy of the planes cause we need to transform them
+		List<Plane> planes = cuttingPlanes.ToList();
+		TransformPlanesToMeshSpace(planes, cuttingToolTransform);
+
+		for (int i = 0; i < m_skipCuttingTriangle.Count; i++)
+		{
+			m_skipCuttingTriangle[i] = false;
+		}
 
 		m_vertexClassifications = new List<VertexClassification>(m_vertices.Count);
 		foreach (var vertex in m_vertices)
@@ -134,6 +158,9 @@ public class MeshCutter2 : MonoBehaviour
 
 		RemoveInteriorTriangles();
 
+		// This algorithm tends to create a lot of extra vertices because it's not very smart about ordering the planes for each triangle
+		// instead of iterating over the planes, and cutting the mesh with each one, it might be better to iterate over the mesh triangles, sort the planes somehow, and then cut the triangle with the sorted planes
+		// not really sure what the right sorting criteria would be
 		foreach (var plane in planes)
 		{
 			CutByPlane(plane);
@@ -147,12 +174,7 @@ public class MeshCutter2 : MonoBehaviour
 
 		RemoveInteriorTriangles();
 
-		m_mesh.vertices = m_vertices.ToArray();
-		m_mesh.triangles = m_indices.ToArray();
-		m_mesh.normals = m_normals.ToArray();
-		m_mesh.uv = m_uvs.ToArray();
-		m_mesh.RecalculateTangents();
-		m_mesh.Optimize();
+		
 	}
 
 	private VertexClassification ClassifyVertex(Vector3 vertex, List<Plane> planes)
@@ -176,7 +198,8 @@ public class MeshCutter2 : MonoBehaviour
 		return vertexClassification;
 	}
 
-	List<Plane> GetPlanesFromTool(GameObject tool)
+	// returns a set of planes in tool-local space (so the same set of planes can be re-used for many different transforms of the same tool)
+	public List<Plane> GetPlanesFromTool(GameObject tool)
 	{
 		Mesh toolMesh = tool.GetComponent<MeshFilter>().mesh;
 		List<Plane> planes = new List<Plane>(toolMesh.triangles.Length / 3);
