@@ -14,14 +14,6 @@ public class MeshCutter2
 	private List<Vector2> m_uvs;
 	private List<int> m_indices;
 	private List<bool> m_skipCuttingTriangle;
-	private List<VertexClassification> m_vertexClassifications;
-
-	enum VertexClassification
-	{
-		Inside,
-		OnSurface,
-		Outside
-	}
 
 	// maps a pair of vertex indices to the new vertex index that was created between them
 	private Dictionary<Tuple<int, int>, int> m_cutEdgeMapping = new Dictionary<Tuple<int, int>, int>();
@@ -38,7 +30,6 @@ public class MeshCutter2
 		m_vertices.Add(Vector3.Lerp(m_vertices[indexA], m_vertices[indexB], t));
 		m_normals.Add(Vector3.Slerp(m_normals[indexA], m_normals[indexB], t));
 		m_uvs.Add(Vector2.Lerp(m_uvs[indexA], m_uvs[indexB], t));
-		m_vertexClassifications.Add(VertexClassification.OnSurface);
 
 		m_cutEdgeMapping[edge] = result;
 
@@ -85,25 +76,51 @@ public class MeshCutter2
 		m_indices.RemoveRange(lastTriangleFirstIndexIndex, 3);
 	}
 
-	void RemoveInteriorTriangles()
+	// for each triangle in the mesh, determines if it's completely inside or outside the planes
+	// triangles completely inside the planes are removed, and ones completely outside are marked to be skipped
+	void FilterTriangles(List<Plane> cuttingPlanes)
 	{
-		int triangleIndex = 0;
-		while (triangleIndex < m_skipCuttingTriangle.Count)
+		for (int triangleIndex = 0; triangleIndex < m_skipCuttingTriangle.Count; ++triangleIndex)
 		{
+			if (m_skipCuttingTriangle[triangleIndex]) continue; // if we've already determined that this triangle is safe, no need to check it again
+
 			int firstIndexIndex = triangleIndex * 3;
 			int indexA = m_indices[firstIndexIndex];
 			int indexB = m_indices[firstIndexIndex + 1];
 			int indexC = m_indices[firstIndexIndex + 2];
 
-			if (m_vertexClassifications[indexA] != VertexClassification.Outside && 
-				m_vertexClassifications[indexB] != VertexClassification.Outside &&
-				m_vertexClassifications[indexC] != VertexClassification.Outside)
+			
+			Vector3 vA = m_vertices[indexA];
+			Vector3 vB = m_vertices[indexB];
+			Vector3 vC = m_vertices[indexC];
+
+			bool insideA = true;
+			bool insideB = true;
+			bool insideC = true;
+
+			foreach (var plane in cuttingPlanes)
+			{
+				float dA = PlaneGetDistanceToPoint(plane, vA);
+				float dB = PlaneGetDistanceToPoint(plane, vB);
+				float dC = PlaneGetDistanceToPoint(plane, vC);
+
+				// if all 3 vertices are above a single plane, the triangle is completely outside the hull and can be skipped entirely
+				if (dA >= 0 && dB >= 0 && dC >= 0)
+				{
+					m_skipCuttingTriangle[triangleIndex] = true;
+					break;
+				}
+
+				insideA = insideA && dA <= 0;
+				insideB = insideB && dB <= 0;
+				insideC = insideC && dC <= 0;
+			}
+
+			// if all 3 vertices are inside all of the cutting planes, remove the triangle entirely
+			if (!m_skipCuttingTriangle[triangleIndex] && insideA && insideB && insideC)
 			{
 				RemoveTriangle(triangleIndex);
-			}
-			else
-			{
-				++triangleIndex;
+				--triangleIndex; // repeat same index
 			}
 		}
 	}
@@ -150,14 +167,8 @@ public class MeshCutter2
 			m_skipCuttingTriangle[i] = false;
 		}
 
-		m_vertexClassifications = new List<VertexClassification>(m_vertices.Count);
-		foreach (var vertex in m_vertices)
-		{
-			m_vertexClassifications.Add(ClassifyVertex(vertex, planes));
-		}
-
-		RemoveInteriorTriangles();
-
+		FilterTriangles(planes);
+		
 		// This algorithm tends to create a lot of extra vertices because it's not very smart about ordering the planes for each triangle
 		// instead of iterating over the planes, and cutting the mesh with each one, it might be better to iterate over the mesh triangles, sort the planes somehow, and then cut the triangle with the sorted planes
 		// not really sure what the right sorting criteria would be
@@ -166,36 +177,23 @@ public class MeshCutter2
 			CutByPlane(plane);
 		}
 
-		// reclassify the new vertices
-		for (int i = initialvertexCount; i < m_vertexClassifications.Count; i++)
-		{
-			m_vertexClassifications[i] = ClassifyVertex(m_vertices[i], planes);
-		}
-
-		RemoveInteriorTriangles();
-
-		
+		FilterTriangles(planes);
 	}
 
-	private VertexClassification ClassifyVertex(Vector3 vertex, List<Plane> planes)
+	// returns a negative number if the vertex is inside all the planes, 0 if it's on the surface, or a positive number if it's outside all of the planes
+	private float ClassifyVertex(Vector3 vertex, List<Plane> planes)
 	{
-		VertexClassification vertexClassification = VertexClassification.Inside;
-
 		foreach (var plane in planes)
 		{
 			float d = PlaneGetDistanceToPoint(plane, vertex);
 
-			if (d > 0)
+			if (d >= 0)
 			{
-				return VertexClassification.Outside;
-			}
-			else if (d == 0)
-			{
-				vertexClassification = VertexClassification.OnSurface;
+				return d;
 			}
 		}
 
-		return vertexClassification;
+		return -1;
 	}
 
 	// returns a set of planes in tool-local space (so the same set of planes can be re-used for many different transforms of the same tool)
