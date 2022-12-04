@@ -59,6 +59,76 @@ public class MeshCutter2
 		}
 	}
 
+	int FindOppositePlane(List<Plane> planes, int fromPlaneIndex)
+	{
+		float bestDot = 2;
+		int bestIndex = -1;
+
+		Vector3 normal = planes[fromPlaneIndex].normal;
+
+		for (int planeIndex = fromPlaneIndex + 1; planeIndex < planes.Count; ++planeIndex)
+		{
+			float dot = Vector3.Dot(planes[planeIndex].normal, normal);
+
+			if (dot < bestDot)
+			{
+				bestDot = dot;
+				bestIndex = planeIndex;
+			}
+		}
+
+		return bestIndex;
+	}
+
+	int FindPerpendicularPlane(List<Plane> planes, int fromPlaneIndex)
+	{
+		float bestDot = 2;
+		int bestIndex = -1;
+
+		Vector3 normal = planes[fromPlaneIndex].normal;
+
+		for (int planeIndex = fromPlaneIndex + 1; planeIndex < planes.Count; ++planeIndex)
+		{
+			float dot = Vector3.Dot(planes[planeIndex].normal, normal);
+
+			if (Mathf.Abs(dot) < bestDot)
+			{
+				bestDot = dot;
+				bestIndex = planeIndex;
+			}
+		}
+
+		return bestIndex;
+	}
+
+	static void Swap<T>(List<T> list, int a, int b)
+	{
+		T temp = list[a];
+		list[a] = list[b];
+		list[b] = temp;
+	}
+
+	// heuristic to apply cutting planes in a more useful order - every other plane should be as "opposite" as possible, and then the next one should be as perpendicular to the previous as possible
+	void SortPlanes(List<Plane> planes)
+	{
+		int currentPlaneIndex = 0;
+		while (currentPlaneIndex < planes.Count - 1)
+		{
+			int oppositePlaneIndex = FindOppositePlane(planes, currentPlaneIndex);
+
+			++currentPlaneIndex;
+			Swap(planes, currentPlaneIndex, oppositePlaneIndex);
+
+			if (currentPlaneIndex < planes.Count - 1)
+			{
+				int perpendicularPlaneIndex = FindPerpendicularPlane(planes, currentPlaneIndex);
+
+				++currentPlaneIndex;
+				Swap(planes, currentPlaneIndex, perpendicularPlaneIndex);
+			}
+		}
+	}
+
 	// removes a triangle and swaps the last one into its spot
 	void RemoveTriangle(int triangleIndex)
 	{
@@ -161,6 +231,8 @@ public class MeshCutter2
 		// make a copy of the planes cause we need to transform them
 		List<Plane> planes = cuttingPlanes.ToList();
 		TransformPlanesToMeshSpace(planes, cuttingToolTransform);
+
+		SortPlanes(planes);
 
 		for (int i = 0; i < m_skipCuttingTriangle.Count; i++)
 		{
