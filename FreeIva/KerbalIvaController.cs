@@ -48,6 +48,7 @@ namespace FreeIva
 		public InternalSeat OriginalSeat = null;
 		public InternalSeat TargetedSeat = null;
 		public static bool Gravity = true;
+		public static bool EnablePhysics = true;
 #if Experimental
 		public static bool CanHoldItems = false;
 #endif
@@ -127,9 +128,21 @@ namespace FreeIva
 				// Split this out to flags set in Update and acted upon in FixedUpdate.
 				// note from JonnyOThan: don't do that, because FixedUpdate happens before Update
 				// well, ideally we should get input before FixedUpdate and then apply forces in FixedUpdate
-				IVAInput input = new IVAInput();
+				input = new IVAInput();
 				GetInput(ref input);
 				ApplyInput(input);
+
+				{
+					InternalCamera.Instance.ManualReset(false);
+					InternalCamera.Instance.transform.localPosition = Vector3.zero;
+					InternalCamera.Instance.transform.localRotation = Quaternion.identity;
+					previousRotation = InternalCamera.Instance.transform.rotation;
+					// Normally the InternalCamera's transform is copied to the FlightCamera at the end of InternalCamera.Update, which will have happened right before this component updates.
+					// So we need to make sure the latest internal camera rotation gets copied to the flight camera.
+					FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
+					FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
+				}
+
 
 				/*FreeIva.InitialPart.Events.Clear();
                 if (_transferStart != 0 && Planetarium.GetUniversalTime() > (0.25 + _transferStart))
@@ -192,6 +205,8 @@ namespace FreeIva
 		{
 			// ApplyGravity();
 			//FallthroughCheck();
+			UpdateOrientation(input.RotationInputEuler);
+			UpdatePosition(input.MovementThrottle, input.Jump);
 		}
 
 		private void ApplyGravity()
@@ -347,6 +362,8 @@ namespace FreeIva
 			public bool Jump;
 		}
 
+		IVAInput input;
+
 		private static float GetKeyInputAxis(KeyCode positive, KeyCode negative)
 		{
 			return (Input.GetKey(positive) ? 1.0f : 0.0f) + (Input.GetKey(negative) ? -1.0f : 0.0f);
@@ -380,6 +397,10 @@ namespace FreeIva
 					// TODO: add key controls for turning
 					input.RotationInputEuler.z = GetKeyInputAxis(Settings.RollCCWKey, Settings.RollCWKey);
 				}
+
+				// camera
+				input.RotationInputEuler.x = InternalCamera.Instance.currentPitch;
+				input.RotationInputEuler.y = InternalCamera.Instance.currentRot;
 
 				// movement
 				{
@@ -420,8 +441,6 @@ namespace FreeIva
 
 			if (!buckled && !FreeIva.Paused)
 			{
-				UpdateOrientation(input.RotationInputEuler);
-				UpdatePosition(input.MovementThrottle, input.Jump);
 				TargetSeats();
 				TargetHatches(input.ToggleHatch, input.ToggleFarHatch);
 				if (_lastCameraMode != CameraManager.CameraMode.IVA)
@@ -808,8 +827,6 @@ namespace FreeIva
 
 			if (UseRelativeMovement())
 			{
-				currentRelativeOrientation.x += InternalCamera.Instance.currentPitch;
-				currentRelativeOrientation.y += InternalCamera.Instance.currentRot;
 				currentRelativeOrientation += angularSpeed;
 				currentRelativeOrientation.z = 0;
 
@@ -820,7 +837,7 @@ namespace FreeIva
 			}
 			else
 			{
-				previousRotation = InternalCamera.Instance.transform.rotation;
+				
 
 				Quaternion rotYaw = Quaternion.AngleAxis(angularSpeed.y, previousRotation * Vector3.up);
 				Quaternion rotPitch = Quaternion.AngleAxis(angularSpeed.x, previousRotation * Vector3.right);// *Quaternion.Euler(0, 90, 0);
@@ -828,15 +845,6 @@ namespace FreeIva
 
 				KerbalIva.transform.rotation = rotRoll * rotPitch * rotYaw * previousRotation;
 			}
-
-			InternalCamera.Instance.ManualReset(false);
-			InternalCamera.Instance.transform.localPosition = Vector3.zero;
-			InternalCamera.Instance.transform.localRotation = Quaternion.identity;
-			previousRotation = InternalCamera.Instance.transform.rotation;
-			// Normally the InternalCamera's transform is copied to the FlightCamera at the end of InternalCamera.Update, which will have happened right before this component updates.
-			// So we need to make sure the latest internal camera rotation gets copied to the flight camera.
-			FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-			FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
 		}
 
 		float GetMaxDeltaSpeed(bool accelerating, bool isGrounded)
@@ -905,6 +913,8 @@ namespace FreeIva
 
 		private void UpdatePosition(Vector3 movementThrottle, bool jump)
 		{
+			if (!EnablePhysics) return;
+
 			Vector3 desiredLocalSpeed = new Vector3(
 				movementThrottle.x * Settings.HorizontalSpeed,
 				movementThrottle.y * Settings.VerticalSpeed,
