@@ -63,13 +63,19 @@ namespace FreeIva
 		public delegate void GetInputDelegate(ref IVAInput input);
 		public static GetInputDelegate GetInput = GetKeyboardInput;
 
-		public void Start()
+		void Start()
 		{
 			CreateCameraCollider();
 			SetCameraToSeat();
 
 			GameEvents.OnCameraChange.Add(OnCameraChange);
 			_instance = this;
+		}
+
+		void OnDestroy()
+		{
+			GameEvents.OnCameraChange.Remove(OnCameraChange);
+			_instance = null;
 		}
 
 		public void Update()
