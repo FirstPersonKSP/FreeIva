@@ -900,30 +900,36 @@ namespace FreeIva
 				movementThrottle.y * Settings.VerticalSpeed,
 				movementThrottle.z * Settings.ForwardSpeed);
 
-			Quaternion orientation = previousRotation;
-
 			Vector3 flightAccel = InternalSpace.WorldToInternal(GetFlightAccelerationWorldSpace());
 			bool useGroundSystem = UseRelativeMovement();
 			bool tryingToMove = desiredLocalSpeed != Vector3.zero;
 
+			Quaternion orientation = useGroundSystem
+				// take the yaw angle but nothing else (maintain global up)
+				? orientation = InternalSpace.WorldToInternal(FlightGlobals.GetFoR(FoRModes.SRF_NORTH) * Quaternion.Euler(0, currentRelativeOrientation.y, 0))
+				: previousRotation;
+
+			// Make the movement relative to the camera rotation.
+			Vector3 desiredWorldVelocity = orientation * desiredLocalSpeed;
+
 			if (useGroundSystem)
 			{
-				// take the yaw angle but nothing else (maintain global up)
-
-				orientation = InternalSpace.WorldToInternal(FlightGlobals.GetFoR(FoRModes.SRF_NORTH) * Quaternion.Euler(0, currentRelativeOrientation.y, 0));
-
 				bool grounded = GetGroundPlane(flightAccel, out Plane groundPlane);
 
 				// for now, allow free movement vertically
 				if (movementThrottle.y == 0 && Gravity)
 				{
-					float gravityScale = grounded ? 0.5f : 1f;
+					float gravityScale = grounded ? 0.1f : 1f;
 					KerbalRigidbody.AddForce(gravityScale * flightAccel, ForceMode.Acceleration);
 				}
 
 				if (grounded)
 				{
-					// TODO: orient desired velocity along ground plane
+					// rotate the desired world velocity along the ground plane
+					float desiredSpeed = desiredWorldVelocity.magnitude;
+					desiredWorldVelocity = Vector3.ProjectOnPlane(desiredWorldVelocity, groundPlane.normal);
+					desiredWorldVelocity = desiredWorldVelocity.normalized * desiredSpeed;
+
 					if (jump)
 					{
 						// Jump in the opposite direction to gravity.
@@ -932,9 +938,6 @@ namespace FreeIva
 				}
 
 			}
-
-			// Make the movement relative to the camera rotation.
-			Vector3 desiredWorldVelocity = orientation * desiredLocalSpeed;
 
 			KerbalIva.GetComponentCached<Rigidbody>(ref KerbalRigidbody);
 			
