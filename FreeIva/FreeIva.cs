@@ -110,7 +110,7 @@ namespace FreeIva
 		}
 
 
-		Part FindPartWithEmptySeat(Part sourcePart)
+		internal static Part FindPartWithEmptySeat(Part sourcePart)
 		{
 			if (sourcePart.protoModuleCrew.Count < sourcePart.CrewCapacity)
 			{

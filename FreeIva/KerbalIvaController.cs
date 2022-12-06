@@ -82,12 +82,19 @@ namespace FreeIva
 		{
 			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)
 			{
-				if (_lastCameraMode == CameraManager.CameraMode.IVA) // Switching away from IVA.
+				if (ActiveKerbal != null) // Switching away from IVA.
 				{
 					InputLockManager.RemoveControlLock("FreeIVA");
 
 					// Return the kerbal to its original seat.
 					TargetedSeat = ActiveKerbal.seat;
+					var targetPart = FreeIva.FindPartWithEmptySeat(FreeIva.CurrentPart);
+					if (targetPart != null)
+					{
+						// disabling this for now, because it's so different from the behavior when pressing C
+						// but it works, if we want to bring it back
+						// TargetedSeat = PropBuckleButton.FindClosestSeat(targetPart.internalModel, KerbalIva.transform.position, float.MaxValue);
+					}
 					if (!buckled)
 						Buckle();
 				}

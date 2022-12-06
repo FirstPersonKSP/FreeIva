@@ -68,12 +68,12 @@ namespace FreeIva
 
 		// since props aren't usually directly associated with InternalSeats, we have to search for a seat that is near this prop
 		// only consider seats within this range
-		static float MaxRangeFromProp = 2f;
+		const float MaxRangeFromProp = 2f;
 
 		// how far away the kerbal can be from the seat transform to board it when clicking
-		static float MaxRangeFromKerbal = 1f;
+		const float MaxRangeFromKerbal = 1f;
 
-		InternalSeat FindClosestSeat(InternalModel model, Vector3 position)
+		internal static InternalSeat FindClosestSeat(InternalModel model, Vector3 position, float maxRange = MaxRangeFromProp)
 		{
 			float bestDist = MaxRangeFromProp;
 			InternalSeat result = null;
