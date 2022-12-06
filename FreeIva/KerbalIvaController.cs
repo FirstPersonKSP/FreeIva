@@ -178,9 +178,19 @@ namespace FreeIva
 			return gravityAccel + centrifugalAccel + coriolisAccel;
 		}
 
+		public Vector3 GetFlightAccelerationInternalSpace()
+		{
+			Vector3 accelWorldSpace = GetFlightAccelerationWorldSpace();
+
+			float magnitude = accelWorldSpace.magnitude;
+			Quaternion direction = Quaternion.LookRotation(accelWorldSpace);
+			Quaternion internalDirection = InternalSpace.WorldToInternal(direction);
+			return internalDirection * Vector3.forward * magnitude;
+		}
+
 		public void FixedUpdate()
 		{
-			ApplyGravity();
+			// ApplyGravity();
 			//FallthroughCheck();
 		}
 
@@ -900,7 +910,7 @@ namespace FreeIva
 				movementThrottle.y * Settings.VerticalSpeed,
 				movementThrottle.z * Settings.ForwardSpeed);
 
-			Vector3 flightAccel = InternalSpace.WorldToInternal(GetFlightAccelerationWorldSpace());
+			Vector3 flightAccel = GetFlightAccelerationInternalSpace();
 			bool useGroundSystem = UseRelativeMovement();
 			bool tryingToMove = desiredLocalSpeed != Vector3.zero;
 
@@ -911,10 +921,11 @@ namespace FreeIva
 
 			// Make the movement relative to the camera rotation.
 			Vector3 desiredWorldVelocity = orientation * desiredLocalSpeed;
+			bool grounded= false;
 
 			if (useGroundSystem)
 			{
-				bool grounded = GetGroundPlane(flightAccel, out Plane groundPlane);
+				grounded = GetGroundPlane(flightAccel, out Plane groundPlane);
 
 				// for now, allow free movement vertically
 				if (movementThrottle.y == 0 && Gravity)
@@ -943,6 +954,12 @@ namespace FreeIva
 			
 			Vector3 velocityDelta = desiredWorldVelocity - KerbalRigidbody.velocity;
 
+			// if we're not on the ground, don't change velocity in the vertical direction
+			if (useGroundSystem && !grounded && movementThrottle.y == 0)
+			{
+				velocityDelta = Vector3.ProjectOnPlane(velocityDelta, flightAccel.normalized);
+			}
+
 			float desiredDeltaSpeed = velocityDelta.magnitude;
 			float maxDeltaSpeed = GetMaxDeltaSpeed(tryingToMove, useGroundSystem);
 			if (desiredDeltaSpeed > maxDeltaSpeed)
@@ -950,9 +967,9 @@ namespace FreeIva
 				velocityDelta = velocityDelta.normalized * maxDeltaSpeed;
 			}
 
-			if (KerbalRigidbody.velocity.magnitude < 0.01f && !tryingToMove && desiredDeltaSpeed < maxDeltaSpeed)
+			if (KerbalRigidbody.velocity.magnitude < 0.02f && !tryingToMove && desiredDeltaSpeed < maxDeltaSpeed && (!useGroundSystem || grounded))
 			{
-				KerbalRigidbody.velocity = Vector3.zero;
+				KerbalRigidbody.Sleep();
 			}
 			else
 			{
