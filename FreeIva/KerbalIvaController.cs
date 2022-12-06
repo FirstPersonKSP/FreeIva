@@ -47,7 +47,7 @@ namespace FreeIva
 		public static ProtoCrewMember ActiveKerbal;
 		public InternalSeat OriginalSeat = null;
 		public InternalSeat TargetedSeat = null;
-		public static bool Gravity = false;
+		public static bool Gravity = true;
 #if Experimental
 		public static bool CanHoldItems = false;
 #endif
@@ -791,7 +791,7 @@ namespace FreeIva
             previousRotation = cameraRotation;
             FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);*/
 
-			Vector3 angularSpeed = Time.deltaTime * new Vector3(
+			Vector3 angularSpeed = Time.fixedDeltaTime * new Vector3(
 				rotationInput.x * Settings.PitchSpeed,
 				rotationInput.y * Settings.YawSpeed,
 				rotationInput.z * Settings.RollSpeed);
@@ -841,7 +841,7 @@ namespace FreeIva
 				result = isGrounded ? Settings.MaxDecelerationGrounded : Settings.MaxDecelerationWeightless;
 			}
 
-			return result * Time.deltaTime;
+			return result * Time.fixedDeltaTime;
 		}
 
 		List<ContactPoint> contactPoints = new List<ContactPoint>();
