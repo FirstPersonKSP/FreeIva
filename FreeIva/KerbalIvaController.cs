@@ -848,7 +848,7 @@ namespace FreeIva
 
 
 		bool GetGroundPlane(Vector3 gravity, out Plane plane)
-        {
+		{
 			Vector3 up = -Vector3.Normalize(gravity);
 			float cosWalkableSlope = Mathf.Cos(Mathf.Deg2Rad * Settings.WalkableSlope);
 
@@ -857,41 +857,41 @@ namespace FreeIva
 			int contactPointCount = 0;
 
 			foreach (var collision in KerbalCollisionTracker.Collisions)
-            {
+			{
 				if (collision.contactCount > contactPoints.Capacity)
-                {
+				{
 					contactPoints.Capacity = collision.contactCount;
-                }
+				}
 
 				contactPoints.Clear();
 
 				collision.GetContacts(contactPoints);
 
 				foreach (var contactPoint in contactPoints)
-                {
+				{
 					if (Vector3.Dot(contactPoint.normal, up) >= cosWalkableSlope)
-                    {
+					{
 						accumulatedNormal += contactPoint.normal;
 						accumulatedPosition += contactPoint.point;
 						++contactPointCount;
 
 						Debug.DrawRay(contactPoint.point, contactPoint.normal, Color.red, 0, true);
-                    }
-                }
-            }
+					}
+				}
+			}
 
 			if (contactPointCount > 0)
-            {
+			{
 				accumulatedNormal.Normalize();
 				accumulatedPosition /= contactPointCount;
 
 				plane = new Plane(accumulatedNormal, accumulatedPosition);
 				return true;
-            }
+			}
 
 			plane = new Plane();
 			return false;
-        }
+		}
 
 		private void UpdatePosition(Vector3 movementThrottle, bool jump)
 		{
@@ -922,7 +922,7 @@ namespace FreeIva
 				}
 
 				if (grounded)
-                {
+				{
 					// TODO: orient desired velocity along ground plane
 					if (jump)
 					{
