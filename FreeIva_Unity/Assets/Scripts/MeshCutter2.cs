@@ -177,8 +177,12 @@ public class MeshCutter2
 				// if all 3 vertices are above a single plane, the triangle is completely outside the hull and can be skipped entirely
 				if (dA >= 0 && dB >= 0 && dC >= 0)
 				{
-					m_skipCuttingTriangle[triangleIndex] = true;
-					break;
+					// unless all 3 are on the plane - then we might still want to remove it.
+					if (dA != 0 || dB != 0 || dC != 0)
+					{
+						m_skipCuttingTriangle[triangleIndex] = true;
+						break;
+					}
 				}
 
 				insideA = insideA && dA <= 0;
@@ -295,7 +299,7 @@ public class MeshCutter2
 	{
 		float d = plane.GetDistanceToPoint(point);
 
-		if (Mathf.Abs(d) > 1e-4f)
+		if (Mathf.Abs(d) > 1e-3f)
 		{
 			return d;
 		}

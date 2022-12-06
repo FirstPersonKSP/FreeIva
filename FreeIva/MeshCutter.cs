@@ -47,7 +47,11 @@ namespace FreeIva
 
 				foreach (var tool in tools)
 				{
-					cutter.CutMesh(tool);
+					var toolMeshes = tool.GetComponentsInChildren<MeshFilter>();
+					foreach (var toolMesh in toolMeshes)
+					{
+						cutter.CutMesh(toolMesh.gameObject);
+					}
 				}
 
 				cutter.FinalizeMesh();
