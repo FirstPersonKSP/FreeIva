@@ -17,7 +17,7 @@ namespace FreeIva
 	/// Character controller for IVA movement.
 	/// </summary>
 	[KSPAddon(KSPAddon.Startup.Flight, false)]
-	public class KerbalIvaController : MonoBehaviour
+	public class KerbalIvaAddon : MonoBehaviour
 	{
 		public static GameObject KerbalIva;
 		public static SphereCollider KerbalCollider; // this may eventually change to a Capsule
@@ -58,8 +58,8 @@ namespace FreeIva
 		private Vector3 _previousPos = Vector3.zero;
 		private bool _changingCurrentIvaCrew = false;
 
-		public static KerbalIvaController _instance;
-		public static KerbalIvaController Instance { get { return _instance; } }
+		public static KerbalIvaAddon _instance;
+		public static KerbalIvaAddon Instance { get { return _instance; } }
 
 		public delegate void GetInputDelegate(ref IVAInput input);
 		public static GetInputDelegate GetInput = GetKeyboardInput;

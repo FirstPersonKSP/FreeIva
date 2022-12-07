@@ -107,7 +107,7 @@
     <Compile Include="InternalModules\Hatches\PropHatchAnimated.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="ExtensionMethods.cs" />
-    <Compile Include="KerbalIvaController.cs" />
+    <Compile Include="KerbalIvaAddon.cs" />
     <Compile Include="IvaCollisionTracker.cs" />
     <Compile Include="FreeIva.cs" />
     <Compile Include="Gui\GuiUtils.cs" />

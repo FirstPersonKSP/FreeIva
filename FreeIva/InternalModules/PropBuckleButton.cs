@@ -87,7 +87,7 @@ namespace FreeIva
 				}
 			}
 
-			if (result.taken && result.crew != KerbalIvaController.ActiveKerbal)
+			if (result.taken && result.crew != KerbalIvaAddon.ActiveKerbal)
 			{
 				result = null;
 			}
@@ -97,10 +97,10 @@ namespace FreeIva
 
 		private void OnClick()
 		{
-			if (KerbalIvaController.Instance.buckled)
+			if (KerbalIvaAddon.Instance.buckled)
 			{
 				// TODO: what if this buckle is on a different seat than the one you're in?
-				KerbalIvaController.Instance.Unbuckle();
+				KerbalIvaAddon.Instance.Unbuckle();
 			}
 			else
 			{
@@ -114,8 +114,8 @@ namespace FreeIva
 
 					if (distanceFromKerbal < MaxRangeFromKerbal)
 					{
-						KerbalIvaController.Instance.TargetedSeat = seat;
-						KerbalIvaController.Instance.Buckle();
+						KerbalIvaAddon.Instance.TargetedSeat = seat;
+						KerbalIvaAddon.Instance.Buckle();
 					}
 				}
 			}

@@ -70,9 +70,9 @@ namespace FreeIva.InternalModules
 
 		private void OnClick()
 		{
-			if (KerbalIvaController.Instance.buckled)
+			if (KerbalIvaAddon.Instance.buckled)
 			{
-				KerbalIvaController.Instance.Unbuckle();
+				KerbalIvaAddon.Instance.Unbuckle();
 			}
 		}
 	}
