@@ -132,6 +132,7 @@ namespace FreeIva
 				GetInput(ref input);
 				ApplyInput(input);
 
+				if (!buckled)
 				{
 					InternalCamera.Instance.ManualReset(false);
 					InternalCamera.Instance.transform.localPosition = Vector3.zero;
@@ -203,47 +204,14 @@ namespace FreeIva
 
 		public void FixedUpdate()
 		{
-			// ApplyGravity();
 			//FallthroughCheck();
-			UpdateOrientation(input.RotationInputEuler);
-			UpdatePosition(input.MovementThrottle, input.Jump);
-		}
-
-		private void ApplyGravity()
-		{
-			KerbalIva.GetComponentCached(ref KerbalRigidbody);
-			if (Gravity)
+			if (!buckled)
 			{
-				Vector3 worldPosition = InternalSpace.InternalToWorld(KerbalIva.transform.position);
-
-				Vector3 gForce = FlightGlobals.getGeeForceAtPosition(worldPosition);
-				Vector3 centrifugalForce = FlightGlobals.getCentrifugalAcc(worldPosition, FreeIva.CurrentPart.orbit.referenceBody);
-				Vector3 coriolisForce = FlightGlobals.getCoriolisAcc(FreeIva.CurrentPart.vessel.rb_velocity + Krakensbane.GetFrameVelocityV3f(), FreeIva.CurrentPart.orbit.referenceBody);
-
-				gForce = InternalSpace.WorldToInternal(gForce);
-				centrifugalForce = InternalSpace.WorldToInternal(centrifugalForce);
-				coriolisForce = InternalSpace.WorldToInternal(coriolisForce);
-				flightForces = gForce + centrifugalForce + coriolisForce;
-
-				KerbalRigidbody.AddForce(gForce, ForceMode.Acceleration);
-				KerbalRigidbody.AddForce(centrifugalForce, ForceMode.Acceleration);
-				KerbalRigidbody.AddForce(coriolisForce, ForceMode.Acceleration);
-				KerbalRigidbody.AddForce(Krakensbane.GetLastCorrection(), ForceMode.VelocityChange);
-
-				if (FreeIva.SelectedObject != null)
-				{
-					Rigidbody rbso = FreeIva.SelectedObject.GetComponent<Rigidbody>();
-					if (rbso == null)
-						rbso = FreeIva.SelectedObject.AddComponent<Rigidbody>();
-					rbso.AddForce(gForce, ForceMode.Acceleration);
-					rbso.AddForce(centrifugalForce, ForceMode.Acceleration);
-					rbso.AddForce(coriolisForce, ForceMode.Acceleration);
-				}
+				UpdateOrientation(input.RotationInputEuler);
+				UpdatePosition(input.MovementThrottle, input.Jump);
 			}
-			else
-			{
-				// KerbalRigidbody.velocity = Vector3.zero;
-			}
+
+			input.Jump = false;
 		}
 
 		private void FallthroughCheck()
@@ -411,7 +379,7 @@ namespace FreeIva
 					input.MovementThrottle.Normalize();
 				}
 
-				input.Jump = Input.GetKeyDown(Settings.JumpKey);
+				input.Jump = Input.GetKey(Settings.JumpKey);
 
 				if (Input.GetKeyDown(Settings.OpenHatchKey))
 				{
@@ -922,7 +890,7 @@ namespace FreeIva
 
 			Vector3 flightAccel = GetFlightAccelerationInternalSpace();
 			bool useGroundSystem = UseRelativeMovement();
-			bool tryingToMove = desiredLocalSpeed != Vector3.zero;
+			bool tryingToMove = desiredLocalSpeed != Vector3.zero || jump;
 
 			Quaternion orientation = useGroundSystem
 				// take the yaw angle but nothing else (maintain global up)

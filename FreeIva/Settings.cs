@@ -28,18 +28,18 @@ namespace FreeIva
 
 		public static float MaxAcceleration = 4;
 		public static float MaxDecelerationGrounded = 5;
-		public static float MaxDecelerationWeightless = 1;
+		public static float MaxDecelerationWeightless = 0.5f;
+
+		public static float JumpForce = 1.5f;
+		public static float WalkableSlope = 75f;
 
 		// TODO: Free look
 		public static float YawSpeed = 360f; // deg/s at 1.0 input
 		public static float PitchSpeed = 360f;
-		public static float RollSpeed = 180f;
+		public static float RollSpeed = 90f;
 		// TODO: Gravity look
 		public static float YawSensitivity = 1.0f;
 		public static float PitchSensitivity = 1.0f;
-
-		public static float JumpForce = 3f;
-		public static float WalkableSlope = 75f;
 
 		public static float KerbalHeight = 0.4f;
 		public static float KerbalHeightWithHelmet = 2.5f;
@@ -91,6 +91,8 @@ namespace FreeIva
 			settings.TryGetValue(nameof(MaxAcceleration), ref MaxAcceleration);
 			settings.TryGetValue(nameof(MaxDecelerationGrounded), ref MaxDecelerationGrounded);
 			settings.TryGetValue(nameof(MaxDecelerationWeightless), ref MaxDecelerationWeightless);
+			settings.TryGetValue(nameof(JumpForce), ref JumpForce);
+			settings.TryGetValue(nameof(WalkableSlope), ref WalkableSlope);
 			if (settings.HasValue("YawSpeed")) YawSpeed = float.Parse(settings.GetValue("YawSpeed"));
 			if (settings.HasValue("PitchSpeed")) PitchSpeed = float.Parse(settings.GetValue("PitchSpeed"));
 			if (settings.HasValue("RollSpeed")) RollSpeed = float.Parse(settings.GetValue("RollSpeed"));
