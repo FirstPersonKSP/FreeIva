@@ -112,6 +112,7 @@
     <Compile Include="FreeIva.cs" />
     <Compile Include="Gui\GuiUtils.cs" />
     <Compile Include="InternalModules\Hatches\Hatch.cs" />
+    <Compile Include="KerbalIvaController.cs" />
     <Compile Include="MeshCutter.cs" />
     <Compile Include="ModuleFreeIva.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
