@@ -58,21 +58,6 @@ namespace FreeIva
 			KerbalCollisionTracker = gameObject.AddComponent<IvaCollisionTracker>();
 		}
 
-		// not sure if this is actually necessary; it seems like most of this should be done in Activate
-		// maybe the previousRotation line needs to go in there instead.
-		public void SetCameraToSeat()
-		{
-			if (InternalCamera.Instance == null)
-			{
-				Debug.LogError("InternalCamera was null");
-				Debug.Log("Searching for camera: " + InternalCamera.FindObjectOfType<Camera>());
-				return;
-			}
-			transform.position = InternalCamera.Instance.transform.position; //forward;// FlightCamera.fetch.transform.forward;
-																					   //previousRotation = InternalCamera.Instance.transform.rotation;// *Quaternion.AngleAxis(-90, InternalCamera.Instance.transform.right);
-			previousRotation = Quaternion.AngleAxis(-90, InternalCamera.Instance.transform.right) * InternalCamera.Instance.transform.localRotation; // Fixes "unbuckling looking at feet"
-		}
-
 		public void Activate(ProtoCrewMember kerbal)
 		{
 			ActiveKerbal = kerbal;
@@ -102,7 +87,7 @@ namespace FreeIva
 			InternalCamera.Instance.transform.localPosition = Vector3.zero;
 			InternalCamera.Instance.transform.localRotation = Quaternion.identity;
 
-			KerbalFeetCollider.enabled = KerbalIvaAddon.Gravity;
+			KerbalFeetCollider.enabled = KerbalIvaAddon.Gravity && UseRelativeMovement();
 
 			gameObject.SetActive(true);
 		}

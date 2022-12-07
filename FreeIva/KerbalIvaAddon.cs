@@ -53,7 +53,6 @@ namespace FreeIva
 		void Start()
 		{
 			CreateCameraCollider();
-			KerbalIva.SetCameraToSeat();
 
 			GameEvents.OnCameraChange.Add(OnCameraChange);
 			_instance = this;
@@ -94,7 +93,6 @@ namespace FreeIva
 					// Switching to IVA.
 					FreeIva.EnableInternals();
 					UpdateActiveKerbal();//false);
-					KerbalIva.SetCameraToSeat();
 					FreeIva.SetRenderQueues(FreeIva.CurrentPart);
 				}
 
