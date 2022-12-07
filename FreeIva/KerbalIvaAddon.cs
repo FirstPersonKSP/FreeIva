@@ -60,6 +60,7 @@ namespace FreeIva
 
 		void OnDestroy()
 		{
+			GameObject.Destroy(KerbalIva);
 			GameEvents.OnCameraChange.Remove(OnCameraChange);
 			_instance = null;
 		}
@@ -74,16 +75,23 @@ namespace FreeIva
 
 					// Return the kerbal to its original seat.
 					TargetedSeat = ActiveKerbal.seat;
-					var targetPart = FreeIva.FindPartWithEmptySeat(FreeIva.CurrentPart);
-					if (targetPart != null)
+
+					if (FreeIva.CurrentPart != null)
 					{
-						// disabling this for now, because it's so different from the behavior when pressing C
-						// but it works, if we want to bring it back
-						// TargetedSeat = PropBuckleButton.FindClosestSeat(targetPart.internalModel, KerbalIva.transform.position, float.MaxValue);
+						var targetPart = FreeIva.FindPartWithEmptySeat(FreeIva.CurrentPart);
+						if (targetPart != null)
+						{
+							// disabling this for now, because it's so different from the behavior when pressing C
+							// but it works, if we want to bring it back
+							// TargetedSeat = PropBuckleButton.FindClosestSeat(targetPart.internalModel, KerbalIva.transform.position, float.MaxValue);
+						}
 					}
+
 					if (!buckled)
 						Buckle();
 				}
+				ActiveKerbal = null;
+				FreeIva.CurrentPart = null;
 			}
 			else
 			{

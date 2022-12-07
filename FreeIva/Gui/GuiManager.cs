@@ -40,7 +40,7 @@ namespace FreeIva
 			GuiUtils.label("Part (" + (_partIndex + 1) + "/" + FlightGlobals.ActiveVessel.Parts.Count + ")", FreeIva.CurrentPart);
 
 			// Internals
-			if (FreeIva.CurrentPart.internalModel == null)
+			if (FreeIva.CurrentPart == null ||  FreeIva.CurrentPart.internalModel == null)
 			{
 				GUILayout.Label("No internal model found");
 				//return;

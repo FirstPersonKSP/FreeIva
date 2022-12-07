@@ -59,7 +59,7 @@ namespace FreeIva
 			}
 			else
 			{
-				result.propID = FreeIva.CurrentPart.internalModel.props.Count;
+				result.propID = atProp.internalModel.props.Count;
 				result.internalModel = atProp.internalModel;
 
 				// position the prop relative to this one, then attach it to the internal model

@@ -142,7 +142,11 @@ namespace FreeIva
 					return part;
 				}
 
-				EnqueuePart(part.parent);
+				if (part.parent != null)
+				{
+					EnqueuePart(part.parent);
+				}
+
 				foreach (var childPart in part.children)
 				{
 					EnqueuePart(childPart);
