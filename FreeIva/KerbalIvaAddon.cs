@@ -71,6 +71,7 @@ namespace FreeIva
 			{
 				Gravity = !Gravity;
 				ScreenMessages.PostScreenMessage("[FreeIva] Gravity " + (Gravity ? "Enabled" : "Disabled"), 1f, ScreenMessageStyle.LOWER_CENTER);
+				KerbalIva.KerbalFeetCollider.enabled = KerbalIvaController.UseRelativeMovement();
 			}
 
 			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)

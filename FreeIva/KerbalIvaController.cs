@@ -33,7 +33,7 @@ namespace FreeIva
 			set
 			{
 				KerbalCollider.enabled = value;
-				KerbalFeetCollider.enabled = value;
+				KerbalFeetCollider.enabled = UseRelativeMovement();
 			}
 		}
 
@@ -123,7 +123,7 @@ namespace FreeIva
 			gameObject.SetActive(true);
 		}
 
-		bool UseRelativeMovement()
+		public static bool UseRelativeMovement()
 		{
 			// eventually we might want to include flying in atmosphere, etc
 			return FlightGlobals.ActiveVessel.LandedOrSplashed && KerbalIvaAddon.Gravity;
