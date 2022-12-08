@@ -74,7 +74,7 @@ namespace FreeIva
 			if (UseRelativeMovement())
 			{
 				// get the vector pointing straight down, and pitch it up by 90 degrees
-				transform.rotation = Quaternion.LookRotation(flightAccel, previousRotation * Vector3.forward) * Quaternion.AngleAxis(90, Vector3.left);
+				transform.rotation = Quaternion.LookRotation(flightAccel, transform.rotation * Vector3.forward) * Quaternion.AngleAxis(90, Vector3.left);
 			}
 		}
 
