@@ -5,6 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
+/* The kerbal is made up of 3 objects:
+ * At the root is the object that contains the collider(s) and rigid body.  This does not rotate except to orient relative to gravity.
+ * The origin of the root object is at the eye position (this might change...)
+ * Attached to the root object is the camera anchor.  This turns in accordance with the user inputs.  Movement is relative to this transform
+ * Attached to the camera anchor is the object that contains the InternalCamera.  This object's local transform is usually identity, except in VR (it represents the head tracking)
+ */
+
 namespace FreeIva
 {
 	public class KerbalIvaController : MonoBehaviour
@@ -12,6 +19,7 @@ namespace FreeIva
 		public SphereCollider KerbalCollider; // this may eventually change to a Capsule
 		public SphereCollider KerbalFeetCollider;
 		public Rigidbody KerbalRigidbody;
+		public Transform CameraAnchor;
 		public ProtoCrewMember ActiveKerbal;
 		private IvaCollisionTracker KerbalCollisionTracker;
 
@@ -56,38 +64,57 @@ namespace FreeIva
 			KerbalRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
 
 			KerbalCollisionTracker = gameObject.AddComponent<IvaCollisionTracker>();
+
+			CameraAnchor = new GameObject("CameraAnchor").transform;
+			CameraAnchor.SetParent(transform, false);
+		}
+
+		public void OrientToGravity(Vector3 flightAccel)
+		{
+			if (UseRelativeMovement())
+			{
+				// get the vector pointing straight down, and pitch it up by 90 degrees
+				transform.rotation = Quaternion.LookRotation(flightAccel, previousRotation * Vector3.forward) * Quaternion.AngleAxis(90, Vector3.left);
+			}
 		}
 
 		public void Activate(ProtoCrewMember kerbal)
 		{
 			ActiveKerbal = kerbal;
 
-			Quaternion cameraRotationSurface = Quaternion.Inverse(FlightGlobals.GetFoR(FoRModes.SRF_NORTH)) * InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
-
-			currentRelativeOrientation = cameraRotationSurface.eulerAngles;
-			currentRelativeOrientation.z = 0; // roll
-
-			if (currentRelativeOrientation.x > 180)
-			{
-				currentRelativeOrientation.x -= 360;
-			}
-			if (currentRelativeOrientation.x > 90 || currentRelativeOrientation.x < -90)
-			{
-				currentRelativeOrientation.y += 180;
-				currentRelativeOrientation.x = Mathf.Clamp(currentRelativeOrientation.x, -90, 90);
-			}
-
 			previousRotation = InternalCamera.Instance.transform.rotation;
 			InternalCamera.Instance.ManualReset(false);
 
 			transform.position = ActiveKerbal.KerbalRef.eyeTransform.position;
-			transform.rotation = previousRotation;
+
+			if (UseRelativeMovement())
+			{
+				Vector3 flightAccel = KerbalIvaAddon.Instance.GetFlightAccelerationInternalSpace();
+				OrientToGravity(flightAccel);
+				KerbalFeetCollider.enabled = KerbalIvaAddon.Gravity;
+
+				currentRelativeOrientation = (Quaternion.Inverse(transform.rotation) * InternalCamera.Instance.transform.rotation).eulerAngles;
+				currentRelativeOrientation.z = 0; // roll
+
+				if (currentRelativeOrientation.x > 180)
+				{
+					currentRelativeOrientation.x -= 360;
+				}
+				if (currentRelativeOrientation.x > 90 || currentRelativeOrientation.x < -90)
+				{
+					currentRelativeOrientation.y += 180;
+					currentRelativeOrientation.x = Mathf.Clamp(currentRelativeOrientation.x, -90, 90);
+				}
+			}
+			else
+			{
+				transform.rotation = Quaternion.identity;
+				KerbalFeetCollider.enabled = false;
+			}
 			// The Kerbal's eye transform is the InternalCamera's parent normally, not InternalSpace.Instance as previously thought.
-			InternalCamera.Instance.transform.parent = transform;
+			InternalCamera.Instance.transform.parent = CameraAnchor;
 			InternalCamera.Instance.transform.localPosition = Vector3.zero;
 			InternalCamera.Instance.transform.localRotation = Quaternion.identity;
-
-			KerbalFeetCollider.enabled = KerbalIvaAddon.Gravity && UseRelativeMovement();
 
 			gameObject.SetActive(true);
 		}
@@ -103,7 +130,6 @@ namespace FreeIva
 
 		public void UpdateOrientation(Vector3 rotationInput)
 		{
-
 			Vector3 angularSpeed = Time.fixedDeltaTime * new Vector3(
 				rotationInput.x * Settings.PitchSpeed,
 				rotationInput.y * Settings.YawSpeed,
@@ -117,9 +143,9 @@ namespace FreeIva
 				currentRelativeOrientation.x = Mathf.Clamp(currentRelativeOrientation.x, -90, 90);
 				currentRelativeOrientation.y = currentRelativeOrientation.y % 360;
 
-				transform.rotation = InternalSpace.WorldToInternal(FlightGlobals.GetFoR(FoRModes.SRF_NORTH) * Quaternion.Euler(currentRelativeOrientation));
+				CameraAnchor.localRotation = Quaternion.Euler(currentRelativeOrientation);
 			}
-			else
+			else 
 			{
 
 
@@ -127,7 +153,8 @@ namespace FreeIva
 				Quaternion rotPitch = Quaternion.AngleAxis(angularSpeed.x, previousRotation * Vector3.right);// *Quaternion.Euler(0, 90, 0);
 				Quaternion rotRoll = Quaternion.AngleAxis(angularSpeed.z, previousRotation * Vector3.forward);
 
-				transform.rotation = rotRoll * rotPitch * rotYaw * previousRotation;
+				// transform.rotation = rotRoll * rotPitch * rotYaw * previousRotation;
+				CameraAnchor.localRotation = rotRoll * rotPitch * rotYaw * CameraAnchor.localRotation;
 			}
 		}
 
@@ -143,7 +170,7 @@ namespace FreeIva
 
 			Quaternion orientation = useGroundSystem
 				// take the yaw angle but nothing else (maintain global up)
-				? orientation = InternalSpace.WorldToInternal(FlightGlobals.GetFoR(FoRModes.SRF_NORTH) * Quaternion.Euler(0, currentRelativeOrientation.y, 0))
+				? transform.rotation * Quaternion.Euler(0, currentRelativeOrientation.y, 0)
 				: previousRotation;
 
 			// Make the movement relative to the camera rotation.

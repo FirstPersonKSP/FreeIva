@@ -200,6 +200,9 @@ namespace FreeIva
 			{
 				Vector3 flightAccel = GetFlightAccelerationInternalSpace();
 				//FallthroughCheck();
+				// TODO: re-orient in case gravity changed
+				// right now this causes a bad feedback loop in the camera rotation, but we'll need to eventually figure this out for centrifuges
+				// KerbalIva.OrientToGravity(flightAccel);
 				KerbalIva.UpdateOrientation(input.RotationInputEuler);
 				KerbalIva.UpdatePosition(flightAccel, input.MovementThrottle, input.Jump);
 			}
