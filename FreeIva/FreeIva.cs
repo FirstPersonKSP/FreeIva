@@ -69,6 +69,7 @@ namespace FreeIva
 		{
 			get
 			{
+				if (CurrentPart == null) return null;
 				if (_currentInternalModuleFreeIva == null || _currentInternalModuleFreeIva.part != CurrentPart)
 				{
 					_currentInternalModuleFreeIva = InternalModuleFreeIva.GetForModel(CurrentPart.internalModel);

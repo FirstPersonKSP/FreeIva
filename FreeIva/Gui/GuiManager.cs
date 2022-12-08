@@ -116,6 +116,8 @@ namespace FreeIva
 			//}
 			GUILayout.EndHorizontal();
 
+
+			GuiUtils.label("ladder count", KerbalIvaAddon.KerbalIva.KerbalCollisionTracker.RailColliderCount);
 			Settings.KerbalHeight = GuiUtils.editFloat("Kerbal height", Settings.KerbalHeight);
 			Settings.KerbalHeightWithHelmet = GuiUtils.editFloat("Kerbal height with helmet", Settings.KerbalHeightWithHelmet);
 		}

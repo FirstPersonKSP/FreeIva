@@ -17,6 +17,7 @@ namespace FreeIva
 
 		private List<Collision> m_collisions = new List<Collision>();
 		public List<Collision> Collisions => m_collisions;
+		public int RailColliderCount = 0;
 
 		void PrintCollisionInfo(string eventName, Collision collision)
 		{
@@ -69,6 +70,13 @@ namespace FreeIva
 
 		public void OnTriggerEnter(Collider other)
 		{
+			var handRail = other.gameObject.GetComponentUpwards<HandRail>();
+
+			if (handRail != null)
+			{
+				++RailColliderCount;
+			}
+
 #if DEBUG
 			if (PrintingEnabled)
 			{
@@ -77,6 +85,16 @@ namespace FreeIva
 				1f, ScreenMessageStyle.LOWER_CENTER);
 			}
 #endif
+		}
+
+		public void OnTriggerExit(Collider other)
+		{
+			var handRail = other.gameObject.GetComponentUpwards<HandRail>();
+
+			if (handRail != null)
+			{
+				--RailColliderCount;
+			}
 		}
 	}
 }

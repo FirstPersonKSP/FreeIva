@@ -21,9 +21,11 @@ namespace FreeIva
 		public Rigidbody KerbalRigidbody;
 		public Transform CameraAnchor;
 		public ProtoCrewMember ActiveKerbal;
-		private IvaCollisionTracker KerbalCollisionTracker;
+		public IvaCollisionTracker KerbalCollisionTracker;
 
 		public bool WearingHelmet { get; private set; }
+
+		public bool IsOnLadder { get; private set; }
 
 		public bool CollisionEnabled
 		{
@@ -87,6 +89,8 @@ namespace FreeIva
 
 			transform.position = ActiveKerbal.KerbalRef.eyeTransform.position;
 
+			KerbalCollisionTracker.RailColliderCount = 0;
+
 			if (UseRelativeMovement())
 			{
 				Vector3 flightAccel = KerbalIvaAddon.Instance.GetFlightAccelerationInternalSpace();
@@ -111,7 +115,7 @@ namespace FreeIva
 				transform.rotation = Quaternion.identity;
 				KerbalFeetCollider.enabled = false;
 			}
-			// The Kerbal's eye transform is the InternalCamera's parent normally, not InternalSpace.Instance as previously thought.
+			
 			InternalCamera.Instance.transform.parent = CameraAnchor;
 			InternalCamera.Instance.transform.localPosition = Vector3.zero;
 			InternalCamera.Instance.transform.localRotation = Quaternion.identity;
@@ -138,7 +142,7 @@ namespace FreeIva
 			if (UseRelativeMovement())
 			{
 				currentRelativeOrientation += angularSpeed;
-				currentRelativeOrientation.z = 0;
+				currentRelativeOrientation.z = 0; // when on the ground, we never roll the camera relative to gravity
 
 				currentRelativeOrientation.x = Mathf.Clamp(currentRelativeOrientation.x, -90, 90);
 				currentRelativeOrientation.y = currentRelativeOrientation.y % 360;
@@ -147,8 +151,7 @@ namespace FreeIva
 			}
 			else 
 			{
-
-
+				// there's probably a more straightforward way to convert the angular speed to a quaternion and multiply them directly
 				Quaternion rotYaw = Quaternion.AngleAxis(angularSpeed.y, previousRotation * Vector3.up);
 				Quaternion rotPitch = Quaternion.AngleAxis(angularSpeed.x, previousRotation * Vector3.right);// *Quaternion.Euler(0, 90, 0);
 				Quaternion rotRoll = Quaternion.AngleAxis(angularSpeed.z, previousRotation * Vector3.forward);
@@ -158,73 +161,167 @@ namespace FreeIva
 			}
 		}
 
-		public void UpdatePosition(Vector3 flightAccel, Vector3 movementThrottle, bool jump)
+		void UpdatePosition_Weightless(Vector3 movementThrottle)
 		{
 			Vector3 desiredLocalSpeed = new Vector3(
 				movementThrottle.x * Settings.HorizontalSpeed,
 				movementThrottle.y * Settings.VerticalSpeed,
 				movementThrottle.z * Settings.ForwardSpeed);
 
-			bool useGroundSystem = UseRelativeMovement();
-			bool tryingToMove = desiredLocalSpeed != Vector3.zero || jump;
+			bool tryingToMove = desiredLocalSpeed != Vector3.zero;
 
-			Quaternion orientation = useGroundSystem
-				// take the yaw angle but nothing else (maintain global up)
-				? transform.rotation * Quaternion.Euler(0, currentRelativeOrientation.y, 0)
-				: previousRotation;
+			Quaternion orientation = previousRotation; // TODO: should this be the current camera anchor rotation?
 
-			// Make the movement relative to the camera rotation.
-			Vector3 desiredWorldVelocity = orientation * desiredLocalSpeed;
-			bool grounded = false;
+			Vector3 desiredInternalVelocity = orientation * desiredLocalSpeed;
 
-			if (useGroundSystem)
-			{
-				grounded = GetGroundPlane(flightAccel, out Plane groundPlane);
-
-				// for now, allow free movement vertically
-				if (movementThrottle.y == 0 && KerbalIvaAddon.Gravity)
-				{
-					float gravityScale = grounded ? 0.1f : 1f;
-					KerbalRigidbody.AddForce(gravityScale * flightAccel, ForceMode.Acceleration);
-				}
-
-				if (grounded)
-				{
-					// rotate the desired world velocity along the ground plane
-					float desiredSpeed = desiredWorldVelocity.magnitude;
-					desiredWorldVelocity = Vector3.ProjectOnPlane(desiredWorldVelocity, groundPlane.normal);
-					desiredWorldVelocity = desiredWorldVelocity.normalized * desiredSpeed;
-
-					if (jump)
-					{
-						// Jump in the opposite direction to gravity.
-						KerbalRigidbody.AddForce(-flightAccel.normalized * Settings.JumpForce, ForceMode.VelocityChange);
-					}
-				}
-			}
-
-			Vector3 velocityDelta = desiredWorldVelocity - KerbalRigidbody.velocity;
-
-			// if we're not on the ground, don't change velocity in the vertical direction
-			if (useGroundSystem && !grounded && movementThrottle.y == 0)
-			{
-				velocityDelta = Vector3.ProjectOnPlane(velocityDelta, flightAccel.normalized);
-			}
+			Vector3 velocityDelta = desiredInternalVelocity - KerbalRigidbody.velocity;
 
 			float desiredDeltaSpeed = velocityDelta.magnitude;
-			float maxDeltaSpeed = GetMaxDeltaSpeed(tryingToMove, useGroundSystem);
+			float maxDeltaSpeed = GetMaxDeltaSpeed(tryingToMove, false);
 			if (desiredDeltaSpeed > maxDeltaSpeed)
 			{
 				velocityDelta = velocityDelta.normalized * maxDeltaSpeed;
 			}
 
-			if (KerbalRigidbody.velocity.magnitude < 0.02f && !tryingToMove && desiredDeltaSpeed < maxDeltaSpeed && (!useGroundSystem || grounded))
+			if (KerbalRigidbody.velocity.magnitude < 0.02f && !tryingToMove && desiredDeltaSpeed < maxDeltaSpeed)
 			{
 				KerbalRigidbody.Sleep();
 			}
 			else
 			{
 				KerbalRigidbody.AddForce(velocityDelta, ForceMode.VelocityChange);
+			}
+		}
+
+		void UpdatePosition_InGravity(Vector3 flightAccel, Vector3 movementThrottle, bool jump)
+		{
+			Vector3 desiredLocalSpeed = new Vector3(
+				movementThrottle.x * Settings.HorizontalSpeed,
+				0,
+				movementThrottle.z * Settings.ForwardSpeed);
+
+			bool tryingToMove = desiredLocalSpeed != Vector3.zero || jump;
+
+			// take the yaw angle but nothing else (maintain global up)
+			Quaternion orientation = transform.rotation * Quaternion.Euler(0, currentRelativeOrientation.y, 0);
+
+			// Make the movement relative to the camera rotation.
+			Vector3 desiredInternalVelocity = orientation * desiredLocalSpeed;
+			bool grounded = GetGroundPlane(flightAccel, out Plane groundPlane);
+
+			if (KerbalIvaAddon.Gravity)
+			{
+				float gravityScale = grounded ? 0.1f : 1f;
+				KerbalRigidbody.AddForce(gravityScale * flightAccel, ForceMode.Acceleration);
+			}
+
+			if (grounded)
+			{
+				// rotate the desired world velocity along the ground plane
+				float desiredSpeed = desiredInternalVelocity.magnitude;
+				desiredInternalVelocity = Vector3.ProjectOnPlane(desiredInternalVelocity, groundPlane.normal);
+				desiredInternalVelocity = desiredInternalVelocity.normalized * desiredSpeed;
+
+				if (jump)
+				{
+					// Jump in the opposite direction to gravity.
+					KerbalRigidbody.AddForce(-flightAccel.normalized * Settings.JumpForce, ForceMode.VelocityChange);
+				}
+			}
+
+			Vector3 velocityDelta = desiredInternalVelocity - KerbalRigidbody.velocity;
+
+			// if we're not on the ground, don't change velocity in the vertical direction (this stops us from fighting gravity with desired velocity)
+			if (!grounded)
+			{
+				velocityDelta = Vector3.ProjectOnPlane(velocityDelta, flightAccel.normalized);
+			}
+
+			float desiredDeltaSpeed = velocityDelta.magnitude;
+			float maxDeltaSpeed = GetMaxDeltaSpeed(tryingToMove, true);
+			if (desiredDeltaSpeed > maxDeltaSpeed)
+			{
+				velocityDelta = velocityDelta.normalized * maxDeltaSpeed;
+			}
+
+			if (KerbalRigidbody.velocity.magnitude < 0.02f && !tryingToMove && desiredDeltaSpeed < maxDeltaSpeed && grounded)
+			{
+				KerbalRigidbody.Sleep();
+			}
+			else
+			{
+				KerbalRigidbody.AddForce(velocityDelta, ForceMode.VelocityChange);
+			}
+		}
+
+		void UpdatePosition_OnLadder(Vector3 flightAccel, Vector3 movementThrottle)
+		{
+			Vector3 desiredLocalSpeed = new Vector3(
+				movementThrottle.x * Settings.HorizontalSpeed,
+				movementThrottle.y * Settings.VerticalSpeed,
+				movementThrottle.z * Settings.ForwardSpeed);
+			bool tryingToMove = desiredLocalSpeed != Vector3.zero;
+
+			// take the yaw angle but nothing else (maintain global up)
+			// TODO: we might want to make movement relative to the ladder itself, but I suspect not all of them will be oriented in a consistent way
+			Quaternion orientation = transform.rotation * Quaternion.Euler(0, currentRelativeOrientation.y, 0);
+			Vector3 desiredInternalVelocity = orientation * desiredLocalSpeed;
+
+			Vector3 velocityDelta = desiredInternalVelocity - KerbalRigidbody.velocity;
+
+			float desiredDeltaSpeed = velocityDelta.magnitude;
+			float maxDeltaSpeed = GetMaxDeltaSpeed(tryingToMove, true);
+			if (desiredDeltaSpeed > maxDeltaSpeed)
+			{
+				velocityDelta = velocityDelta.normalized * maxDeltaSpeed;
+			}
+
+			if (KerbalRigidbody.velocity.magnitude < 0.02f && !tryingToMove && desiredDeltaSpeed < maxDeltaSpeed)
+			{
+				KerbalRigidbody.Sleep();
+			}
+			else
+			{
+				KerbalRigidbody.AddForce(velocityDelta, ForceMode.VelocityChange);
+			}
+		}
+
+		void UpdateLadderState(Vector3 movementThrottle, bool jump)
+		{
+			if (!IsOnLadder)
+			{
+				if (movementThrottle.y != 0 && KerbalCollisionTracker.RailColliderCount > 0)
+				{
+					IsOnLadder = true;
+				}
+			}
+			else
+			{
+				// TODO: we may want to allow a grace period or distance after losing contact with the ladder to aid in transitioning between parts
+				if (KerbalCollisionTracker.RailColliderCount == 0 || jump)
+				{
+					IsOnLadder = false;
+				}
+			}
+		}
+
+		public void UpdatePosition(Vector3 flightAccel, Vector3 movementThrottle, bool jump)
+		{
+			if (UseRelativeMovement())
+			{
+				UpdateLadderState(movementThrottle, jump);
+				if (IsOnLadder)
+				{
+					UpdatePosition_OnLadder(flightAccel, movementThrottle);
+				}
+				else
+				{
+					UpdatePosition_InGravity(flightAccel, movementThrottle, jump);
+				}
+			}
+			else
+			{
+				UpdatePosition_Weightless(movementThrottle);
 			}
 
 #if Experimental
