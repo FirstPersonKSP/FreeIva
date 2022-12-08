@@ -68,11 +68,27 @@ namespace FreeIva
 			PrintCollisionInfo("OnCollisionExit", collision);
 		}
 
+		static bool ColliderIsRail(Collider collider)
+		{
+			var watcher = collider.gameObject.GetComponent<ClickWatcher>();
+
+			if (watcher != null)
+			{
+				foreach (var a in watcher.MouseDownActions)
+				{
+					if (a.Target is HandRail)
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
 		public void OnTriggerEnter(Collider other)
 		{
-			var handRail = other.gameObject.GetComponentUpwards<HandRail>();
-
-			if (handRail != null)
+			if (ColliderIsRail(other))
 			{
 				++RailColliderCount;
 			}
@@ -89,9 +105,7 @@ namespace FreeIva
 
 		public void OnTriggerExit(Collider other)
 		{
-			var handRail = other.gameObject.GetComponentUpwards<HandRail>();
-
-			if (handRail != null)
+			if (ColliderIsRail(other))
 			{
 				--RailColliderCount;
 			}

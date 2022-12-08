@@ -14,6 +14,8 @@ namespace FreeIva
 		List<Action> mouseDownActions = new List<Action>();
 		List<Action> mouseUpActions = new List<Action>();
 
+		public IReadOnlyList<Action> MouseDownActions => mouseDownActions;
+
 		public void AddMouseDownAction(Action action)
 		{
 			mouseDownActions.Add(action);
