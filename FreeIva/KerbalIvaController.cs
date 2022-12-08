@@ -126,7 +126,7 @@ namespace FreeIva
 		bool UseRelativeMovement()
 		{
 			// eventually we might want to include flying in atmosphere, etc
-			return FlightGlobals.ActiveVessel.LandedOrSplashed;
+			return FlightGlobals.ActiveVessel.LandedOrSplashed && KerbalIvaAddon.Gravity;
 		}
 
 		public Quaternion previousRotation = new Quaternion();
@@ -225,9 +225,9 @@ namespace FreeIva
 				desiredInternalVelocity = desiredInternalVelocity.normalized * desiredSpeed;
 
 				if (jump)
-				{
-					// Jump in the opposite direction to gravity.
-					KerbalRigidbody.AddForce(-flightAccel.normalized * Settings.JumpForce, ForceMode.VelocityChange);
+			{
+				// Jump in the opposite direction to gravity.
+				KerbalRigidbody.AddForce(-flightAccel.normalized * Settings.JumpForce, ForceMode.VelocityChange);
 				}
 			}
 

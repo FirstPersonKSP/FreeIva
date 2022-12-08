@@ -21,6 +21,7 @@ namespace FreeIva
 		public static KeyCode UpKey = KeyCode.LeftShift;
 		public static KeyCode DownKey = KeyCode.LeftControl;
 		public static KeyCode JumpKey = KeyCode.Space;
+		public static KeyCode ToggleGravityKey = KeyCode.G;
 
 		public static float ForwardSpeed = 1f;
 		public static float HorizontalSpeed = 0.75f;
@@ -83,6 +84,7 @@ namespace FreeIva
 			if (settings.HasValue("RollCWKey")) RollCWKey = (KeyCode)Enum.Parse(typeof(KeyCode), settings.GetValue("RollCWKey"));
 			if (settings.HasValue("UpKey")) UpKey = (KeyCode)Enum.Parse(typeof(KeyCode), settings.GetValue("UpKey"));
 			if (settings.HasValue("DownKey")) DownKey = (KeyCode)Enum.Parse(typeof(KeyCode), settings.GetValue("DownKey"));
+			settings.TryGetEnum(nameof(ToggleGravityKey), ref ToggleGravityKey, ToggleGravityKey);
 
 			// Axis multipliers
 			if (settings.HasValue("ForwardSpeed")) ForwardSpeed = float.Parse(settings.GetValue("ForwardSpeed"));

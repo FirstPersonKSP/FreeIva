@@ -67,6 +67,12 @@ namespace FreeIva
 
 		public void Update()
 		{
+			if (GameSettings.MODIFIER_KEY.GetKey() && Input.GetKeyDown(Settings.ToggleGravityKey))
+			{
+				Gravity = !Gravity;
+				ScreenMessages.PostScreenMessage("[FreeIva] Gravity " + (Gravity ? "Enabled" : "Disabled"), 1f, ScreenMessageStyle.LOWER_CENTER);
+			}
+
 			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)
 			{
 				if (ActiveKerbal != null) // Switching away from IVA.
