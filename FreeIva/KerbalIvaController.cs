@@ -131,6 +131,8 @@ namespace FreeIva
 
 		public Quaternion previousRotation = new Quaternion();
 		public Vector3 currentRelativeOrientation;
+		float crouchingFraction = 0;
+		float targetCrouchFraction = 0;
 
 		public void UpdateOrientation(Vector3 rotationInput)
 		{
@@ -305,6 +307,25 @@ namespace FreeIva
 			}
 		}
 
+		void UpdateCrouching(float verticalThrottle)
+		{
+			if (verticalThrottle > 0)
+			{
+				targetCrouchFraction = 0;
+			}
+			else if (verticalThrottle < 0)
+			{
+				targetCrouchFraction = 1;
+			}
+
+			if (targetCrouchFraction != crouchingFraction)
+			{
+				crouchingFraction = Mathf.MoveTowards(crouchingFraction, targetCrouchFraction, Time.fixedDeltaTime * 2);
+
+				KerbalFeetCollider.center = Vector3.Lerp(new Vector3(0, -Settings.NoHelmetSize, 0), Vector3.zero, crouchingFraction);
+			}
+		}
+
 		public void UpdatePosition(Vector3 flightAccel, Vector3 movementThrottle, bool jump)
 		{
 			if (UseRelativeMovement())
@@ -316,6 +337,7 @@ namespace FreeIva
 				}
 				else
 				{
+					UpdateCrouching(movementThrottle.y);
 					UpdatePosition_InGravity(flightAccel, movementThrottle, jump);
 				}
 			}
