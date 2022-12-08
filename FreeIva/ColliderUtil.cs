@@ -89,7 +89,7 @@ namespace FreeIva
 
 		public static void AddColliderVisualizer(Collider collider)
 		{
-#if true
+#if DEBUG
 			if (collider == null) return;
 
 			GameObject debugObject = null;
