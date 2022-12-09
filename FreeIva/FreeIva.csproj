@@ -89,6 +89,7 @@
     <Compile Include="ColliderUtil.cs" />
     <Compile Include="CutParameter.cs" />
     <Compile Include="Experimental\ColliderManipulator.cs" />
+    <Compile Include="InternalModules\B9PSConditionalProp.cs" />
     <Compile Include="InternalModules\DeleteInternalObject.cs" />
     <Compile Include="InternalModules\DisableCollider.cs" />
     <Compile Include="InternalModules\FreeIvaInternalCameraSwitch.cs" />
@@ -119,6 +120,7 @@
     <Compile Include="InternalModules\Hatches\PropHatch.cs" />
     <Compile Include="ReparentUtil.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="Shim\B9PS_ModuleB9PartSwitch.cs" />
     <Compile Include="Shim\SSPX_ModuleDeployableHabitat.cs" />
     <Compile Include="TransformUtil.cs" />
     <Compile Include="Utils.cs" />
