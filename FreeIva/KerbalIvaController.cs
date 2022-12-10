@@ -132,7 +132,7 @@ namespace FreeIva
 		public Quaternion previousRotation = new Quaternion();
 		public Vector3 currentRelativeOrientation;
 		float crouchingFraction = 0;
-		float targetCrouchFraction = 0;
+		public float targetCrouchFraction = 0;
 
 		public void UpdateOrientation(Vector3 rotationInput)
 		{
@@ -307,17 +307,8 @@ namespace FreeIva
 			}
 		}
 
-		void UpdateCrouching(float verticalThrottle)
+		void UpdateCrouching()
 		{
-			if (verticalThrottle > 0)
-			{
-				targetCrouchFraction = 0;
-			}
-			else if (verticalThrottle < 0)
-			{
-				targetCrouchFraction = 1;
-			}
-
 			if (targetCrouchFraction != crouchingFraction)
 			{
 				crouchingFraction = Mathf.MoveTowards(crouchingFraction, targetCrouchFraction, Time.fixedDeltaTime * 2);
@@ -337,7 +328,7 @@ namespace FreeIva
 				}
 				else
 				{
-					UpdateCrouching(movementThrottle.y);
+					UpdateCrouching();
 					UpdatePosition_InGravity(flightAccel, movementThrottle, jump);
 				}
 			}

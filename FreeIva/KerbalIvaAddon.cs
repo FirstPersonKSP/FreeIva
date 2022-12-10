@@ -123,10 +123,6 @@ namespace FreeIva
 					}
 				}
 
-				// TODO: Doesn't get mouse input when in FixedUpdate.
-				// Split this out to flags set in Update and acted upon in FixedUpdate.
-				// note from JonnyOThan: don't do that, because FixedUpdate happens before Update
-				// well, ideally we should get input before FixedUpdate and then apply forces in FixedUpdate
 				input = new IVAInput();
 				GetInput(ref input);
 				ApplyInput(input);
@@ -256,6 +252,7 @@ namespace FreeIva
 			public bool ToggleHatch;
 			public bool ToggleFarHatch;
 			public bool Jump;
+			public bool ToggleCrouch;
 		}
 
 		IVAInput input;
@@ -314,6 +311,8 @@ namespace FreeIva
 					input.ToggleFarHatch = Input.GetKey(Settings.ModifierKey);
 					input.ToggleHatch = !input.ToggleFarHatch;
 				}
+
+				input.ToggleCrouch = Input.GetKeyDown(Settings.CrouchKey);
 			}
 		}
 
@@ -324,6 +323,11 @@ namespace FreeIva
 				cameraPositionLocked = !cameraPositionLocked;
 				ScreenMessages.PostScreenMessage(cameraPositionLocked ? "Camera locked" : "Camera unlocked",
 						1f, ScreenMessageStyle.LOWER_CENTER);
+			}
+
+			if (input.ToggleCrouch)
+			{
+				KerbalIva.targetCrouchFraction = 1.0f - KerbalIva.targetCrouchFraction;
 			}
 
 			if (input.Unbuckle)
