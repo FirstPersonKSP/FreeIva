@@ -639,7 +639,7 @@ namespace FreeIva
 							targetedHatch.GoEVA();
 						}
 					}
-					else if (targetedHatch.attachNodeId != string.Empty)
+					else if (targetedHatch.attachNodeId != string.Empty || targetedHatch.dockingPortNodeName != string.Empty)
 					{
 						ScreenMessages.PostScreenMessage("Hatch is blocked", 0.1f, ScreenMessageStyle.LOWER_CENTER);
 					}
