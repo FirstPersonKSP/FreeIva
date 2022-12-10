@@ -71,7 +71,7 @@ namespace FreeIva
 			{
 				Gravity = !Gravity;
 				ScreenMessages.PostScreenMessage("[FreeIva] Gravity " + (Gravity ? "Enabled" : "Disabled"), 1f, ScreenMessageStyle.LOWER_CENTER);
-				KerbalIva.KerbalFeetCollider.enabled = KerbalIvaController.UseRelativeMovement();
+				KerbalIva.KerbalFeetCollider.enabled = KerbalIva.UseRelativeMovement();
 			}
 
 			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)
@@ -189,6 +189,10 @@ namespace FreeIva
 
 		public Vector3 GetFlightAccelerationInternalSpace()
 		{
+			// TODO: need to subtract the centrifugal acceleration caused by the ship's movement
+			// ideally for an object in orbit, this function should return a zero vector
+			// wait, but something in a ballistic arc should also be weightless...
+
 			Vector3 accelWorldSpace = GetFlightAccelerationWorldSpace();
 
 			float magnitude = accelWorldSpace.magnitude;
@@ -201,11 +205,7 @@ namespace FreeIva
 		{
 			if (!buckled)
 			{
-				Vector3 flightAccel = GetFlightAccelerationInternalSpace();
-				//FallthroughCheck();
-				KerbalIva.OrientToGravity(flightAccel);
-				KerbalIva.UpdateOrientation(input.RotationInputEuler);
-				KerbalIva.UpdatePosition(flightAccel, input.MovementThrottle, input.Jump);
+				KerbalIva.DoFixedUpdate(input);
 			}
 
 			input.Jump = false;
@@ -361,6 +361,7 @@ namespace FreeIva
 			buckled = true;
 			MoveKerbalToSeat(ActiveKerbal, TargetedSeat);
 			KerbalIva.gameObject.SetActive(false);
+			KerbalIva.KerbalCollisionTracker.CurrentInternalModel = TargetedSeat.internalModel;
 			HideCurrentKerbal(false);
 			DisablePartHighlighting(false);
 			InputLockManager.RemoveControlLock("FreeIVA");

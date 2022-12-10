@@ -19,6 +19,8 @@ namespace FreeIva
 		public List<Collision> Collisions => m_collisions;
 		public int RailColliderCount = 0;
 
+		public InternalModel CurrentInternalModel { get; set; }
+
 		void PrintCollisionInfo(string eventName, Collision collision)
 		{
 #if DEBUG
@@ -68,7 +70,7 @@ namespace FreeIva
 			PrintCollisionInfo("OnCollisionExit", collision);
 		}
 
-		static bool ColliderIsRail(Collider collider)
+		static HandRail ColliderGetHandRail(Collider collider)
 		{
 			var watcher = collider.gameObject.GetComponent<ClickWatcher>();
 
@@ -76,20 +78,22 @@ namespace FreeIva
 			{
 				foreach (var a in watcher.MouseDownActions)
 				{
-					if (a.Target is HandRail)
+					if (a.Target is HandRail rail)
 					{
-						return true;
+						return rail;
 					}
 				}
 			}
 
-			return false;
+			return null;
 		}
 
 		public void OnTriggerEnter(Collider other)
 		{
-			if (ColliderIsRail(other))
+			HandRail rail = ColliderGetHandRail(other);
+			if (rail != null)
 			{
+				CurrentInternalModel = rail.internalModel;
 				++RailColliderCount;
 			}
 
@@ -105,7 +109,7 @@ namespace FreeIva
 
 		public void OnTriggerExit(Collider other)
 		{
-			if (ColliderIsRail(other))
+			if (ColliderGetHandRail(other) != null)
 			{
 				--RailColliderCount;
 			}

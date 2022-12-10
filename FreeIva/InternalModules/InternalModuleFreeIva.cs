@@ -55,6 +55,8 @@ namespace FreeIva
 		public string secondaryInternalName = string.Empty;
 		public InternalModel SecondaryInternalModel { get; private set; }
 
+		public SSPX_ModuleDeployableCentrifuge ModuleDeployableCentrifuge { get; private set;}
+
 		public override void OnLoad(ConfigNode node)
 		{
 			base.OnLoad(node);
@@ -218,6 +220,13 @@ namespace FreeIva
 			if (secondaryInternalName != string.Empty)
 			{
 				SecondaryInternalModel = CreateInternalModel(secondaryInternalName);
+			}
+
+			// the rotating part of the centrifuge has a secondary internal (which is the stationary part)
+			// for now we'll only set up the centrifuge module on the rotating part
+			if (SecondaryInternalModel != null)
+			{
+				ModuleDeployableCentrifuge = SSPX_ModuleDeployableCentrifuge.Create(part);
 			}
 		}
 

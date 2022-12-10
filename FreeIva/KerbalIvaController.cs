@@ -90,6 +90,7 @@ namespace FreeIva
 			transform.position = ActiveKerbal.KerbalRef.eyeTransform.position;
 
 			KerbalCollisionTracker.RailColliderCount = 0;
+			KerbalCollisionTracker.CurrentInternalModel = kerbal.seat.internalModel;
 
 			if (UseRelativeMovement())
 			{
@@ -123,10 +124,10 @@ namespace FreeIva
 			gameObject.SetActive(true);
 		}
 
-		public static bool UseRelativeMovement()
+		public bool UseRelativeMovement()
 		{
 			// eventually we might want to include flying in atmosphere, etc
-			return FlightGlobals.ActiveVessel.LandedOrSplashed && KerbalIvaAddon.Gravity;
+			return FlightGlobals.ActiveVessel.LandedOrSplashed && KerbalIvaAddon.Gravity || (currentCentrifuge != null && currentCentrifuge.CurrentSpinRate > 0);
 		}
 
 		public Quaternion previousRotation = new Quaternion();
@@ -317,6 +318,27 @@ namespace FreeIva
 			}
 		}
 
+		InternalModel currentInternalModel;
+		SSPX_ModuleDeployableCentrifuge currentCentrifuge;
+
+		public Vector3 GetCentrifugeAccel()
+		{
+			if (currentCentrifuge == null) return Vector3.zero;
+
+			float omega = Mathf.Deg2Rad * currentCentrifuge.CurrentSpinRate;
+			if (omega == 0) return Vector3.zero;
+
+			// for now, we'll assume that the centrifuge is spinning around the "top/bottom" axis - Z in local IVA space
+			Transform rotationRoot = currentCentrifuge.IVARotationRoot;
+			Vector3 localKerbalPosition = rotationRoot.InverseTransformPoint(transform.position);
+			localKerbalPosition.z = 0;
+
+			// centripetal acceleration = omega^2 * r
+			Vector3 localAcceleration = omega * omega * localKerbalPosition;
+
+			return rotationRoot.TransformVector(localAcceleration);
+		}
+
 		public void UpdatePosition(Vector3 flightAccel, Vector3 movementThrottle, bool jump)
 		{
 			if (UseRelativeMovement())
@@ -343,6 +365,28 @@ namespace FreeIva
 			//KerbalWorldSpaceRigidbody.MovePosition(KerbalCollider.transform.localPosition);
 			KerbalWorldSpaceRigidbody.MovePosition(InternalSpace.InternalToWorld(KerbalCollider.transform.localPosition));
 #endif
+		}
+
+		public void DoFixedUpdate(KerbalIvaAddon.IVAInput input)
+		{
+			currentInternalModel = KerbalCollisionTracker.CurrentInternalModel;
+			currentCentrifuge = InternalModuleFreeIva.GetForModel(currentInternalModel)?.ModuleDeployableCentrifuge;
+
+			// TODO: eventually combine these so that a centrifuge on the surface works properly (yikes)
+			Vector3 flightAccel;
+			if (currentCentrifuge != null)
+			{
+				flightAccel = GetCentrifugeAccel();
+			}
+			else
+			{
+				flightAccel = KerbalIvaAddon.Instance.GetFlightAccelerationInternalSpace();
+			}
+
+			//FallthroughCheck();
+			OrientToGravity(flightAccel);
+			UpdateOrientation(input.RotationInputEuler);
+			UpdatePosition(flightAccel, input.MovementThrottle, input.Jump);
 		}
 
 		List<ContactPoint> contactPoints = new List<ContactPoint>();

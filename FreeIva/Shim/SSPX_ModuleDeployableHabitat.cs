@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FreeIva
 {
-	internal class SSPX_ModuleDeployableHabitat
+	public class SSPX_ModuleDeployableHabitat
 	{
 		#region static
 
