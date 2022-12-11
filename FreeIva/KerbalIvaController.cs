@@ -89,18 +89,19 @@ namespace FreeIva
 
 			transform.position = ActiveKerbal.KerbalRef.eyeTransform.position;
 
+			KerbalRigidbody.velocity = Vector3.zero;
+
 			KerbalCollisionTracker.RailColliderCount = 0;
 			KerbalCollisionTracker.CurrentInternalModel = kerbal.seat.internalModel;
 			currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.ModuleDeployableCentrifuge;
 
 			if (UseRelativeMovement())
 			{
-				Vector3 flightAccel = KerbalIvaAddon.Instance.GetFlightAccelerationInternalSpace();
+				Vector3 flightAccel = GetInternalAcceleration();
 				OrientToGravity(flightAccel);
-				KerbalFeetCollider.enabled = KerbalIvaAddon.Gravity;
+				KerbalFeetCollider.enabled = true;
 
 				currentRelativeOrientation = (Quaternion.Inverse(transform.rotation) * InternalCamera.Instance.transform.rotation).eulerAngles;
-				currentRelativeOrientation.z = 0; // roll
 
 				if (currentRelativeOrientation.x > 180)
 				{
@@ -111,10 +112,12 @@ namespace FreeIva
 					currentRelativeOrientation.y += 180;
 					currentRelativeOrientation.x = Mathf.Clamp(currentRelativeOrientation.x, -90, 90);
 				}
+				CameraAnchor.localEulerAngles = currentRelativeOrientation;
 			}
 			else
 			{
 				transform.rotation = Quaternion.identity;
+				CameraAnchor.transform.rotation = InternalCamera.Instance.transform.rotation;
 				KerbalFeetCollider.enabled = false;
 			}
 			
@@ -145,8 +148,9 @@ namespace FreeIva
 
 			if (UseRelativeMovement())
 			{
+				angularSpeed.z = 0; // when on the ground, we never roll the camera relative to gravity
 				currentRelativeOrientation += angularSpeed;
-				currentRelativeOrientation.z = 0; // when on the ground, we never roll the camera relative to gravity
+				currentRelativeOrientation.z = Mathf.MoveTowardsAngle(currentRelativeOrientation.z, 0, 45f * Time.fixedDeltaTime); 
 
 				currentRelativeOrientation.x = Mathf.Clamp(currentRelativeOrientation.x, -90, 90);
 				currentRelativeOrientation.y = currentRelativeOrientation.y % 360;
@@ -403,18 +407,10 @@ namespace FreeIva
 #endif
 		}
 
-		public void DoFixedUpdate(KerbalIvaAddon.IVAInput input)
+		public Vector3 GetInternalAcceleration()
 		{
-			// if we're not in a centrifuge, see if we're trying to grab a rail in one
-			if (currentCentrifuge == null && (input.Jump || input.MovementThrottle.y != 0) && KerbalCollisionTracker.RailColliderCount > 0)
-			{
-				currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.ModuleDeployableCentrifuge;
-				KerbalIvaAddon.Instance.JumpLatched = currentCentrifuge != null;
-			}
-
-			KerbalFeetCollider.enabled = UseRelativeMovement();
-
 			// TODO: eventually combine these so that a centrifuge on the surface works properly (yikes)
+
 			Vector3 flightAccel;
 			if (currentCentrifuge != null)
 			{
@@ -425,8 +421,39 @@ namespace FreeIva
 				flightAccel = KerbalIvaAddon.Instance.GetFlightAccelerationInternalSpace();
 			}
 
+			return flightAccel;
+		}
+
+		public void DoFixedUpdate(KerbalIvaAddon.IVAInput input)
+		{
+			bool aimCamera = false;
+			Quaternion oldCameraRotation = Quaternion.identity;
+
+			// if we're not in a centrifuge, see if we're trying to grab a rail in one
+			// TODO: can we handle *clicking* on one of these rails too?
+			if (currentCentrifuge == null && (input.Jump || input.MovementThrottle.y != 0) && KerbalCollisionTracker.RailColliderCount > 0)
+			{
+				currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.ModuleDeployableCentrifuge;
+				KerbalIvaAddon.Instance.JumpLatched = currentCentrifuge != null;
+
+				aimCamera = true;
+				oldCameraRotation = CameraAnchor.rotation;
+				
+			}
+
+			KerbalFeetCollider.enabled = UseRelativeMovement();
+
+			Vector3 flightAccel = GetInternalAcceleration();
+			
 			//FallthroughCheck();
 			OrientToGravity(flightAccel);
+
+			if (aimCamera)
+			{
+				CameraAnchor.rotation = oldCameraRotation;
+				currentRelativeOrientation = CameraAnchor.localEulerAngles;
+			}
+
 			UpdateOrientation(input.RotationInputEuler);
 			UpdatePosition(flightAccel, input.MovementThrottle, input.Jump);
 		}
