@@ -91,6 +91,7 @@ namespace FreeIva
 
 			KerbalCollisionTracker.RailColliderCount = 0;
 			KerbalCollisionTracker.CurrentInternalModel = kerbal.seat.internalModel;
+			currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.ModuleDeployableCentrifuge;
 
 			if (UseRelativeMovement())
 			{
@@ -249,6 +250,7 @@ namespace FreeIva
 				{
 					// Jump in the opposite direction to gravity.
 					KerbalRigidbody.AddForce(-flightAccel.normalized * Settings.JumpForce, ForceMode.VelocityChange);
+					KerbalIvaAddon.Instance.JumpLatched = true;
 				}
 			}
 
@@ -353,7 +355,6 @@ namespace FreeIva
 			}
 		}
 
-		InternalModel currentInternalModel;
 		SSPX_ModuleDeployableCentrifuge currentCentrifuge;
 
 		public Vector3 GetCentrifugeAccel()
@@ -404,8 +405,12 @@ namespace FreeIva
 
 		public void DoFixedUpdate(KerbalIvaAddon.IVAInput input)
 		{
-			currentInternalModel = KerbalCollisionTracker.CurrentInternalModel;
-			currentCentrifuge = InternalModuleFreeIva.GetForModel(currentInternalModel)?.ModuleDeployableCentrifuge;
+			// if we're not in a centrifuge, see if we're trying to grab a rail in one
+			if (currentCentrifuge == null && (input.Jump || input.MovementThrottle.y != 0) && KerbalCollisionTracker.RailColliderCount > 0)
+			{
+				currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.ModuleDeployableCentrifuge;
+				KerbalIvaAddon.Instance.JumpLatched = currentCentrifuge != null;
+			}
 
 			KerbalFeetCollider.enabled = UseRelativeMovement();
 

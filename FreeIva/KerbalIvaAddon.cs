@@ -125,6 +125,10 @@ namespace FreeIva
 
 				input = new IVAInput();
 				GetInput(ref input);
+
+				JumpLatched = JumpLatched && input.Jump;
+				input.Jump = input.Jump && !JumpLatched;
+
 				ApplyInput(input);
 
 				if (!buckled)
@@ -256,6 +260,7 @@ namespace FreeIva
 		}
 
 		IVAInput input;
+		public bool JumpLatched;
 
 		private static float GetKeyInputAxis(KeyCode positive, KeyCode negative)
 		{
