@@ -394,6 +394,8 @@ namespace FreeIva
 			currentInternalModel = KerbalCollisionTracker.CurrentInternalModel;
 			currentCentrifuge = InternalModuleFreeIva.GetForModel(currentInternalModel)?.ModuleDeployableCentrifuge;
 
+			KerbalFeetCollider.enabled = UseRelativeMovement();
+
 			// TODO: eventually combine these so that a centrifuge on the surface works properly (yikes)
 			Vector3 flightAccel;
 			if (currentCentrifuge != null)
