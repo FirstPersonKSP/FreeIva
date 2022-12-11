@@ -232,7 +232,7 @@ namespace FreeIva
 			Vector3 desiredInternalVelocity = orientation * desiredLocalSpeed;
 			bool grounded = GetGroundPlane(flightAccel, out Plane groundPlane);
 
-			if (KerbalIvaAddon.Gravity)
+			if (KerbalIvaAddon.Gravity && currentCentrifuge == null)
 			{
 				float gravityScale = grounded ? 0.1f : 1f;
 				KerbalRigidbody.AddForce(gravityScale * flightAccel, ForceMode.Acceleration);
@@ -252,13 +252,26 @@ namespace FreeIva
 				}
 			}
 
-			Vector3 tangentVelocity = GetCentrifugeTangentVelocity();
-			Vector3 velocityDelta = desiredInternalVelocity - (KerbalRigidbody.velocity - tangentVelocity);
+			Vector3 velocityDelta = desiredInternalVelocity - KerbalRigidbody.velocity;
+
+			if (currentCentrifuge != null && grounded)
+            {
+				Vector3 tangentVelocity = GetCentrifugeTangentVelocity();
+				velocityDelta += tangentVelocity;
+            }
 
 			// if we're not on the ground, don't change velocity in the vertical direction (this stops us from fighting gravity with desired velocity)
 			if (!grounded)
 			{
-				velocityDelta = Vector3.ProjectOnPlane(velocityDelta, flightAccel.normalized);
+				// if we're in a centrifuge, just don't change velocity at all while airborne
+				if (currentCentrifuge != null)
+				{
+					velocityDelta = Vector3.zero;
+				}
+				else
+				{
+					velocityDelta = Vector3.ProjectOnPlane(velocityDelta, flightAccel.normalized);
+				}
 			}
 
 			float desiredDeltaSpeed = velocityDelta.magnitude;
