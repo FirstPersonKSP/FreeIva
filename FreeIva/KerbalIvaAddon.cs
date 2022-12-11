@@ -129,21 +129,6 @@ namespace FreeIva
 				JumpLatched = JumpLatched && input.Jump;
 				input.Jump = input.Jump && !JumpLatched;
 
-				ApplyInput(input);
-
-				if (!buckled)
-				{
-					InternalCamera.Instance.ManualReset(false);
-					InternalCamera.Instance.transform.localPosition = Vector3.zero;
-					InternalCamera.Instance.transform.localRotation = Quaternion.identity;
-					KerbalIva.previousRotation = InternalCamera.Instance.transform.rotation;
-					// Normally the InternalCamera's transform is copied to the FlightCamera at the end of InternalCamera.Update, which will have happened right before this component updates.
-					// So we need to make sure the latest internal camera rotation gets copied to the flight camera.
-					FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-					FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
-				}
-
-
 				/*FreeIva.InitialPart.Events.Clear();
                 if (_transferStart != 0 && Planetarium.GetUniversalTime() > (0.25 + _transferStart))
                 {
@@ -155,6 +140,22 @@ namespace FreeIva
 
 			}
 			_lastCameraMode = CameraManager.Instance.currentCameraMode;
+		}
+
+		// This must be after the internal camera updates
+		private void LateUpdate()
+		{
+			if (FreeIva.Paused) return;
+
+			ApplyInput(input);
+
+			if (!buckled)
+			{
+				// Normally the InternalCamera's transform is copied to the FlightCamera at the end of InternalCamera.Update, which will have happened right before this component updates.
+				// So we need to make sure the latest internal camera rotation gets copied to the flight camera.
+				FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
+				FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
+			}
 		}
 
 		CameraManager.CameraMode _previousCameraMode = CameraManager.CameraMode.Flight;
@@ -297,8 +298,8 @@ namespace FreeIva
 				}
 
 				// camera
-				input.RotationInputEuler.x = InternalCamera.Instance.currentPitch;
-				input.RotationInputEuler.y = InternalCamera.Instance.currentRot;
+				//input.RotationInputEuler.x = InternalCamera.Instance.currentPitch;//  / Settings.PitchSpeed / Time.deltaTime;
+				//input.RotationInputEuler.y = InternalCamera.Instance.currentRot;//  / Settings.YawSpeed / Time.deltaTime;
 
 				// movement
 				{
@@ -346,6 +347,8 @@ namespace FreeIva
 
 			if (!buckled && !FreeIva.Paused)
 			{
+				KerbalIva.UpdateOrientation(input.RotationInputEuler);
+
 				TargetSeats();
 				TargetHatches(input.ToggleHatch, input.ToggleFarHatch);
 				if (_lastCameraMode != CameraManager.CameraMode.IVA)

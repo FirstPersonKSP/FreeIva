@@ -80,12 +80,36 @@ namespace FreeIva
 			}
 		}
 
+		void SetCameraOrientation(Quaternion rotation)
+		{
+			if (UseRelativeMovement())
+			{
+				currentRelativeOrientation = (Quaternion.Inverse(transform.rotation) * rotation).eulerAngles;
+
+				if (currentRelativeOrientation.x > 180)
+				{
+					currentRelativeOrientation.x -= 360;
+				}
+				if (currentRelativeOrientation.x > 90 || currentRelativeOrientation.x < -90)
+				{
+					currentRelativeOrientation.y += 180;
+					currentRelativeOrientation.x = Mathf.Clamp(currentRelativeOrientation.x, -90, 90);
+					currentRelativeOrientation.z += 180;
+				}
+				CameraAnchor.localEulerAngles = currentRelativeOrientation;
+			}
+			else
+			{
+				CameraAnchor.rotation = rotation;
+			}
+			InternalCamera.Instance.ManualReset(false);
+			InternalCamera.Instance.transform.localPosition = Vector3.zero;
+			InternalCamera.Instance.transform.localRotation = Quaternion.identity;
+		}
+
 		public void Activate(ProtoCrewMember kerbal)
 		{
 			ActiveKerbal = kerbal;
-
-			previousRotation = InternalCamera.Instance.transform.rotation;
-			InternalCamera.Instance.ManualReset(false);
 
 			transform.position = ActiveKerbal.KerbalRef.eyeTransform.position;
 
@@ -100,30 +124,15 @@ namespace FreeIva
 				Vector3 flightAccel = GetInternalAcceleration();
 				OrientToGravity(flightAccel);
 				KerbalFeetCollider.enabled = true;
-
-				currentRelativeOrientation = (Quaternion.Inverse(transform.rotation) * InternalCamera.Instance.transform.rotation).eulerAngles;
-
-				if (currentRelativeOrientation.x > 180)
-				{
-					currentRelativeOrientation.x -= 360;
-				}
-				if (currentRelativeOrientation.x > 90 || currentRelativeOrientation.x < -90)
-				{
-					currentRelativeOrientation.y += 180;
-					currentRelativeOrientation.x = Mathf.Clamp(currentRelativeOrientation.x, -90, 90);
-				}
-				CameraAnchor.localEulerAngles = currentRelativeOrientation;
 			}
 			else
 			{
 				transform.rotation = Quaternion.identity;
-				CameraAnchor.transform.rotation = InternalCamera.Instance.transform.rotation;
 				KerbalFeetCollider.enabled = false;
 			}
-			
+
 			InternalCamera.Instance.transform.parent = CameraAnchor;
-			InternalCamera.Instance.transform.localPosition = Vector3.zero;
-			InternalCamera.Instance.transform.localRotation = Quaternion.identity;
+			SetCameraOrientation(InternalCamera.Instance.transform.rotation);
 
 			gameObject.SetActive(true);
 		}
@@ -134,14 +143,14 @@ namespace FreeIva
 			return FlightGlobals.ActiveVessel.LandedOrSplashed && KerbalIvaAddon.Gravity || (currentCentrifuge != null && currentCentrifuge.CurrentSpinRate > 0);
 		}
 
-		public Quaternion previousRotation = new Quaternion();
 		public Vector3 currentRelativeOrientation;
 		float crouchingFraction = 0;
 		public float targetCrouchFraction = 0;
 
+		// Note this gets called from Update, not FixedUpdate
 		public void UpdateOrientation(Vector3 rotationInput)
 		{
-			Vector3 angularSpeed = Time.fixedDeltaTime * new Vector3(
+			Vector3 angularSpeed = Time.deltaTime * new Vector3(
 				rotationInput.x * Settings.PitchSpeed,
 				rotationInput.y * Settings.YawSpeed,
 				rotationInput.z * Settings.RollSpeed);
@@ -150,23 +159,29 @@ namespace FreeIva
 			{
 				angularSpeed.z = 0; // when on the ground, we never roll the camera relative to gravity
 				currentRelativeOrientation += angularSpeed;
-				currentRelativeOrientation.z = Mathf.MoveTowardsAngle(currentRelativeOrientation.z, 0, 45f * Time.fixedDeltaTime); 
+				currentRelativeOrientation.z = Mathf.MoveTowardsAngle(currentRelativeOrientation.z, 0, 360f * Time.deltaTime); // speed is arbitrary
 
-				currentRelativeOrientation.x = Mathf.Clamp(currentRelativeOrientation.x, -90, 90);
-				currentRelativeOrientation.y = currentRelativeOrientation.y % 360;
+				currentRelativeOrientation.x = Mathf.Clamp(currentRelativeOrientation.x + InternalCamera.Instance.currentPitch, -89.9f, 89.9f);
+				currentRelativeOrientation.y = (currentRelativeOrientation.y + InternalCamera.Instance.currentRot) % 360;
 
 				CameraAnchor.localRotation = Quaternion.Euler(currentRelativeOrientation);
 			}
 			else 
 			{
+				CameraAnchor.rotation = InternalCamera.Instance.transform.rotation;
+
 				// there's probably a more straightforward way to convert the angular speed to a quaternion and multiply them directly
-				Quaternion rotYaw = Quaternion.AngleAxis(angularSpeed.y, previousRotation * Vector3.up);
-				Quaternion rotPitch = Quaternion.AngleAxis(angularSpeed.x, previousRotation * Vector3.right);// *Quaternion.Euler(0, 90, 0);
-				Quaternion rotRoll = Quaternion.AngleAxis(angularSpeed.z, previousRotation * Vector3.forward);
+				Quaternion rotYaw = Quaternion.AngleAxis(angularSpeed.y, CameraAnchor.rotation * Vector3.up);
+				Quaternion rotPitch = Quaternion.AngleAxis(angularSpeed.x, CameraAnchor.rotation * Vector3.right);// *Quaternion.Euler(0, 90, 0);
+				Quaternion rotRoll = Quaternion.AngleAxis(angularSpeed.z, CameraAnchor.rotation * Vector3.forward);
 
 				// transform.rotation = rotRoll * rotPitch * rotYaw * previousRotation;
 				CameraAnchor.localRotation = rotRoll * rotPitch * rotYaw * CameraAnchor.localRotation;
 			}
+
+			InternalCamera.Instance.ManualReset(false);
+			InternalCamera.Instance.transform.localPosition = Vector3.zero;
+			InternalCamera.Instance.transform.localRotation = Quaternion.identity;
 		}
 
 		void UpdatePosition_Weightless(Vector3 movementThrottle)
@@ -178,7 +193,7 @@ namespace FreeIva
 
 			bool tryingToMove = desiredLocalSpeed != Vector3.zero;
 
-			Quaternion orientation = previousRotation; // TODO: should this be the current camera anchor rotation?
+			Quaternion orientation = CameraAnchor.rotation;
 
 			Vector3 desiredInternalVelocity = orientation * desiredLocalSpeed;
 
@@ -439,30 +454,37 @@ namespace FreeIva
 
 			// if we're not in a centrifuge, see if we're trying to grab a rail in one
 			// TODO: can we handle *clicking* on one of these rails too?
-			if (currentCentrifuge == null && (input.Jump || input.MovementThrottle.y != 0) && KerbalCollisionTracker.RailColliderCount > 0)
+			if (currentCentrifuge == null && input.Jump && KerbalCollisionTracker.RailColliderCount > 0)
 			{
 				currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.ModuleDeployableCentrifuge;
 				KerbalIvaAddon.Instance.JumpLatched = currentCentrifuge != null;
+				input.Jump = !KerbalIvaAddon.Instance.JumpLatched;
 
 				aimCamera = true;
 				oldCameraRotation = CameraAnchor.rotation;
 				
 			}
 
+			Vector3 flightAccel = GetInternalAcceleration();
+
+			// try exiting a centrifuge
+			if (currentCentrifuge != null && flightAccel.magnitude < 0.05f)
+			{
+				currentCentrifuge = null;
+			}
+
 			KerbalFeetCollider.enabled = UseRelativeMovement();
 
-			Vector3 flightAccel = GetInternalAcceleration();
-			
 			//FallthroughCheck();
+			
+			// TODO: if we don't have ground contact, we prbably shouldn't reorient
 			OrientToGravity(flightAccel);
 
 			if (aimCamera)
 			{
-				CameraAnchor.rotation = oldCameraRotation;
-				currentRelativeOrientation = CameraAnchor.localEulerAngles;
+				SetCameraOrientation(oldCameraRotation);
 			}
 
-			UpdateOrientation(input.RotationInputEuler);
 			UpdatePosition(flightAccel, input.MovementThrottle, input.Jump);
 		}
 
