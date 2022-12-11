@@ -214,9 +214,17 @@ namespace FreeIva
 			localKerbalPosition.z = 0;
 
 			// centripetal acceleration = omega^2 * r
-			Vector3 localAcceleration = omega * omega * localKerbalPosition;
 
-			Vector3 localTangentVelocity = Vector3.Cross(new Vector3(0, 0, -omega), localKerbalPosition);
+			// this would be the analytical velocity
+			//Vector3 localTangentVelocity = Vector3.Cross(new Vector3(0, 0, -omega), localKerbalPosition);
+
+			// however because we operate on discrete timesteps, we need to find where this point will be at the end of the next timestep
+			// and then subtract the positions
+
+			Quaternion stepRotation = Quaternion.AngleAxis(currentCentrifuge.CurrentSpinRate * Time.fixedDeltaTime, Vector3.back);
+
+			Vector3 positionNextFrame = stepRotation * localKerbalPosition;
+			Vector3 localTangentVelocity = (positionNextFrame - localKerbalPosition) / Time.fixedDeltaTime; 
 
 			return rotationRoot.TransformVector(localTangentVelocity);
 		}
