@@ -196,6 +196,26 @@ namespace FreeIva
 			}
 		}
 
+		Vector3 GetCentrifugeTangentVelocity()
+		{
+			if (currentCentrifuge == null) return Vector3.zero;
+
+			float omega = Mathf.Deg2Rad * currentCentrifuge.CurrentSpinRate;
+			if (omega == 0) return Vector3.zero;
+
+			// for now, we'll assume that the centrifuge is spinning around the "top/bottom" axis - Z in local IVA space
+			Transform rotationRoot = currentCentrifuge.IVARotationRoot;
+			Vector3 localKerbalPosition = rotationRoot.InverseTransformPoint(transform.position);
+			localKerbalPosition.z = 0;
+
+			// centripetal acceleration = omega^2 * r
+			Vector3 localAcceleration = omega * omega * localKerbalPosition;
+
+			Vector3 localTangentVelocity = Vector3.Cross(new Vector3(0, 0, -omega), localKerbalPosition);
+
+			return rotationRoot.TransformVector(localTangentVelocity);
+		}
+
 		void UpdatePosition_InGravity(Vector3 flightAccel, Vector3 movementThrottle, bool jump)
 		{
 			Vector3 desiredLocalSpeed = new Vector3(
@@ -226,13 +246,14 @@ namespace FreeIva
 				desiredInternalVelocity = desiredInternalVelocity.normalized * desiredSpeed;
 
 				if (jump)
-			{
-				// Jump in the opposite direction to gravity.
-				KerbalRigidbody.AddForce(-flightAccel.normalized * Settings.JumpForce, ForceMode.VelocityChange);
+				{
+					// Jump in the opposite direction to gravity.
+					KerbalRigidbody.AddForce(-flightAccel.normalized * Settings.JumpForce, ForceMode.VelocityChange);
 				}
 			}
 
-			Vector3 velocityDelta = desiredInternalVelocity - KerbalRigidbody.velocity;
+			Vector3 tangentVelocity = GetCentrifugeTangentVelocity();
+			Vector3 velocityDelta = desiredInternalVelocity - (KerbalRigidbody.velocity - tangentVelocity);
 
 			// if we're not on the ground, don't change velocity in the vertical direction (this stops us from fighting gravity with desired velocity)
 			if (!grounded)
@@ -270,7 +291,8 @@ namespace FreeIva
 			Quaternion orientation = transform.rotation * Quaternion.Euler(0, currentRelativeOrientation.y, 0);
 			Vector3 desiredInternalVelocity = orientation * desiredLocalSpeed;
 
-			Vector3 velocityDelta = desiredInternalVelocity - KerbalRigidbody.velocity;
+			Vector3 tangentVelocity = GetCentrifugeTangentVelocity();
+			Vector3 velocityDelta = desiredInternalVelocity - (KerbalRigidbody.velocity - tangentVelocity);
 
 			float desiredDeltaSpeed = velocityDelta.magnitude;
 			float maxDeltaSpeed = GetMaxDeltaSpeed(tryingToMove, true);
