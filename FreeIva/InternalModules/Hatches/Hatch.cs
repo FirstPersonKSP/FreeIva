@@ -537,6 +537,7 @@ namespace FreeIva
 				result.audio.Stop();
 				result.audio.clip = GameDatabase.Instance.GetAudioClip(soundFile);
 				result.audio.loop = false;
+				result.audio.playOnAwake = false;
 			}
 
 			return result;
