@@ -285,6 +285,11 @@ namespace FreeIva
 			return false;
 		}
 
+		static bool PartsAreConnected(Part partA, Part partB)
+		{
+			return partA.parent == partB || partB.parent == partA;
+		}
+
 		void SetTubeScale()
 		{
 			// scale tube appropriately
@@ -292,11 +297,11 @@ namespace FreeIva
 			if (tubeTransform != null)
 			{
 				float tubeScale = 0;
+				tubeTransform.localScale = Vector3.one;
+				Vector3 tubeDownVectorWorld = tubeTransform.TransformVector(Vector3.down);
 
-				// if we're connected to another hatch, find the midpoint between our attach nodes - this is for passthrough
-				// for parts that are directly connected to each other, the attach nodes are in the same place
-				// but with passthrough, we need to find a point to meet
-				if (_connectedHatch != null)
+				// if we're connected to another hatch through passthrough, find the midpoint between our attach nodes
+				if (_connectedHatch != null && !PartsAreConnected(_connectedHatch.part, part))
 				{
 					var otherTubeTransform = TransformUtil.FindPropTransform(_connectedHatch.internalProp, _connectedHatch.tubeTransformName);
 
@@ -313,9 +318,11 @@ namespace FreeIva
 				}
 				else
 				{
-					// try to determine tube length from attach node
 					var myAttachNode = part.FindAttachNode(attachNodeId);
-					if (tubeExtent == 0 && myAttachNode != null)
+
+					// try to determine tube length from attach node if we're connected to something
+					// note that some internal hatches have tubeExtent set in their config
+					if (tubeExtent == 0 && myAttachNode != null && _connectedHatch != null)
 					{
 						tubeExtent = Vector3.Dot(myAttachNode.originalPosition, myAttachNode.originalOrientation);
 					}
@@ -323,13 +330,10 @@ namespace FreeIva
 					if (tubeExtent != 0)
 					{
 						Vector3 tubePositionInIVA = internalModel.transform.InverseTransformPoint(tubeTransform.position);
-						Vector3 tubeDownVectorWorld = tubeTransform.rotation * Vector3.down;
-						Vector3 tubeDownVectorIVA = internalModel.transform.InverseTransformVector(tubeDownVectorWorld);
+						Vector3 tubeDownVectorIVA = internalModel.transform.InverseTransformDirection(tubeDownVectorWorld).normalized;
 
 						float tubePositionOnAxis = Vector3.Dot(tubeDownVectorIVA, tubePositionInIVA);
 						tubeScale = tubeExtent - tubePositionOnAxis;
-
-						// TODO: what if the prop itself is scaled?
 					}
 				}
 
@@ -337,6 +341,7 @@ namespace FreeIva
 
 				if (tubeScale > 0)
 				{
+					tubeScale /= tubeDownVectorWorld.magnitude;
 					tubeTransform.localScale = new Vector3(1.0f, tubeScale, 1.0f);
 				}
 			}
