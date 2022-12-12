@@ -297,10 +297,6 @@ namespace FreeIva
 					input.RotationInputEuler.z = GetKeyInputAxis(Settings.RollCCWKey, Settings.RollCWKey);
 				}
 
-				// camera
-				//input.RotationInputEuler.x = InternalCamera.Instance.currentPitch;//  / Settings.PitchSpeed / Time.deltaTime;
-				//input.RotationInputEuler.y = InternalCamera.Instance.currentRot;//  / Settings.YawSpeed / Time.deltaTime;
-
 				// movement
 				{
 					input.MovementThrottle.z = GetKeyInputAxis(Settings.ForwardKey, Settings.BackwardKey);

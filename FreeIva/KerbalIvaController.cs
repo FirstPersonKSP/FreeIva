@@ -168,15 +168,9 @@ namespace FreeIva
 			}
 			else 
 			{
-				CameraAnchor.rotation = InternalCamera.Instance.transform.rotation;
+				Quaternion rotationDelta = Quaternion.Euler(angularSpeed);
 
-				// there's probably a more straightforward way to convert the angular speed to a quaternion and multiply them directly
-				Quaternion rotYaw = Quaternion.AngleAxis(angularSpeed.y, CameraAnchor.rotation * Vector3.up);
-				Quaternion rotPitch = Quaternion.AngleAxis(angularSpeed.x, CameraAnchor.rotation * Vector3.right);// *Quaternion.Euler(0, 90, 0);
-				Quaternion rotRoll = Quaternion.AngleAxis(angularSpeed.z, CameraAnchor.rotation * Vector3.forward);
-
-				// transform.rotation = rotRoll * rotPitch * rotYaw * previousRotation;
-				CameraAnchor.localRotation = rotRoll * rotPitch * rotYaw * CameraAnchor.localRotation;
+				CameraAnchor.rotation = InternalCamera.Instance.transform.rotation * rotationDelta;
 			}
 
 			InternalCamera.Instance.ManualReset(false);
