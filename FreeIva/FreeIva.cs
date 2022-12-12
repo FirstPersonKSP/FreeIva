@@ -247,20 +247,13 @@ namespace FreeIva
 					{
 						foreach (var m in r.materials)
 						{
-							// Geometry is rendered at 2000. The depth mask will be rendered over it at 1999.
-							// Render the next visible area (behind the depth mask) before it, over the top of it, at 1998.
-							if (m.shader.name.Contains("DepthMask") || r.name == "HatchDoor" || r.name == "hatchCombing" || r.name == "mk2CrewCabinExtHatchCut")
-							{
-								m.renderQueue = DepthMaskQueue;
-							}
-							else
-							{
-								m.renderQueue = DepthMaskQueue - 1;
+							Debug.Log($"[FreeIva] PART {p.partInfo.name}, renderer {r.name}, material {m.name}, queue {m.renderQueue}");
 
-								//if (p == activePart || !partVisible)
-								//    m.renderQueue = 2000; // Hide the part the player is inside, and parts with closed hatches.
-								//else
-								//    m.renderQueue = DepthMaskQueue - 1; //1998;
+							// the stock depth masks render at 1000, but we want to disable them
+							if (m.shader.renderQueue == 1000)
+							{
+								r.enabled = false;
+								break;
 							}
 						}
 					}
