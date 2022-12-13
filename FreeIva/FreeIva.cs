@@ -247,8 +247,6 @@ namespace FreeIva
 					{
 						foreach (var m in r.materials)
 						{
-							Debug.Log($"[FreeIva] PART {p.partInfo.name}, renderer {r.name}, material {m.name}, queue {m.renderQueue}");
-
 							// the stock depth masks render at 1000, but we want to disable them
 							if (m.shader.renderQueue == 1000)
 							{
