@@ -57,9 +57,14 @@ namespace FreeIva
 
 		public SSPX_ModuleDeployableCentrifuge ModuleDeployableCentrifuge { get; private set;}
 
+		[SerializeField]
+		public Bounds ShellColliderBounds;
+
 		public override void OnLoad(ConfigNode node)
 		{
 			base.OnLoad(node);
+
+			ShellColliderBounds.SetMinMax(Vector3.positiveInfinity, Vector3.negativeInfinity);
 
 			foreach (var shellColliderName in node.GetValues("shellColliderName"))
 			{
@@ -69,6 +74,7 @@ namespace FreeIva
 					var colliders = transform.GetComponentsInChildren<MeshCollider>();
 					foreach (var meshCollider in colliders)
 					{
+						ShellColliderBounds.Encapsulate(meshCollider.bounds);
 						meshCollider.convex = false;
 					}
 

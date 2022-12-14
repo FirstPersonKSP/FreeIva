@@ -456,7 +456,6 @@ namespace FreeIva
 
 				aimCamera = true;
 				oldCameraRotation = CameraAnchor.rotation;
-				
 			}
 
 			Vector3 flightAccel = GetInternalAcceleration();
@@ -465,6 +464,16 @@ namespace FreeIva
 			if (currentCentrifuge != null && flightAccel.magnitude < 0.05f)
 			{
 				currentCentrifuge = null;
+			}
+
+			if (currentCentrifuge != null)
+			{
+				Vector3 localPositionInIva = FreeIva.CurrentInternalModuleFreeIva.internalModel.transform.InverseTransformPoint(transform.position);
+
+				if (!FreeIva.CurrentInternalModuleFreeIva.ShellColliderBounds.Contains(localPositionInIva))
+				{
+					currentCentrifuge = null;
+				}
 			}
 
 			KerbalFeetCollider.enabled = UseRelativeMovement();
