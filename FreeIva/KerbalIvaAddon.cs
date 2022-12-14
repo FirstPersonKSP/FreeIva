@@ -600,9 +600,9 @@ namespace FreeIva
 			FreeIvaHatch targetedHatch = null;
 			float closestDistance = Settings.MaxInteractDistance;
 
-			if (FreeIva.CurrentInternalModuleFreeIva != null && FreeIva.CurrentInternalModuleFreeIva.Hatches.Count != 0)
+			for (var internalModule = FreeIva.CurrentInternalModuleFreeIva; internalModule != null; internalModule = InternalModuleFreeIva.GetForModel(internalModule.SecondaryInternalModel))
 			{
-				foreach (FreeIvaHatch h in FreeIva.CurrentInternalModuleFreeIva.Hatches)
+				foreach (FreeIvaHatch h in internalModule.Hatches)
 				{
 					ConsiderHatch(ref targetedHatch, ref closestDistance, h);
 
