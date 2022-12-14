@@ -336,49 +336,71 @@ public class MeshCutter2
 				m_skipCuttingTriangle[triangleIndex] = true;
 				continue;
 			}
-
-			bool abSameSide = dA * dB >= 0;
-			bool bcSameSide = dB * dC >= 0;
-
-			if (abSameSide && bcSameSide) continue;
-
-			bool acSameSide = dA * dC >= 0;
-
-			bool aOutside = dA > 0;
-			m_skipCuttingTriangle[triangleIndex] = aOutside;
-
-			if (abSameSide)
+			else if (dA <= 0 && dB <= 0 && dC <= 0)
 			{
-				// cut edges BC and CA
-				int indexBC = AddInterpolatedVertex(indexB, indexC, -dB / (dC - dB));
-				int indexCA = AddInterpolatedVertex(indexC, indexA, -dC / (dA - dC));
-
-				// change A-B-C -> A-B-BC
-				m_indices[firstIndexIndex + 2] = indexBC;
-				AddTriangle(indexBC, indexC, indexCA, !aOutside);
-				AddTriangle(indexCA, indexA, indexBC, aOutside);
+				continue;
 			}
-			else if (bcSameSide)
-			{
-				// cut edges AB and CA
-				int indexAB = AddInterpolatedVertex(indexA, indexB, -dA / (dB - dA));
-				int indexCA = AddInterpolatedVertex(indexC, indexA, -dC / (dA - dC));
 
-				// change A-B-C to A-AB-CA
-				m_indices[firstIndexIndex + 1] = indexAB;
+			// exactly one or two of these booleans must be true (not zero and not three)
+			bool cutAB = dA * dB < 0;
+			bool cutBC = dB * dC < 0;
+			bool cutCA = dC * dA < 0;
+
+			int indexAB = cutAB ? AddInterpolatedVertex(indexA, indexB, -dA / (dB - dA)) : -1;
+			int indexBC = cutBC ? AddInterpolatedVertex(indexB, indexC, -dB / (dC - dB)) : -1;
+			int indexCA = cutCA ? AddInterpolatedVertex(indexC, indexA, -dC / (dA - dC)) : -1;
+
+			if (cutAB)
+			{
+				bool aOutside = dA > 0;
+				m_skipCuttingTriangle[triangleIndex] = aOutside; // the existing triangle keeps vertex A
+				if (cutBC) // AB and BC - B is on one side and AC are on the other
+				{
+					// change A-B-C to A-AB-C
+					m_indices[firstIndexIndex + 1] = indexAB;
+					AddTriangle(indexC, indexAB, indexBC, aOutside);
+					AddTriangle(indexBC, indexAB, indexB, !aOutside);
+				}
+				else if (cutCA) // AB and CA: A is on one side and BC are on the other
+				{
+					// change A-B-C to A-AB-CA
+					m_indices[firstIndexIndex + 1] = indexAB;
+					m_indices[firstIndexIndex + 2] = indexCA;
+					AddTriangle(indexCA, indexAB, indexB, !aOutside);
+					AddTriangle(indexB, indexC, indexCA, !aOutside);
+				}
+				else // AB alone: C is on the plane, AB are on opposite sides
+				{
+					// change A-B-C to A-AB-C
+					m_indices[firstIndexIndex + 1] = indexAB;
+					AddTriangle(indexAB, indexB, indexC, !aOutside);
+				}
+			}
+			else if (cutBC)
+			{
+				bool bOutside = dB > 0;
+				m_skipCuttingTriangle[triangleIndex] = bOutside; // existing triangle keeps vertex B
+				if (cutCA) // BC and CA: C is on one side and AB are on the other
+				{
+					// change A-B-C -> A-B-BC
+					m_indices[firstIndexIndex + 2] = indexBC;
+					AddTriangle(indexBC, indexC, indexCA, !bOutside);
+					AddTriangle(indexCA, indexA, indexBC, bOutside);
+				}
+				else // BC alone: A is on the plane, BC are on opposite sides
+				{
+					// change A-B-C to A-B-BC
+					m_indices[firstIndexIndex + 2] = indexBC;
+					AddTriangle(indexBC, indexC, indexA, !bOutside);
+				}
+			}
+			else // CA alone: B is on the plane, CA are on opposite sides
+			{
+				bool aOutside = dA > 0;
+				m_skipCuttingTriangle[triangleIndex] = aOutside; // the existing triangle keeps vertex A
+				// change A-B-C to A-B-CA
 				m_indices[firstIndexIndex + 2] = indexCA;
-				AddTriangle(indexCA, indexAB, indexB, !aOutside);
 				AddTriangle(indexB, indexC, indexCA, !aOutside);
-			}
-			else if (acSameSide)
-			{
-				// cut edges AB and BC
-				int indexAB = AddInterpolatedVertex(indexA, indexB, -dA / (dB - dA));
-				int indexBC = AddInterpolatedVertex(indexB, indexC, -dB / (dC - dB));
-				// change A-B-C to A-AB-C
-				m_indices[firstIndexIndex + 1] = indexAB;
-				AddTriangle(indexC, indexAB, indexBC, aOutside);
-				AddTriangle(indexBC, indexAB, indexB, !aOutside);
 			}
 		}
 	}
