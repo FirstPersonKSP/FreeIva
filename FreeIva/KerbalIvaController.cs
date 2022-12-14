@@ -210,33 +210,6 @@ namespace FreeIva
 			}
 		}
 
-		Vector3 GetCentrifugeTangentVelocity()
-		{
-			if (currentCentrifuge == null) return Vector3.zero;
-
-			float omega = Mathf.Deg2Rad * currentCentrifuge.CurrentSpinRate;
-			if (omega == 0) return Vector3.zero;
-
-			// for now, we'll assume that the centrifuge is spinning around the "top/bottom" axis - Z in local IVA space
-			Transform rotationRoot = currentCentrifuge.IVARotationRoot;
-			Vector3 localKerbalPosition = rotationRoot.InverseTransformPoint(transform.position);
-			localKerbalPosition.z = 0;
-
-			// centripetal acceleration = omega^2 * r
-
-			// this would be the analytical velocity
-			//Vector3 localTangentVelocity = Vector3.Cross(new Vector3(0, 0, -omega), localKerbalPosition);
-
-			// however because we operate on discrete timesteps, we need to find where this point will be at the end of the next timestep
-			// and then subtract the positions
-
-			Quaternion stepRotation = Quaternion.AngleAxis(currentCentrifuge.CurrentSpinRate * Time.fixedDeltaTime, Vector3.back);
-
-			Vector3 positionNextFrame = stepRotation * localKerbalPosition;
-			Vector3 localTangentVelocity = (positionNextFrame - localKerbalPosition) / Time.fixedDeltaTime; 
-
-			return rotationRoot.TransformVector(localTangentVelocity);
-		}
 
 		void UpdatePosition_InGravity(Vector3 flightAccel, Vector3 movementThrottle, bool jump)
 		{
@@ -254,7 +227,7 @@ namespace FreeIva
 			Vector3 desiredInternalVelocity = orientation * desiredLocalSpeed;
 			bool grounded = GetGroundPlane(flightAccel, out Plane groundPlane);
 
-			if (KerbalIvaAddon.Gravity && currentCentrifuge == null)
+			if (KerbalIvaAddon.Gravity)
 			{
 				float gravityScale = grounded ? 0.1f : 1f;
 				KerbalRigidbody.AddForce(gravityScale * flightAccel, ForceMode.Acceleration);
@@ -276,12 +249,6 @@ namespace FreeIva
 			}
 
 			Vector3 velocityDelta = desiredInternalVelocity - KerbalRigidbody.velocity;
-
-			if (currentCentrifuge != null && grounded)
-            {
-				Vector3 tangentVelocity = GetCentrifugeTangentVelocity();
-				velocityDelta += tangentVelocity;
-            }
 
 			// if we're not on the ground, don't change velocity in the vertical direction (this stops us from fighting gravity with desired velocity)
 			if (!grounded)
@@ -327,8 +294,7 @@ namespace FreeIva
 			Quaternion orientation = transform.rotation * Quaternion.Euler(0, currentRelativeOrientation.y, 0);
 			Vector3 desiredInternalVelocity = orientation * desiredLocalSpeed;
 
-			Vector3 tangentVelocity = GetCentrifugeTangentVelocity();
-			Vector3 velocityDelta = desiredInternalVelocity - (KerbalRigidbody.velocity - tangentVelocity);
+			Vector3 velocityDelta = desiredInternalVelocity - KerbalRigidbody.velocity;
 
 			float desiredDeltaSpeed = velocityDelta.magnitude;
 			float maxDeltaSpeed = GetMaxDeltaSpeed(tryingToMove, true);
@@ -451,6 +417,7 @@ namespace FreeIva
 			if (currentCentrifuge == null && input.Jump && KerbalCollisionTracker.RailColliderCount > 0)
 			{
 				currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.ModuleDeployableCentrifuge;
+				transform.SetParent(currentCentrifuge.IVARotationRoot, true);
 				KerbalIvaAddon.Instance.JumpLatched = currentCentrifuge != null;
 				input.Jump = !KerbalIvaAddon.Instance.JumpLatched;
 
@@ -464,15 +431,20 @@ namespace FreeIva
 			if (currentCentrifuge != null && flightAccel.magnitude < 0.05f)
 			{
 				currentCentrifuge = null;
+				transform.SetParent(null, true);
 			}
 
 			if (currentCentrifuge != null)
 			{
 				Vector3 localPositionInIva = FreeIva.CurrentInternalModuleFreeIva.internalModel.transform.InverseTransformPoint(transform.position);
 
-				if (!FreeIva.CurrentInternalModuleFreeIva.ShellColliderBounds.Contains(localPositionInIva))
+				Bounds centrifugeBounds = FreeIva.CurrentInternalModuleFreeIva.ShellColliderBounds;
+				centrifugeBounds.size = new Vector3(5000, 5000, centrifugeBounds.size.z);
+
+				if (!centrifugeBounds.Contains(localPositionInIva))
 				{
 					currentCentrifuge = null;
+					transform.SetParent(null, true);
 				}
 			}
 
