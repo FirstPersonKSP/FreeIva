@@ -140,7 +140,7 @@ namespace FreeIva
 		public bool UseRelativeMovement()
 		{
 			// eventually we might want to include flying in atmosphere, etc
-			return FlightGlobals.ActiveVessel.LandedOrSplashed && KerbalIvaAddon.Gravity || (currentCentrifuge != null && currentCentrifuge.CurrentSpinRate > 0);
+			return FlightGlobals.ActiveVessel.LandedOrSplashed && KerbalIvaAddon.Gravity || (currentCentrifuge != null && currentCentrifuge.CurrentSpinRate != 0);
 		}
 
 		public Vector3 currentRelativeOrientation;
@@ -382,7 +382,7 @@ namespace FreeIva
 		{
 			if (currentCentrifuge == null) return Vector3.zero;
 
-			float omega = Mathf.Deg2Rad * currentCentrifuge.CurrentSpinRate;
+			float omega = Mathf.Deg2Rad * Mathf.Abs(currentCentrifuge.CurrentSpinRate);
 			if (omega == 0) return Vector3.zero;
 
 			// for now, we'll assume that the centrifuge is spinning around the "top/bottom" axis - Z in local IVA space
