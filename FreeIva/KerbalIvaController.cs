@@ -416,7 +416,7 @@ namespace FreeIva
 
 			// if we're not in a centrifuge, see if we're trying to grab a rail in one
 			// TODO: can we handle *clicking* on one of these rails too?
-			if (currentCentrifuge == null && input.Jump && KerbalCollisionTracker.RailColliderCount > 0)
+			if (currentCentrifuge == null && (input.Jump || input.MovementThrottle.y < 0) && KerbalCollisionTracker.RailColliderCount > 0)
 			{
 				currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.ModuleDeployableCentrifuge;
 
