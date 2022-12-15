@@ -417,12 +417,16 @@ namespace FreeIva
 			if (currentCentrifuge == null && input.Jump && KerbalCollisionTracker.RailColliderCount > 0)
 			{
 				currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.ModuleDeployableCentrifuge;
-				transform.SetParent(currentCentrifuge.IVARotationRoot, true);
-				KerbalIvaAddon.Instance.JumpLatched = currentCentrifuge != null;
-				input.Jump = !KerbalIvaAddon.Instance.JumpLatched;
 
-				aimCamera = true;
-				oldCameraRotation = CameraAnchor.rotation;
+				if (currentCentrifuge != null)
+				{
+					transform.SetParent(currentCentrifuge.IVARotationRoot, true);
+					KerbalIvaAddon.Instance.JumpLatched = true;
+					input.Jump = false;
+
+					aimCamera = true;
+					oldCameraRotation = CameraAnchor.rotation;
+				}
 			}
 
 			Vector3 flightAccel = GetInternalAcceleration();
