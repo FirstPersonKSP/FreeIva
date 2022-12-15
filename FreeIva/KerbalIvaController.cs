@@ -119,6 +119,8 @@ namespace FreeIva
 			KerbalCollisionTracker.CurrentInternalModel = kerbal.seat.internalModel;
 			currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.ModuleDeployableCentrifuge;
 
+			transform.SetParent(currentCentrifuge?.IVARotationRoot, true);
+
 			if (UseRelativeMovement())
 			{
 				Vector3 flightAccel = GetInternalAcceleration();
