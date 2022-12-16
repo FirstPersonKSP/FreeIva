@@ -541,7 +541,7 @@ namespace FreeIva
 		{
 			float closestDistance = Settings.MaxInteractDistance;
 			TargetedSeat = null;
-			if (FreeIva.CurrentPart.internalModel == null)
+			if (FreeIva.CurrentPart?.internalModel == null)
 				return;
 
 			for (int i = 0; i < FreeIva.CurrentPart.internalModel.seats.Count; i++)
