@@ -206,9 +206,11 @@ namespace FreeIva
 			if (internalModule == null)
 			{
 				Debug.LogError($"[FreeIva] no InternalModuleFreeIva instance registered for internal {internalModel.internalName} for hatch prop {internalProp.propName}");
-				return;
 			}
-			internalModule.Hatches.Add(this);
+			else
+			{
+				internalModule.Hatches.Add(this);
+			}
 
 			RefreshConnection();
 		}
