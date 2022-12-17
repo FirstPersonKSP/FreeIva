@@ -46,6 +46,7 @@ namespace FreeIva
 		public string dockingPortNodeName = string.Empty;
 
 		public string requiredAnimationName = string.Empty;
+		public bool requireDeploy = false;
 
 		[SerializeReference]
 		public ObjectsToHide HideWhenOpen;
@@ -57,8 +58,6 @@ namespace FreeIva
 		public float tubeExtent = 0;
 
 		public bool hideDoorWhenConnected = false;
-
-		public bool sspx_requireDeployment = false;
 
 		// -----
 
@@ -78,9 +77,8 @@ namespace FreeIva
 
 		Transform m_doorTransform;
 		ModuleDockingNode m_dockingNodeModule;
-		ModuleAnimateGeneric m_animationModule;
 		InternalProp m_blockedProp;
-		SSPX_ModuleDeployableHabitat m_sspx_moduleDeployableHabitat;
+		Deployable m_deployable;
 
 		// Where the GameObject is located. Used for basic interaction targeting (i.e. when to show the "Open hatch?" prompt).
 		public virtual Vector3 WorldPosition => transform.position;
@@ -194,34 +192,13 @@ namespace FreeIva
 				}
 			}
 
-			if (requiredAnimationName != string.Empty)
+			if (requireDeploy)
 			{
-				foreach (var module in part.modules.OfType<ModuleAnimateGeneric>())
-				{
-					if (module.animationName == requiredAnimationName)
-					{
-						m_animationModule = module;
-						break;
-					}
-				}
+				m_deployable = Deployable.Create(part, requiredAnimationName);
 
-				if (m_animationModule != null)
+				if (m_deployable == null)
 				{
-					m_animationModule.OnStop.Add(OnAnimationModuleStop);
-					m_animationModule.OnMoving.Add(OnAnimationModuleMoving);
-				}
-				else
-				{
-					Debug.LogError($"[FreeIva] No ModuleAnimateGeneric with animationName '{requiredAnimationName}' found in part {part.partInfo.name} for prop {internalProp.propName} in internal {internalModel.internalName}");
-				}
-			}
-
-			if (sspx_requireDeployment)
-			{
-				m_sspx_moduleDeployableHabitat = SSPX_ModuleDeployableHabitat.Create(part);
-				if (m_sspx_moduleDeployableHabitat == null)
-				{
-					Debug.LogError($"[FreeIva] PROP '{internalProp.propName}' in INTERNAL '{internalModel.internalName}' has sspx_requireDeployment=true but could not find a ModuleDeployableHabitat in PART '{part.partInfo.name}'");
+					Debug.LogError($"[FreeIva] Could not find a module to handle deployment for PROP '{internalProp.propName}' in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
 				}
 			}
 
@@ -236,28 +213,6 @@ namespace FreeIva
 			RefreshConnection();
 		}
 
-		void OnDestroy()
-		{
-			if (m_animationModule != null)
-			{
-				m_animationModule.OnStop.Remove(OnAnimationModuleStop);
-				m_animationModule.OnMoving.Remove(OnAnimationModuleMoving);
-			}
-		}
-
-		private void OnAnimationModuleMoving(float data0, float data1)
-		{
-			Open(false);
-		}
-
-		private void OnAnimationModuleStop(float data)
-		{
-			if (data == 1.0f && hideDoorWhenConnected)
-			{
-				Open(true);
-			}
-		}
-
 		public bool IsBlockedByAnimation(bool checkConnectedHatch = true)
 		{
 			// check the other hatch first (non-recursively)
@@ -266,17 +221,9 @@ namespace FreeIva
 				return true;
 			}
 
-			if (sspx_requireDeployment)
+			if (requireDeploy)
 			{
-				if (m_sspx_moduleDeployableHabitat == null || !m_sspx_moduleDeployableHabitat.IsDeployed)
-				{
-					return true;
-				}
-			}
-
-			if (requiredAnimationName != string.Empty)
-			{
-				if (m_animationModule == null || m_animationModule.GetState().normalizedTime != 1.0f)
+				if (m_deployable == null || !m_deployable.IsDeployed)
 				{
 					return true;
 				}

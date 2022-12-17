@@ -33,8 +33,9 @@ namespace FreeIva
 			node.TryGetValue(nameof(FreeIvaHatch.hideDoorWhenConnected), ref propHatch.hideDoorWhenConnected);
 			node.TryGetValue(nameof(FreeIvaHatch.dockingPortNodeName), ref propHatch.dockingPortNodeName);
 			node.TryGetValue(nameof(FreeIvaHatch.requiredAnimationName), ref propHatch.requiredAnimationName);
+			propHatch.requireDeploy = propHatch.requiredAnimationName != string.Empty;
 			node.TryGetValue(nameof(FreeIvaHatch.cutoutTargetTransformName), ref propHatch.cutoutTargetTransformName);
-			node.TryGetValue(nameof(FreeIvaHatch.sspx_requireDeployment), ref propHatch.sspx_requireDeployment);
+			node.TryGetValue(nameof(FreeIvaHatch.requireDeploy), ref propHatch.requireDeploy);
 
 			ConfigNode[] hideNodes = node.GetNodes("HideWhenOpen");
 			if (hideNodes != null && hideNodes.Length > 0)

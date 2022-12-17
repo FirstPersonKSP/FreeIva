@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FreeIva
 {
-	public class SSPX_ModuleDeployableHabitat
+	public class SSPX_ModuleDeployableHabitat : Deployable
 	{
 		#region static
 
@@ -16,7 +16,7 @@ namespace FreeIva
 
 		static SSPX_ModuleDeployableHabitat()
 		{
-			 var type = AssemblyLoader.GetClassByName(typeof(PartModule), "ModuleDeployableHabitat");
+			var type = AssemblyLoader.GetClassByName(typeof(PartModule), "ModuleDeployableHabitat");
 
 			if (type == null) return;
 
@@ -49,7 +49,7 @@ namespace FreeIva
 
 		PartModule m_moduleDeployableHabitat;
 
-		public bool IsDeployed
+		public override bool IsDeployed
 		{
 			get
 			{

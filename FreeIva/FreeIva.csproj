@@ -121,6 +121,9 @@
     <Compile Include="ReparentUtil.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Shim\B9PS_ModuleB9PartSwitch.cs" />
+    <Compile Include="Shim\Deployable.cs" />
+    <Compile Include="Shim\KPBS_PlanetaryModule.cs" />
+    <Compile Include="Shim\Squad_ModuleAnimateGeneric.cs" />
     <Compile Include="Shim\SSPX_ModuleDeployableCentrifuge.cs" />
     <Compile Include="Shim\SSPX_ModuleDeployableHabitat.cs" />
     <Compile Include="TransformUtil.cs" />
