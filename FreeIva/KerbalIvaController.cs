@@ -117,7 +117,7 @@ namespace FreeIva
 
 			KerbalCollisionTracker.RailColliderCount = 0;
 			KerbalCollisionTracker.CurrentInternalModel = kerbal.seat.internalModel;
-			currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.ModuleDeployableCentrifuge;
+			currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.Centrifuge;
 
 			transform.SetParent(currentCentrifuge?.IVARotationRoot, true);
 
@@ -344,7 +344,7 @@ namespace FreeIva
 			}
 		}
 
-		SSPX_ModuleDeployableCentrifuge currentCentrifuge;
+		Centrifuge currentCentrifuge;
 
 		public Vector3 GetCentrifugeAccel()
 		{
@@ -418,7 +418,7 @@ namespace FreeIva
 			// TODO: can we handle *clicking* on one of these rails too?
 			if (currentCentrifuge == null && (input.Jump || input.MovementThrottle.y < 0) && KerbalCollisionTracker.RailColliderCount > 0)
 			{
-				currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.ModuleDeployableCentrifuge;
+				currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.Centrifuge;
 
 				if (currentCentrifuge != null)
 				{
