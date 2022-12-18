@@ -15,6 +15,9 @@ namespace FreeIva
 		static TypeInfo x_ModuleDeployableCentrifugeTypeInfo;
 		static FieldInfo x_CurrentSpinRateFieldInfo;
 		static FieldInfo x_IVARotationRootFieldInfo;
+		static FieldInfo x_propDictFieldInfo;
+		static MethodInfo x_ResetIVATransformMethodInfo;
+
 
 		static SSPX_ModuleDeployableCentrifuge()
 		{
@@ -25,6 +28,8 @@ namespace FreeIva
 			x_ModuleDeployableCentrifugeTypeInfo = type.GetTypeInfo();
 			x_CurrentSpinRateFieldInfo = x_ModuleDeployableCentrifugeTypeInfo.GetField("CurrentSpinRate", BindingFlags.Instance | BindingFlags.Public);
 			x_IVARotationRootFieldInfo = x_ModuleDeployableCentrifugeTypeInfo.GetField("IVARotationRoot", BindingFlags.Instance | BindingFlags.NonPublic);
+			x_propDictFieldInfo = x_ModuleDeployableCentrifugeTypeInfo.GetField("propDict", BindingFlags.Instance | BindingFlags.NonPublic);
+			x_ResetIVATransformMethodInfo = x_ModuleDeployableCentrifugeTypeInfo.GetMethod("ResetIVATransform", BindingFlags.Instance | BindingFlags.Public);
 		}
 
 		public new static SSPX_ModuleDeployableCentrifuge Create(Part part)
@@ -43,14 +48,42 @@ namespace FreeIva
 
 			if (module == null) return null;
 
-			var result = new SSPX_ModuleDeployableCentrifuge();
-			result.m_moduleDeployableCentrifuge = module;
-			return result;
+			return new SSPX_ModuleDeployableCentrifuge(module);
 		}
 
 		#endregion
 
+		SSPX_ModuleDeployableCentrifuge(PartModule module)
+		{
+			m_moduleDeployableCentrifuge = module;
+
+			// replace IVARotationRoot with the internal model transform
+			var ivaRotationRoot = (Transform)x_IVARotationRootFieldInfo.GetValue(module);
+			GameObject.Destroy(ivaRotationRoot.gameObject);
+			m_rotationRoot = module.part.internalModel.FindModelTransform("model");
+			x_IVARotationRootFieldInfo.SetValue(m_moduleDeployableCentrifuge, m_rotationRoot);
+
+			// attach all the props to the rotation root
+			foreach (var prop in module.part.internalModel.props)
+			{
+				prop.transform.SetParent(m_rotationRoot, true);
+			}
+
+			// clear the propDict so that the SSPX module doesn't mess with the prop transforms
+			var propDict = (Dictionary<Transform, Transform>)x_propDictFieldInfo.GetValue(module);
+			foreach (var proxy in propDict.Keys)
+			{
+				GameObject.Destroy(proxy.gameObject);
+			}
+			propDict.Clear();
+
+			// unhook the event handler so SSPX doesn't redo the IVA setup every time crew is transferred
+			var resetIVATransformDelegate = (EventData<GameEvents.HostedFromToAction<ProtoCrewMember, Part>>.OnEvent)x_ResetIVATransformMethodInfo.CreateDelegate(typeof(EventData<GameEvents.HostedFromToAction<ProtoCrewMember, Part>>.OnEvent), module);
+			GameEvents.onCrewTransferred.Remove(resetIVATransformDelegate);
+		}
+
 		PartModule m_moduleDeployableCentrifuge;
+		Transform m_rotationRoot;
 
 		public override float CurrentSpinRate
 		{
@@ -59,7 +92,7 @@ namespace FreeIva
 
 		public override Transform IVARotationRoot
 		{
-			get { return (Transform)x_IVARotationRootFieldInfo.GetValue(m_moduleDeployableCentrifuge); }
+			get { return m_rotationRoot; }
 		}
 	}
 }

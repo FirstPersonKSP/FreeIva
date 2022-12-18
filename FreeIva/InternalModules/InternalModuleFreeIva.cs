@@ -68,7 +68,7 @@ namespace FreeIva
 
 			foreach (var shellColliderName in node.GetValues("shellColliderName"))
 			{
-				var transform = TransformUtil.FindPropTransform(internalProp, shellColliderName);
+				var transform = TransformUtil.FindInternalModelTransform(internalModel, shellColliderName);
 				if (transform != null)
 				{
 					var colliders = transform.GetComponentsInChildren<MeshCollider>();

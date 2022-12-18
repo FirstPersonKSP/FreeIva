@@ -442,7 +442,7 @@ namespace FreeIva
 
 			if (currentCentrifuge != null)
 			{
-				Vector3 localPositionInIva = FreeIva.CurrentInternalModuleFreeIva.internalModel.transform.InverseTransformPoint(transform.position);
+				Vector3 localPositionInIva = currentCentrifuge.IVARotationRoot.InverseTransformPoint(transform.position);
 
 				Bounds centrifugeBounds = FreeIva.CurrentInternalModuleFreeIva.ShellColliderBounds;
 				centrifugeBounds.size = new Vector3(5000, 5000, centrifugeBounds.size.z);
