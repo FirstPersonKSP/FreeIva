@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
+// NOTE: this file should not contain any KSP-specific code.  It's pretty important that we're able to test it on meshes directly in the Unity editor.
+// In fact this file lives in the *unity* project and should only be referenced from the KSP mod code
+
 public class MeshCutter2
 {
 	private Transform m_meshTransform;
@@ -18,6 +21,87 @@ public class MeshCutter2
 
 	// maps a pair of vertex indices to the new vertex index that was created between them
 	private Dictionary<Tuple<int, int>, int> m_cutEdgeMapping = new Dictionary<Tuple<int, int>, int>();
+
+	public MeshCutter2(MeshFilter target)
+	{
+		m_mesh = target.mesh;
+		m_meshTransform = target.transform;
+
+		m_vertices = new List<Vector3>(m_mesh.vertices);
+		m_indices = new List<int>(m_mesh.triangles);
+		m_normals = new List<Vector3>(m_mesh.normals);
+		m_uvs = new List<Vector2>(m_mesh.uv);
+		m_uvs2 = m_mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord1) ? new List<Vector2>(m_mesh.uv2) : null;
+		m_skipCuttingTriangle = new List<bool>();
+		m_skipCuttingTriangle.AddRange(Enumerable.Repeat(false, m_indices.Count / 3));
+	}
+
+	public void FinalizeMesh()
+	{
+		m_mesh.vertices = m_vertices.ToArray();
+		m_mesh.triangles = m_indices.ToArray();
+		m_mesh.normals = m_normals.ToArray();
+		m_mesh.uv = m_uvs.ToArray();
+		if (m_uvs2 != null) m_mesh.uv2 = m_uvs2.ToArray();
+		m_mesh.RecalculateTangents();
+		m_mesh.Optimize();
+	}
+
+	public void CutMesh(GameObject tool)
+	{
+		var planes = GetPlanesFromTool(tool);
+		CutMesh(planes, tool.transform);
+	}
+
+	public void CutMesh(List<Plane> cuttingPlanes, Transform cuttingToolTransform)
+	{
+		int initialvertexCount = m_vertices.Count;
+
+		// make a copy of the planes cause we need to transform them
+		List<Plane> planes = cuttingPlanes.ToList();
+		TransformPlanesToMeshSpace(planes, cuttingToolTransform);
+
+		SortPlanes(planes);
+
+		for (int i = 0; i < m_skipCuttingTriangle.Count; i++)
+		{
+			m_skipCuttingTriangle[i] = false;
+		}
+
+		FilterTriangles(planes);
+
+		// This algorithm tends to create a lot of extra vertices because it's not very smart about ordering the planes for each triangle
+		// instead of iterating over the planes, and cutting the mesh with each one, it might be better to iterate over the mesh triangles, sort the planes somehow, and then cut the triangle with the sorted planes
+		// not really sure what the right sorting criteria would be
+		foreach (var plane in planes)
+		{
+			CutByPlane(plane);
+		}
+
+		FilterTriangles(planes);
+	}
+
+	// returns a set of planes in tool-local space (so the same set of planes can be re-used for many different transforms of the same tool)
+	public List<Plane> GetPlanesFromTool(GameObject tool)
+	{
+		Mesh toolMesh = tool.GetComponent<MeshFilter>().mesh;
+		List<Plane> planes = new List<Plane>(toolMesh.triangles.Length / 3);
+
+		for (int firstIndexIndex = 0; firstIndexIndex < toolMesh.triangles.Length; firstIndexIndex += 3)
+		{
+			int indexA = toolMesh.triangles[firstIndexIndex];
+			int indexB = toolMesh.triangles[firstIndexIndex + 1];
+			int indexC = toolMesh.triangles[firstIndexIndex + 2];
+
+			Vector3 vA = toolMesh.vertices[indexA];
+			Vector3 vB = toolMesh.vertices[indexB];
+			Vector3 vC = toolMesh.vertices[indexC];
+
+			planes.Add(new Plane(vA, vB, vC));
+		}
+
+		return planes.Distinct(PlaneComparison.Instance).ToList();
+	}
 
 	int AddInterpolatedVertex(int indexA, int indexB, float t)
 	{
@@ -203,103 +287,6 @@ public class MeshCutter2
 				--triangleIndex; // repeat same index
 			}
 		}
-	}
-
-	public MeshCutter2(MeshFilter target)
-	{
-		m_mesh = target.mesh;
-		m_meshTransform = target.transform;
-
-		m_vertices = new List<Vector3>(m_mesh.vertices);
-		m_indices = new List<int>(m_mesh.triangles);
-		m_normals = new List<Vector3>(m_mesh.normals);
-		m_uvs = new List<Vector2>(m_mesh.uv);
-		m_uvs2 = m_mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord1) ? new List<Vector2>(m_mesh.uv2) : null;
-		m_skipCuttingTriangle = new List<bool>();
-		m_skipCuttingTriangle.AddRange(Enumerable.Repeat(false, m_indices.Count / 3));
-	}
-	
-	public void FinalizeMesh()
-	{
-		m_mesh.vertices = m_vertices.ToArray();
-		m_mesh.triangles = m_indices.ToArray();
-		m_mesh.normals = m_normals.ToArray();
-		m_mesh.uv = m_uvs.ToArray();
-		if (m_uvs2 != null) m_mesh.uv2 = m_uvs2.ToArray();
-		m_mesh.RecalculateTangents();
-		m_mesh.Optimize();
-	}
-
-	public void CutMesh(GameObject tool)
-	{
-		var planes = GetPlanesFromTool(tool);
-		CutMesh(planes, tool.transform);
-	}
-
-	public void CutMesh(List<Plane> cuttingPlanes, Transform cuttingToolTransform)
-	{
-		int initialvertexCount = m_vertices.Count;
-
-		// make a copy of the planes cause we need to transform them
-		List<Plane> planes = cuttingPlanes.ToList();
-		TransformPlanesToMeshSpace(planes, cuttingToolTransform);
-
-		SortPlanes(planes);
-
-		for (int i = 0; i < m_skipCuttingTriangle.Count; i++)
-		{
-			m_skipCuttingTriangle[i] = false;
-		}
-
-		FilterTriangles(planes);
-		
-		// This algorithm tends to create a lot of extra vertices because it's not very smart about ordering the planes for each triangle
-		// instead of iterating over the planes, and cutting the mesh with each one, it might be better to iterate over the mesh triangles, sort the planes somehow, and then cut the triangle with the sorted planes
-		// not really sure what the right sorting criteria would be
-		foreach (var plane in planes)
-		{
-			CutByPlane(plane);
-		}
-
-		FilterTriangles(planes);
-	}
-
-	// returns a negative number if the vertex is inside all the planes, 0 if it's on the surface, or a positive number if it's outside all of the planes
-	private float ClassifyVertex(Vector3 vertex, List<Plane> planes)
-	{
-		foreach (var plane in planes)
-		{
-			float d = PlaneGetDistanceToPoint(plane, vertex);
-
-			if (d >= 0)
-			{
-				return d;
-			}
-		}
-
-		return -1;
-	}
-
-	// returns a set of planes in tool-local space (so the same set of planes can be re-used for many different transforms of the same tool)
-	public List<Plane> GetPlanesFromTool(GameObject tool)
-	{
-		Mesh toolMesh = tool.GetComponent<MeshFilter>().mesh;
-		List<Plane> planes = new List<Plane>(toolMesh.triangles.Length / 3);
-
-		for (int firstIndexIndex = 0; firstIndexIndex < toolMesh.triangles.Length; firstIndexIndex += 3)
-		{
-			int indexA = toolMesh.triangles[firstIndexIndex];
-			int indexB = toolMesh.triangles[firstIndexIndex + 1];
-			int indexC = toolMesh.triangles[firstIndexIndex + 2];
-
-			Vector3 vA = toolMesh.vertices[indexA];
-			Vector3 vB = toolMesh.vertices[indexB];
-			Vector3 vC = toolMesh.vertices[indexC];
-
-			planes.Add(new Plane(vA, vB, vC));
-		}
-
-		return planes.Distinct(PlaneComparison.Instance).ToList();
 	}
 
 	// returns 0 for points that are approximately on the plane
