@@ -215,7 +215,12 @@ namespace FreeIva
 			}
 			result.part = part;
 			result.Load(new ConfigNode());
+			
+			// InternalModule.Initialize will try to seat the crew, but we don't want to do that for secondary internal models
+			var partCrew = part.protoModuleCrew;
+			part.protoModuleCrew = new List<ProtoCrewMember>();
 			result.Initialize(part);
+			part.protoModuleCrew = partCrew;
 			return result;
 		}
 
@@ -272,6 +277,10 @@ namespace FreeIva
 		void OnDestroy()
 		{
 			perModelCache.Remove(internalModel);
+			if (SecondaryInternalModel != null)
+			{
+				GameObject.Destroy(SecondaryInternalModel.gameObject);
+			}
 		}
 	}
 }
