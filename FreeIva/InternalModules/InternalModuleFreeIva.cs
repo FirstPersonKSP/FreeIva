@@ -240,6 +240,11 @@ namespace FreeIva
 		{
 			this.internalModel.transform.position = InternalSpace.WorldToInternal(part.transform.position);
 			this.internalModel.transform.rotation = InternalSpace.WorldToInternal(part.transform.rotation) * Quaternion.Euler(90, 0, 180);
+
+			if (Centrifuge != null)
+			{
+				Centrifuge.Update();
+			}
 		}
 
 		void ExecuteMeshCuts()
