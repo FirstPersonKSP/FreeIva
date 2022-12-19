@@ -45,7 +45,6 @@ namespace FreeIva
 		// some docking ports don't use AttachNodes (inline ports, inflatable airlock, shielded)
 		public string dockingPortNodeName = string.Empty;
 
-		public string requiredAnimationName = string.Empty;
 		public bool requireDeploy = false;
 
 		[SerializeReference]
@@ -78,7 +77,6 @@ namespace FreeIva
 		Transform m_doorTransform;
 		ModuleDockingNode m_dockingNodeModule;
 		InternalProp m_blockedProp;
-		IDeployable m_deployable;
 
 		// Where the GameObject is located. Used for basic interaction targeting (i.e. when to show the "Open hatch?" prompt).
 		public virtual Vector3 WorldPosition => transform.position;
@@ -192,16 +190,6 @@ namespace FreeIva
 				}
 			}
 
-			if (requireDeploy)
-			{
-				m_deployable = DeployableFactory.Create(part, requiredAnimationName);
-
-				if (m_deployable == null)
-				{
-					Debug.LogError($"[FreeIva] Could not find a module to handle deployment for PROP '{internalProp.propName}' in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
-				}
-			}
-
 			var internalModule = InternalModuleFreeIva.GetForModel(internalModel);
 			if (internalModule == null)
 			{
@@ -210,6 +198,11 @@ namespace FreeIva
 			else
 			{
 				internalModule.Hatches.Add(this);
+
+				if (requireDeploy)
+				{
+					internalModule.NeedsDeployable = true;
+				}
 			}
 
 			RefreshConnection();
@@ -225,7 +218,9 @@ namespace FreeIva
 
 			if (requireDeploy)
 			{
-				if (m_deployable == null || !m_deployable.IsDeployed)
+				var internalModule = InternalModuleFreeIva.GetForModel(internalModel);
+				var deployable = internalModule?.Deployable;
+				if (deployable == null || !deployable.IsDeployed)
 				{
 					return true;
 				}

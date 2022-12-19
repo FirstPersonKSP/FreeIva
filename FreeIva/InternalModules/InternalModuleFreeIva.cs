@@ -56,6 +56,11 @@ namespace FreeIva
 		public InternalModel SecondaryInternalModel { get; private set; }
 
 		public ICentrifuge Centrifuge { get; private set; }
+		public IDeployable Deployable { get; private set; }
+
+		public bool NeedsDeployable;
+		[KSPField]
+		public string deployAnimationName = string.Empty;
 
 		[SerializeField]
 		public Bounds ShellColliderBounds;
@@ -238,6 +243,17 @@ namespace FreeIva
 			if (SecondaryInternalModel != null)
 			{
 				Centrifuge = CentrifugeFactory.Create(part);
+				Deployable = Centrifuge as IDeployable; // some centrifuges may also be deployables
+			}
+
+			if (NeedsDeployable && Deployable == null)
+			{
+				Deployable = DeployableFactory.Create(part, deployAnimationName);
+
+				if (Deployable == null)
+				{
+					Debug.LogError($"[FreeIva] Could not find a module to handle deployment in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
+				}
 			}
 		}
 
