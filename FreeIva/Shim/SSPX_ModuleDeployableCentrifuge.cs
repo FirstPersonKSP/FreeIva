@@ -17,6 +17,7 @@ namespace FreeIva
 		static FieldInfo x_IVARotationRootFieldInfo;
 		static FieldInfo x_propDictFieldInfo;
 		static MethodInfo x_ResetIVATransformMethodInfo;
+		static MethodInfo x_DoIVASetupMethodInfo;
 
 
 		static SSPX_ModuleDeployableCentrifuge()
@@ -30,6 +31,7 @@ namespace FreeIva
 			x_IVARotationRootFieldInfo = x_ModuleDeployableCentrifugeTypeInfo.GetField("IVARotationRoot", BindingFlags.Instance | BindingFlags.NonPublic);
 			x_propDictFieldInfo = x_ModuleDeployableCentrifugeTypeInfo.GetField("propDict", BindingFlags.Instance | BindingFlags.NonPublic);
 			x_ResetIVATransformMethodInfo = x_ModuleDeployableCentrifugeTypeInfo.GetMethod("ResetIVATransform", BindingFlags.Instance | BindingFlags.Public);
+			x_DoIVASetupMethodInfo = x_ModuleDeployableCentrifugeTypeInfo.GetMethod("DoIVASetup", BindingFlags.Instance | BindingFlags.NonPublic);
 		}
 
 		public new static SSPX_ModuleDeployableCentrifuge Create(Part part)
@@ -59,6 +61,13 @@ namespace FreeIva
 
 			// replace IVARotationRoot with the internal model transform
 			var ivaRotationRoot = (Transform)x_IVARotationRootFieldInfo.GetValue(module);
+
+			if (ivaRotationRoot == null)
+			{
+				x_DoIVASetupMethodInfo.Invoke(module, null);
+				ivaRotationRoot = (Transform)x_IVARotationRootFieldInfo.GetValue(module);
+			}
+
 			GameObject.Destroy(ivaRotationRoot.gameObject);
 			m_rotationRoot = module.part.internalModel.FindModelTransform("model");
 			x_IVARotationRootFieldInfo.SetValue(m_moduleDeployableCentrifuge, m_rotationRoot);
