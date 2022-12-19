@@ -55,7 +55,7 @@ namespace FreeIva
 		public string secondaryInternalName = string.Empty;
 		public InternalModel SecondaryInternalModel { get; private set; }
 
-		public Centrifuge Centrifuge { get; private set; }
+		public ICentrifuge Centrifuge { get; private set; }
 
 		[SerializeField]
 		public Bounds ShellColliderBounds;
@@ -237,7 +237,7 @@ namespace FreeIva
 			// for now we'll only set up the centrifuge module on the rotating part
 			if (SecondaryInternalModel != null)
 			{
-				Centrifuge = Centrifuge.Create(part);
+				Centrifuge = CentrifugeFactory.Create(part);
 			}
 		}
 

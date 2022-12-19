@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FreeIva
 {
-	public class KPBS_PlanetaryModule : Deployable
+	public class KPBS_PlanetaryModule : IDeployable
 	{
 		#region static
 
@@ -51,7 +51,7 @@ namespace FreeIva
 			m_planetaryModule = module;
 		}
 
-		public override bool IsDeployed
+		public bool IsDeployed
 		{
 			get
 			{

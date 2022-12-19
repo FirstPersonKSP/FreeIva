@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace FreeIva
 {
-	public class Squad_ModuleAnimateGeneric : Deployable
+	public class Squad_ModuleAnimateGeneric : IDeployable
 	{
-		public new static Squad_ModuleAnimateGeneric Create(Part part, string requiredAnimationName)
+		public static Squad_ModuleAnimateGeneric Create(Part part, string requiredAnimationName)
 		{
 			foreach (var module in part.modules.OfType<ModuleAnimateGeneric>())
 			{
@@ -28,7 +28,7 @@ namespace FreeIva
 
 		ModuleAnimateGeneric m_animationModule;
 
-		public override bool IsDeployed
+		public bool IsDeployed
 		{
 			get
 			{

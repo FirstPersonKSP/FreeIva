@@ -8,12 +8,14 @@ using UnityEngine;
 
 namespace FreeIva
 {
-	internal class Kerbalism_GravityRing : Centrifuge
+	internal class Kerbalism_GravityRing : ICentrifuge
 	{
 		#region static
 
 		static TypeInfo x_GravityRingTypeInfo;
 		static FieldInfo x_rotate_transfFieldInfo;
+		static FieldInfo x_deployedFieldInfo;
+		static FieldInfo x_deploy_animFieldInfo;
 
 		static Kerbalism_GravityRing()
 		{
@@ -23,9 +25,11 @@ namespace FreeIva
 
 			x_GravityRingTypeInfo = type.GetTypeInfo();
 			x_rotate_transfFieldInfo = x_GravityRingTypeInfo.GetField("rotate_transf", BindingFlags.Instance | BindingFlags.Public);
+			x_deployedFieldInfo = x_GravityRingTypeInfo.GetField("deployed", BindingFlags.Instance | BindingFlags.Public);
+			x_deploy_animFieldInfo = x_GravityRingTypeInfo.GetField("deploy_anim", BindingFlags.Instance | BindingFlags.Public);
 		}
 
-		public new static Kerbalism_GravityRing Create(Part part)
+		public static Kerbalism_GravityRing Create(Part part)
 		{
 			if (x_GravityRingTypeInfo == null) return null;
 
@@ -60,16 +64,16 @@ namespace FreeIva
 			m_transformator.rotate_iva = false;
 		}
 
-		public override void Update()
+		public void Update()
 		{
 			m_module.part.internalModel.transform.localRotation = partToInternalRotation * m_transformator.transform.localRotation * postRotation;
 		}
 
-		public override float CurrentSpinRate
+		public float CurrentSpinRate
 		{
 			get { return m_transformator.CurrentSpinRate; }
 		}
 
-		public override Transform IVARotationRoot => m_module.part.internalModel.transform;
+		public Transform IVARotationRoot => m_module.part.internalModel.transform;
 	}
 }

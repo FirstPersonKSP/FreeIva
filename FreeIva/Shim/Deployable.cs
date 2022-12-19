@@ -7,17 +7,20 @@ using UnityEngine;
 
 namespace FreeIva
 {
-	public abstract class Deployable
+	public interface IDeployable
 	{
-		public abstract bool IsDeployed { get; }
+		bool IsDeployed { get; }
+	}
 
+	public static class DeployableFactory
+	{
 		// TODO: this is a half-measure; really we should be creating this once per InternalModuleFreeIva that needs it
-		public static Deployable Create(Part part, string requiredAnimationName)
+		public static IDeployable Create(Part part, string requiredAnimationName)
 		{
 			return 
-				(Deployable)Squad_ModuleAnimateGeneric.Create(part, requiredAnimationName) ?? 
-				(Deployable)SSPX_ModuleDeployableHabitat.Create(part) ?? 
-				(Deployable)KPBS_PlanetaryModule.Create(part);
+				(IDeployable)Squad_ModuleAnimateGeneric.Create(part, requiredAnimationName) ?? 
+				(IDeployable)SSPX_ModuleDeployableHabitat.Create(part) ?? 
+				(IDeployable)KPBS_PlanetaryModule.Create(part);
 		}
 	}
 }

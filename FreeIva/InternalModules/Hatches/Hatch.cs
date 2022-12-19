@@ -78,7 +78,7 @@ namespace FreeIva
 		Transform m_doorTransform;
 		ModuleDockingNode m_dockingNodeModule;
 		InternalProp m_blockedProp;
-		Deployable m_deployable;
+		IDeployable m_deployable;
 
 		// Where the GameObject is located. Used for basic interaction targeting (i.e. when to show the "Open hatch?" prompt).
 		public virtual Vector3 WorldPosition => transform.position;
@@ -194,7 +194,7 @@ namespace FreeIva
 
 			if (requireDeploy)
 			{
-				m_deployable = Deployable.Create(part, requiredAnimationName);
+				m_deployable = DeployableFactory.Create(part, requiredAnimationName);
 
 				if (m_deployable == null)
 				{

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FreeIva
 {
-	public class SSPX_ModuleDeployableHabitat : Deployable
+	public class SSPX_ModuleDeployableHabitat : IDeployable
 	{
 		#region static
 
@@ -49,7 +49,7 @@ namespace FreeIva
 
 		PartModule m_moduleDeployableHabitat;
 
-		public override bool IsDeployed
+		public bool IsDeployed
 		{
 			get
 			{

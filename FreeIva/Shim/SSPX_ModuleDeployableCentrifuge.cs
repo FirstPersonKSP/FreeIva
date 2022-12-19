@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace FreeIva
 {
-	public class SSPX_ModuleDeployableCentrifuge : Centrifuge
+	public class SSPX_ModuleDeployableCentrifuge : ICentrifuge
 	{
 		#region static
 
@@ -34,7 +34,7 @@ namespace FreeIva
 			x_DoIVASetupMethodInfo = x_ModuleDeployableCentrifugeTypeInfo.GetMethod("DoIVASetup", BindingFlags.Instance | BindingFlags.NonPublic);
 		}
 
-		public new static SSPX_ModuleDeployableCentrifuge Create(Part part)
+		public static SSPX_ModuleDeployableCentrifuge Create(Part part)
 		{
 			if (x_ModuleDeployableCentrifugeTypeInfo == null) return null;
 
@@ -94,12 +94,14 @@ namespace FreeIva
 		PartModule m_moduleDeployableCentrifuge;
 		Transform m_rotationRoot;
 
-		public override float CurrentSpinRate
+		public void Update() { }
+
+		public float CurrentSpinRate
 		{
 			get { return (float)x_CurrentSpinRateFieldInfo.GetValue(m_moduleDeployableCentrifuge); }
 		}
 
-		public override Transform IVARotationRoot
+		public Transform IVARotationRoot
 		{
 			get { return m_rotationRoot; }
 		}

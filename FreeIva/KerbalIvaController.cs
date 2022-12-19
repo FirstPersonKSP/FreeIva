@@ -344,7 +344,7 @@ namespace FreeIva
 			}
 		}
 
-		Centrifuge currentCentrifuge;
+		ICentrifuge currentCentrifuge;
 
 		public Vector3 GetCentrifugeAccel()
 		{
