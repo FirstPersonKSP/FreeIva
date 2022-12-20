@@ -104,6 +104,7 @@
     <Compile Include="Experimental\InteractionCollider.cs" />
     <Compile Include="Experimental\InteractiveIvaProp.cs" />
     <Compile Include="Experimental\ModuleInternalPressure.cs" />
+    <Compile Include="Shim\Kerbalism_Habitat.cs" />
     <Compile Include="InternalModules\PropBuckleButton.cs" />
     <Compile Include="InternalModules\Hatches\PropHatchAnimated.cs" />
     <Compile Include="Enums.cs" />
@@ -123,6 +124,7 @@
     <Compile Include="Shim\B9PS_ModuleB9PartSwitch.cs" />
     <Compile Include="Shim\Centrifuge.cs" />
     <Compile Include="Shim\Deployable.cs" />
+    <Compile Include="Shim\Kerbalism_Animator.cs" />
     <Compile Include="Shim\Kerbalism_GravityRing.cs" />
     <Compile Include="Shim\Kerbalism_Transformator.cs" />
     <Compile Include="Shim\KPBS_PlanetaryModule.cs" />

@@ -20,7 +20,8 @@ namespace FreeIva
 			return 
 				(IDeployable)Squad_ModuleAnimateGeneric.Create(part, requiredAnimationName) ?? 
 				(IDeployable)SSPX_ModuleDeployableHabitat.Create(part) ?? 
-				(IDeployable)KPBS_PlanetaryModule.Create(part);
+				(IDeployable)KPBS_PlanetaryModule.Create(part) ??
+				(IDeployable)Kerbalism_Habitat.Create(part);
 		}
 	}
 }
