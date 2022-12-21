@@ -55,6 +55,11 @@ namespace FreeIva
 		public string secondaryInternalName = string.Empty;
 		public InternalModel SecondaryInternalModel { get; private set; }
 
+		[KSPField]
+		public string centrifugeTransformName = string.Empty;
+		[KSPField]
+		public Vector3 centrifugeAlignmentRotation = new Vector3(180, 0, 180);
+
 		public ICentrifuge Centrifuge { get; private set; }
 		public IDeployable Deployable { get; private set; }
 
@@ -240,9 +245,9 @@ namespace FreeIva
 
 			// the rotating part of the centrifuge has a secondary internal (which is the stationary part)
 			// for now we'll only set up the centrifuge module on the rotating part
-			if (SecondaryInternalModel != null)
+			if (SecondaryInternalModel != null || centrifugeTransformName != string.Empty)
 			{
-				Centrifuge = CentrifugeFactory.Create(part);
+				Centrifuge = CentrifugeFactory.Create(part, centrifugeTransformName, centrifugeAlignmentRotation);
 				Deployable = Centrifuge as IDeployable; // some centrifuges may also be deployables
 			}
 

@@ -29,7 +29,7 @@ namespace FreeIva
 			x_deploy_animFieldInfo = x_GravityRingTypeInfo.GetField("deploy_anim", BindingFlags.Instance | BindingFlags.Public);
 		}
 
-		public static Kerbalism_GravityRing Create(Part part)
+		public static Kerbalism_GravityRing Create(Part part, string centrifugeTransformName, Vector3 alignmentRotation)
 		{
 			if (x_GravityRingTypeInfo == null) return null;
 
@@ -45,7 +45,7 @@ namespace FreeIva
 
 			if (module == null) return null;
 
-			return new Kerbalism_GravityRing(module);
+			return new Kerbalism_GravityRing(module, centrifugeTransformName, Quaternion.Euler(alignmentRotation));
 		}
 
 		#endregion
@@ -53,17 +53,23 @@ namespace FreeIva
 		PartModule m_module;
 		Kerbalism_Transformator m_transformator;
 		Kerbalism_Animator m_deploy_anim;
+		Transform m_centrifugeTransform;
+		Quaternion m_alignmentRotation;
 
-		static Quaternion postRotation = Quaternion.Euler(180, 0, 180);
-
-		public Kerbalism_GravityRing(PartModule module)
+		public Kerbalism_GravityRing(PartModule module, string centrifugeTransformName, Quaternion alignmentRotation)
 		{
 			m_module = module;
+			m_alignmentRotation = alignmentRotation;
 			object transformator = x_rotate_transfFieldInfo.GetValue(m_module);
 			if (transformator != null)
 			{
 				m_transformator = new Kerbalism_Transformator(transformator);
 				m_transformator.rotate_iva = false;
+				m_centrifugeTransform = m_transformator.transform;
+			}
+			else
+			{
+				m_centrifugeTransform = module.part.FindModelTransform(centrifugeTransformName);
 			}
 
 			object animator = x_deploy_animFieldInfo.GetValue(m_module);
@@ -72,15 +78,24 @@ namespace FreeIva
 
 		public void Update()
 		{
-			if (m_transformator != null)
+			if (m_centrifugeTransform != null)
 			{
-				m_module.part.internalModel.transform.rotation = InternalSpace.WorldToInternal(m_transformator.transform.rotation) * postRotation;
+				m_module.part.internalModel.transform.rotation = InternalSpace.WorldToInternal(m_centrifugeTransform.rotation) * m_alignmentRotation;
 			}
 		}
 
 		public float CurrentSpinRate
 		{
-			get { return m_transformator.CurrentSpinRate; }
+			// TODO: how do we do this if there's no transformator?
+			get
+			{
+				if (m_transformator != null)
+				{
+					return m_transformator.CurrentSpinRate;
+				}
+
+				return 0;
+			}
 		}
 
 		public Transform IVARotationRoot => m_module.part.internalModel.transform;
