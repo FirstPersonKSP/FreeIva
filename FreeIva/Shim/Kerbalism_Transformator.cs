@@ -29,6 +29,8 @@ namespace FreeIva
 
 		public Kerbalism_Transformator(object obj)
 		{
+			if (obj == null) throw new ArgumentNullException("obj");
+
 			m_object = obj;
 		}
 

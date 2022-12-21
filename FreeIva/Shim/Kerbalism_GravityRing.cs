@@ -59,15 +59,23 @@ namespace FreeIva
 		public Kerbalism_GravityRing(PartModule module)
 		{
 			m_module = module;
-			m_transformator = new Kerbalism_Transformator(x_rotate_transfFieldInfo.GetValue(m_module));
-			m_deploy_anim = new Kerbalism_Animator(x_deploy_animFieldInfo.GetValue(m_module));
+			object transformator = x_rotate_transfFieldInfo.GetValue(m_module);
+			if (transformator != null)
+			{
+				m_transformator = new Kerbalism_Transformator(transformator);
+				m_transformator.rotate_iva = false;
+			}
 
-			m_transformator.rotate_iva = false;
+			object animator = x_deploy_animFieldInfo.GetValue(m_module);
+			if (animator != null) m_deploy_anim = new Kerbalism_Animator(animator);
 		}
 
 		public void Update()
 		{
-			m_module.part.internalModel.transform.rotation = InternalSpace.WorldToInternal(m_transformator.transform.rotation) * postRotation;
+			if (m_transformator != null)
+			{
+				m_module.part.internalModel.transform.rotation = InternalSpace.WorldToInternal(m_transformator.transform.rotation) * postRotation;
+			}
 		}
 
 		public float CurrentSpinRate
