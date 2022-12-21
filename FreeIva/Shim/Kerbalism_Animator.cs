@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace FreeIva
 {
@@ -13,6 +14,7 @@ namespace FreeIva
 
 		static TypeInfo x_AnimatorTypeInfo;
 		static MethodInfo x_PlayingMethodInfo;
+		static FieldInfo x_animFieldInfo;
 
 		static Kerbalism_Animator()
 		{
@@ -21,6 +23,7 @@ namespace FreeIva
 
 			x_AnimatorTypeInfo = kerbalismAssemly.assembly.GetType("KERBALISM.Animator").GetTypeInfo();
 			x_PlayingMethodInfo = x_AnimatorTypeInfo.GetMethod("Playing", BindingFlags.Instance | BindingFlags.Public);
+			x_animFieldInfo = x_AnimatorTypeInfo.GetField("anim", BindingFlags.Instance | BindingFlags.NonPublic);
 		}
 
 		#endregion
@@ -34,6 +37,11 @@ namespace FreeIva
 		public bool Playing()
 		{
 			return (bool)x_PlayingMethodInfo.Invoke(m_obj, null);
+		}
+
+		public Animation anim
+		{
+			get { return (Animation)x_animFieldInfo.GetValue(m_obj); }
 		}
 	}
 }
