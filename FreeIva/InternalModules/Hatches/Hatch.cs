@@ -334,7 +334,7 @@ namespace FreeIva
 					CanEVA = attachedIvaModule == null ? false : attachedIvaModule.doesNotBlockEVA;
 				}
 
-				useBlockedProp = !CanEVA && blockedPropName != string.Empty;
+				useBlockedProp = (attachNodeId != string.Empty || dockingPortNodeName != string.Empty) && !CanEVA && blockedPropName != string.Empty;
 			}
 
 			if (useBlockedProp && m_blockedProp == null)
