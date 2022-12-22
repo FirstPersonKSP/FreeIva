@@ -102,6 +102,9 @@ namespace FreeIva
 			{
 				CameraAnchor.rotation = rotation;
 			}
+
+			CameraAnchor.localPosition = Vector3.zero;
+
 			InternalCamera.Instance.ManualReset(false);
 			InternalCamera.Instance.transform.localPosition = Vector3.zero;
 			InternalCamera.Instance.transform.localRotation = Quaternion.identity;
@@ -157,6 +160,8 @@ namespace FreeIva
 				rotationInput.y * Settings.YawSpeed,
 				rotationInput.z * Settings.RollSpeed);
 
+			float cameraAnchorTargetHeight;
+
 			if (UseRelativeMovement())
 			{
 				angularSpeed.z = 0; // when on the ground, we never roll the camera relative to gravity
@@ -167,13 +172,17 @@ namespace FreeIva
 				currentRelativeOrientation.y = (currentRelativeOrientation.y + InternalCamera.Instance.currentRot) % 360;
 
 				CameraAnchor.localRotation = Quaternion.Euler(currentRelativeOrientation);
+				cameraAnchorTargetHeight = Settings.NoHelmetSize * 0.8f;
 			}
 			else 
 			{
 				Quaternion rotationDelta = Quaternion.Euler(angularSpeed);
 
 				CameraAnchor.rotation = InternalCamera.Instance.transform.rotation * rotationDelta;
+				cameraAnchorTargetHeight = 0;
 			}
+
+			CameraAnchor.localPosition = new Vector3(0, Mathf.MoveTowards(CameraAnchor.localPosition.y, cameraAnchorTargetHeight, 0.75f * Time.deltaTime), 0);
 
 			InternalCamera.Instance.ManualReset(false);
 			InternalCamera.Instance.transform.localPosition = Vector3.zero;
