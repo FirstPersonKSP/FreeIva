@@ -18,6 +18,24 @@ namespace FreeIva
 			return module;
 		}
 
+		public static void RefreshDepthMasks()
+		{
+			bool internalModeActive = CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.Flight;
+
+			foreach (var ivaModule in perModelCache.Values)
+			{
+				if (ivaModule.externalDepthMask != null)
+				{
+					ivaModule.externalDepthMask.gameObject.SetActive(!internalModeActive);
+				}
+
+				if (ivaModule.internalDepthMask != null)
+				{
+					ivaModule.internalDepthMask.gameObject.SetActive(internalModeActive);
+				}
+			}
+		}
+
 		public static void RefreshInternals()
 		{
 			foreach (var ivaModule in perModelCache.Values)
@@ -66,6 +84,14 @@ namespace FreeIva
 		public bool NeedsDeployable;
 		[KSPField]
 		public string deployAnimationName = string.Empty;
+
+		[KSPField]
+		public string externalDepthMaskFile = string.Empty;
+		public Transform externalDepthMask;
+
+		[KSPField]
+		public string internalDepthMaskName = string.Empty;
+		public Transform internalDepthMask;
 
 		[SerializeField]
 		public Bounds ShellColliderBounds;
@@ -258,6 +284,34 @@ namespace FreeIva
 				if (Deployable == null)
 				{
 					Debug.LogError($"[FreeIva] Could not find a module to handle deployment in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
+				}
+			}
+
+			if (internalDepthMaskName != string.Empty)
+			{
+				internalDepthMask = TransformUtil.FindInternalModelTransform(internalModel, internalDepthMaskName);
+			}
+
+			if (externalDepthMaskFile != string.Empty)
+			{
+				// +		this.CurrentPart.internalModel.gameObject	"mk1CabinInternal interior (UnityEngine.GameObject)"	UnityEngine.GameObject
+				var objectName = externalDepthMaskFile + "(Clone)";
+
+				var modelObject = internalModel.gameObject.transform.Find("model");
+
+				for (int i = 0; i < modelObject.childCount; i++)
+				{
+					var childObject = modelObject.GetChild(i);
+					if (childObject.name == objectName)
+					{
+						externalDepthMask = childObject;
+						break;
+					}
+				}
+
+				if (externalDepthMask == null)
+				{
+					Debug.LogError($"[FreeIva] Could not find external depth mask '{externalDepthMaskFile}' in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
 				}
 			}
 		}

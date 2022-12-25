@@ -230,61 +230,7 @@ namespace FreeIva
 		/// <param name="activePart">The part that the IVA player is currently inside.</param>
 		public static void SetRenderQueues(Part activePart)
 		{
-			Profiler.BeginSample("SetRenderQueues");
-
-			//visibleParts.Clear();
-			//GetVisibleParts(CurrentPart, visibleParts);
-
-			for (int i = 0; i < FlightGlobals.ActiveVessel.Parts.Count; i++)
-			{
-				Part p = FlightGlobals.ActiveVessel.Parts[i];
-				//bool partVisible = visibleParts.Contains(p);
-
-				if (p.internalModel != null)
-				{
-					Renderer[] renderers = p.internalModel.GetComponentsInChildren<Renderer>();
-					foreach (var r in renderers)
-					{
-						foreach (var m in r.materials)
-						{
-							// the stock depth masks render at 1000, but we want to disable them
-							if (m.shader.renderQueue == 1000)
-							{
-								r.enabled = false;
-								break;
-							}
-						}
-					}
-				}
-			}
-
-			Profiler.EndSample();
-		}
-
-		/// <summary>
-		/// Gets a list of parts that have
-		/// </summary>
-		/// <returns></returns>
-		private static void GetVisibleParts(Part part, HashSet<Part> visibleParts)
-		{
-			InternalModuleFreeIva iva = InternalModuleFreeIva.GetForModel(part.internalModel);
-			if (iva != null)
-			{
-				if (!visibleParts.Contains(part))
-					visibleParts.Add(part);
-
-				for (int i = 0; i < iva.Hatches.Count; i++)
-				{
-					FreeIvaHatch h = iva.Hatches[i];
-
-					// TODO: Hatches can have windows in them, and parts may have windows facing against connected parts.
-					var canSeeMoreIvaThroughTheHatch = h.IsOpen && h.ConnectedHatch != null && h.ConnectedHatch.IsOpen && h.ConnectedHatch.part != null;
-					if (canSeeMoreIvaThroughTheHatch && !visibleParts.Contains(h.ConnectedHatch.part))
-					{
-						GetVisibleParts(h.ConnectedHatch.part, visibleParts);
-					}
-				}
-			}
+			return;
 		}
 
 		Vector3 _previousCameraPosition = Vector3.zero;
