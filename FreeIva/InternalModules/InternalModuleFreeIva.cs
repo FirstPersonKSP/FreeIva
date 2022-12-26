@@ -313,6 +313,27 @@ namespace FreeIva
 				{
 					Debug.LogError($"[FreeIva] Could not find external depth mask '{externalDepthMaskFile}' in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
 				}
+				else if (internalDepthMask == null)
+				{
+					// TODO: move this to OnLoad
+					var convexHullCalculator = new GK.ConvexHullCalculator();
+					var mesh = externalDepthMask.GetComponentInChildren<MeshFilter>().mesh;
+					List<Vector3> newVerts = null;
+					List<int> newIndices = null;
+					List<Vector3> newNormals = null;
+					convexHullCalculator.GenerateHull(mesh.vertices.ToList(), false, ref newVerts, ref newIndices, ref newNormals);
+
+					var newMesh = new Mesh();
+					newMesh.vertices = newVerts.ToArray();
+					newMesh.triangles = newIndices.ToArray();
+
+					internalDepthMask = new GameObject("InternalDepthMask").transform;
+					internalDepthMask.SetParent(internalModel.transform, false);
+					internalDepthMask.gameObject.AddComponent<MeshFilter>().mesh = newMesh;
+					var meshRenderer = internalDepthMask.gameObject.AddComponent<MeshRenderer>();
+					meshRenderer.sharedMaterial = Utils.GetDepthMaskMaterial();
+					internalDepthMask.gameObject.layer = (int)Layers.InternalSpace;
+				}	
 			}
 		}
 

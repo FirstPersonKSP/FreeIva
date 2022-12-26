@@ -33,6 +33,16 @@ namespace FreeIva
 			return _depthMask;
 		}
 
+		private static Material _depthMaskMaterial = null;
+		public static Material GetDepthMaskMaterial()
+		{
+			if (_depthMaskMaterial == null)
+			{
+				_depthMaskMaterial = new Material(GetDepthMask());
+			}
+			return _depthMaskMaterial;
+		}
+
 		public static LineRenderer line;
 		//public static LineRenderer upLine;
 		//public static LineRenderer rightLine;

@@ -83,6 +83,9 @@
     <Publicize Include="Assembly-CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\FreeIva_Unity\Assets\Scripts\ConvexHullCalculator.cs">
+      <Link>ConvexHullCalculator.cs</Link>
+    </Compile>
     <Compile Include="..\FreeIva_Unity\Assets\Scripts\MeshCutter2.cs">
       <Link>MeshCutter2.cs</Link>
     </Compile>
