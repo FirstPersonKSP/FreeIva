@@ -230,6 +230,7 @@ namespace FreeIva
 		/// <param name="activePart">The part that the IVA player is currently inside.</param>
 		public static void SetRenderQueues(Part activePart)
 		{
+			InternalModuleFreeIva.RefreshDepthMasks();
 			return;
 		}
 
@@ -434,6 +435,7 @@ namespace FreeIva
 				}
 
 				InternalModuleFreeIva.RefreshInternals();
+				InternalModuleFreeIva.RefreshDepthMasks();
 			}
 			catch (Exception ex)
 			{

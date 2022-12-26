@@ -74,29 +74,27 @@ namespace FreeIva
 				KerbalIva.KerbalFeetCollider.enabled = KerbalIva.UseRelativeMovement();
 			}
 
+			if (!buckled && GameSettings.CAMERA_MODE.GetKeyDown(true))
+			{
+				// Return the kerbal to its original seat.
+				TargetedSeat = ActiveKerbal.seat;
+
+				if (FreeIva.CurrentPart != null)
+				{
+					var targetPart = FreeIva.FindPartWithEmptySeat(FreeIva.CurrentPart);
+					if (targetPart != null)
+					{
+						// disabling this for now, because it's so different from the behavior when pressing C
+						// but it works, if we want to bring it back
+						// TargetedSeat = PropBuckleButton.FindClosestSeat(targetPart.internalModel, KerbalIva.transform.position, float.MaxValue);
+					}
+				}
+
+				Buckle();
+			}
+
 			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)
 			{
-				if (ActiveKerbal != null) // Switching away from IVA.
-				{
-					InputLockManager.RemoveControlLock("FreeIVA");
-
-					// Return the kerbal to its original seat.
-					TargetedSeat = ActiveKerbal.seat;
-
-					if (FreeIva.CurrentPart != null)
-					{
-						var targetPart = FreeIva.FindPartWithEmptySeat(FreeIva.CurrentPart);
-						if (targetPart != null)
-						{
-							// disabling this for now, because it's so different from the behavior when pressing C
-							// but it works, if we want to bring it back
-							// TargetedSeat = PropBuckleButton.FindClosestSeat(targetPart.internalModel, KerbalIva.transform.position, float.MaxValue);
-						}
-					}
-
-					if (!buckled)
-						Buckle();
-				}
 				ActiveKerbal = null;
 				FreeIva.CurrentPart = null;
 			}
@@ -163,6 +161,8 @@ namespace FreeIva
 		{
 			if (cameraMode != CameraManager.CameraMode.IVA && _previousCameraMode == CameraManager.CameraMode.IVA)
 			{
+				InternalModuleFreeIva.RefreshDepthMasks();
+
 				InputLockManager.RemoveControlLock("FreeIVA");
 
 #if Experimental
@@ -347,8 +347,6 @@ namespace FreeIva
 
 				TargetSeats();
 				TargetHatches(input.ToggleHatch, input.ToggleFarHatch);
-				if (_lastCameraMode != CameraManager.CameraMode.IVA)
-					InputLockManager.SetControlLock(ControlTypes.ALL_SHIP_CONTROLS, "FreeIVA");
 			}
 		}
 
@@ -461,7 +459,7 @@ namespace FreeIva
 
 			HideCurrentKerbal(true);
 
-			InputLockManager.SetControlLock(ControlTypes.ALL_SHIP_CONTROLS, "FreeIVA");
+			InputLockManager.SetControlLock(ControlTypes.ALL_SHIP_CONTROLS | ControlTypes.CAMERAMODES, "FreeIVA");
 			//ActiveKerbal.flightLog.AddEntry("Unbuckled");
 			ScreenMessages.PostScreenMessage("Unbuckled", 1f, ScreenMessageStyle.LOWER_CENTER);
 			KerbalIva.Activate(ActiveKerbal);
