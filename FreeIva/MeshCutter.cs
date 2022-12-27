@@ -8,7 +8,27 @@ namespace FreeIva
 {
 	public static class MeshCutter
 	{
-		public static void Cut(InternalModel model, List<CutParameter> parameters)
+		public static void CreateToolsForCutParameters(InternalModel internalModel, List<CutParameter> parameters)
+		{
+			foreach(var cutParam in parameters)
+			{
+				cutParam.tool = CreateTool(internalModel, cutParam);
+			}
+		}
+
+		public static void DestroyTools(ref List<CutParameter> parameters)
+		{
+			foreach (var cutParam in parameters)
+			{
+				GameObject.Destroy(cutParam.tool);
+			}
+
+			parameters.Clear();
+			parameters = null;
+		}
+
+		// Applies many-to-many cuts to the entire internal model (each param specifies what its target is, and the cuts to each target are grouped and executed together)
+		public static void CutInternalModel(InternalModel model, List<CutParameter> parameters)
 		{
 			if (parameters.Count == 0)
 			{
@@ -20,34 +40,37 @@ namespace FreeIva
 			stopwatch.Start();
 			Profiler.BeginSample("MeshCut");
 
-			IEnumerable<string> targets = parameters.Select(x => x.target).Distinct();
-			foreach (string targetName in targets)
-			{
-				Debug.Log($"[FreeIVA/MeshCutter] Cutting on target '{targetName}' on internal '{model.internalName}'");
-				MeshFilter target = TransformUtil.FindInternalModelTransform(model, targetName)?.gameObject?.GetComponent<MeshFilter>();
+			var cutGroups = parameters.GroupBy(cutParameter => cutParameter.target);
 
-				if (target != null)
-				{
-					List<GameObject> tools = parameters.Where(x => x.target == targetName).Select(parameter => CreateTool(model, parameter)).ToList();
-					ApplyCut(target, tools);
-				}
+			foreach (var targetCuts in cutGroups)
+			{
+				var targetName = targetCuts.Key;
+				if (targetName == string.Empty) continue;
+
+				Debug.Log($"[FreeIVA/MeshCutter] Cutting on target '{targetName}' on internal '{model.internalName}'");
+				Transform targetTransform = TransformUtil.FindInternalModelTransform(model, targetName);
+				
+				ApplyCut(targetTransform, targetCuts);
 			}
 
 			Profiler.EndSample();
 			stopwatch.Stop();
-			Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal '{model.internalName}' done ({parameters.Count} cut(s) on {targets.Count()} target(s)), time used: {stopwatch.Elapsed.TotalMilliseconds}ms");
+			Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal '{model.internalName}' done ({parameters.Count} cut(s) on {cutGroups.Count()} target(s)), time used: {stopwatch.Elapsed.TotalMilliseconds}ms");
 		}
 
-		private static void ApplyCut(MeshFilter target, List<GameObject> tools)
+		// applies a set of cuts to a single target.  The target field of the cutParameters is ignored
+		public static void ApplyCut(Transform targetTransform, IEnumerable<CutParameter> cutParameters)
 		{
+			MeshFilter target = targetTransform?.gameObject?.GetComponent<MeshFilter>();
+
 			// majik!
 			try
 			{
 				var cutter = new MeshCutter2(target);
 
-				foreach (var tool in tools)
+				foreach (var cutParam in cutParameters)
 				{
-					var toolMeshes = tool.GetComponentsInChildren<MeshFilter>();
+					var toolMeshes = cutParam.tool.GetComponentsInChildren<MeshFilter>();
 					foreach (var toolMesh in toolMeshes)
 					{
 						cutter.CutMesh(toolMesh.gameObject);
@@ -59,12 +82,6 @@ namespace FreeIva
 			catch (Exception ex)
 			{
 				Debug.LogException(ex);
-			}
-
-
-			foreach (GameObject tool in tools)
-			{
-				UnityEngine.Object.Destroy(tool);
 			}
 		}
 

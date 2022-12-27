@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 // NOTE: this file should not contain any KSP-specific code.  It's pretty important that we're able to test it on meshes directly in the Unity editor.
 // In fact this file lives in the *unity* project and should only be referenced from the KSP mod code
@@ -29,9 +30,9 @@ public class MeshCutter2
 
 		m_vertices = new List<Vector3>(m_mesh.vertices);
 		m_indices = new List<int>(m_mesh.triangles);
-		m_normals = new List<Vector3>(m_mesh.normals);
-		m_uvs = new List<Vector2>(m_mesh.uv);
-		m_uvs2 = m_mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord1) ? new List<Vector2>(m_mesh.uv2) : null;
+		m_normals = m_mesh.HasVertexAttribute(VertexAttribute.Normal) ? m_mesh.normals.ToList() : null;
+		m_uvs = m_mesh.HasVertexAttribute(VertexAttribute.TexCoord0) ? m_mesh.uv.ToList() : null;
+		m_uvs2 = m_mesh.HasVertexAttribute(VertexAttribute.TexCoord1) ? new List<Vector2>(m_mesh.uv2) : null;
 		m_skipCuttingTriangle = new List<bool>();
 		m_skipCuttingTriangle.AddRange(Enumerable.Repeat(false, m_indices.Count / 3));
 	}
@@ -40,8 +41,8 @@ public class MeshCutter2
 	{
 		m_mesh.vertices = m_vertices.ToArray();
 		m_mesh.triangles = m_indices.ToArray();
-		m_mesh.normals = m_normals.ToArray();
-		m_mesh.uv = m_uvs.ToArray();
+		if (m_normals != null) m_mesh.normals = m_normals.ToArray();
+		if (m_uvs != null) m_mesh.uv = m_uvs.ToArray();
 		if (m_uvs2 != null) m_mesh.uv2 = m_uvs2.ToArray();
 		m_mesh.RecalculateTangents();
 		m_mesh.Optimize();
@@ -113,8 +114,16 @@ public class MeshCutter2
 
 		int result = m_vertices.Count;
 		m_vertices.Add(Vector3.Lerp(m_vertices[indexA], m_vertices[indexB], t));
-		m_normals.Add(Vector3.Slerp(m_normals[indexA], m_normals[indexB], t));
-		m_uvs.Add(Vector2.Lerp(m_uvs[indexA], m_uvs[indexB], t));
+
+		if (m_normals != null)
+		{
+			m_normals.Add(Vector3.Slerp(m_normals[indexA], m_normals[indexB], t));
+		}
+
+		if (m_uvs != null)
+		{
+			m_uvs.Add(Vector2.Lerp(m_uvs[indexA], m_uvs[indexB], t));
+		}
 
 		if (m_uvs2 != null)
 		{

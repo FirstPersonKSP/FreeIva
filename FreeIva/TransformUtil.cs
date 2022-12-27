@@ -81,5 +81,24 @@ namespace FreeIva
 		{
 			return FindModelTransform(part.transform.Find("model"), transformName, "part", part.partInfo.name, emitError);
 		}
+
+		public static Transform FindModelFile(Transform root, string modelFileName)
+		{
+			var objectName = modelFileName + "(Clone)";
+
+			var modelObject = root.Find("model");
+
+			for (int i = 0; i < modelObject.childCount; i++)
+			{
+				var childObject = modelObject.GetChild(i);
+				if (childObject.name == objectName)
+				{
+					return childObject;
+				}
+			}
+
+			Debug.LogError($"[FreeIva] Could not find model file '{modelFileName}' in '{root.name}'");
+			return null;
+		}
 	}
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace FreeIva
 {
@@ -159,6 +160,45 @@ namespace FreeIva
 				DeleteInternalObject.DeleteObjects(internalProp, deleteObjectsNode);
 			}
 
+			if (internalDepthMaskName != string.Empty)
+			{
+				internalDepthMask = TransformUtil.FindInternalModelTransform(internalModel, internalDepthMaskName);
+			}
+
+			if (externalDepthMaskFile != string.Empty)
+			{
+				externalDepthMask = TransformUtil.FindModelFile(internalModel.gameObject.transform, externalDepthMaskFile);
+
+				if (externalDepthMask != null && internalDepthMask == null)
+				{
+					var stopwatch = new System.Diagnostics.Stopwatch();
+					stopwatch.Start();
+					Profiler.BeginSample("DepthMaskHull");
+
+					var convexHullCalculator = new GK.ConvexHullCalculator();
+					var mesh = externalDepthMask.GetComponentInChildren<MeshFilter>().mesh;
+					List<Vector3> newVerts = null;
+					List<int> newIndices = null;
+					List<Vector3> newNormals = null;
+					convexHullCalculator.GenerateHull(mesh.vertices.ToList(), false, ref newVerts, ref newIndices, ref newNormals);
+
+					var newMesh = new Mesh();
+					newMesh.vertices = newVerts.ToArray();
+					newMesh.triangles = newIndices.ToArray();
+					
+					internalDepthMask = new GameObject("InternalDepthMask").transform;
+					internalDepthMask.SetParent(internalModel.transform, false);
+					internalDepthMask.gameObject.AddComponent<MeshFilter>().mesh = newMesh;
+					var meshRenderer = internalDepthMask.gameObject.AddComponent<MeshRenderer>();
+					meshRenderer.sharedMaterial = Utils.GetDepthMaskMaterial();
+					internalDepthMask.gameObject.layer = (int)Layers.InternalSpace;
+
+					Profiler.EndSample();
+					stopwatch.Stop();
+					Debug.Log($"[FreeIVA] depth mask convex hull for {internalModel.internalName}; {newVerts.Count} verts; {newIndices.Count / 3} triangles; {stopwatch.Elapsed.TotalMilliseconds}ms");
+				}
+			}
+
 			var cutNodes = node.GetNodes("Cut");
 			foreach (var cutNode in cutNodes)
 			{
@@ -184,7 +224,7 @@ namespace FreeIva
 				{
 					foreach (var hatchModule in prop.internalModules.OfType<FreeIvaHatch>())
 					{
-						if (hatchModule.cutoutTransformName != string.Empty && hatchModule.cutoutTargetTransformName != string.Empty)
+						if (hatchModule.cutoutTransformName != string.Empty)
 						{
 							AddPropCut(hatchModule);
 						}
@@ -201,7 +241,7 @@ namespace FreeIva
 			{
 				foreach (var moduleNode in propNode.GetNodes("MODULE"))
 				{
-					if (moduleNode.GetValue("name") == nameof(HatchConfig) && moduleNode.HasValue("cutoutTargetTransformName"))
+					if (moduleNode.GetValue("name") == nameof(HatchConfig))
 					{
 						++count;
 					}
@@ -213,18 +253,21 @@ namespace FreeIva
 
 		public void AddPropCut(FreeIvaHatch hatch)
 		{
-			var tool = TransformUtil.FindPropTransform(hatch.internalProp, hatch.cutoutTransformName);
-			if (tool != null)
+			if (hatch.cutoutTransformName != string.Empty)
 			{
-				CutParameter cp = new CutParameter();
-				cp.target = hatch.cutoutTargetTransformName;
-				cp.tool = tool.gameObject;
-				cp.type = CutParameter.Type.Mesh;
-				cutParameters.Add(cp);
-			}
-			else
-			{
-				Debug.LogError($"[FreeIva] could not find cutout transform {hatch.cutoutTransformName} on prop {hatch.internalProp.propName}");
+				var tool = TransformUtil.FindPropTransform(hatch.internalProp, hatch.cutoutTransformName);
+				if (tool != null)
+				{
+					CutParameter cp = new CutParameter();
+					cp.target = hatch.cutoutTargetTransformName;
+					cp.tool = tool.gameObject;
+					cp.type = CutParameter.Type.Mesh;
+					cutParameters.Add(cp);
+				}
+				else
+				{
+					Debug.LogError($"[FreeIva] could not find cutout transform {hatch.cutoutTransformName} on prop {hatch.internalProp.propName}");
+				}
 			}
 
 			if (--propCutsRemaining == 0)
@@ -286,55 +329,6 @@ namespace FreeIva
 					Debug.LogError($"[FreeIva] Could not find a module to handle deployment in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
 				}
 			}
-
-			if (internalDepthMaskName != string.Empty)
-			{
-				internalDepthMask = TransformUtil.FindInternalModelTransform(internalModel, internalDepthMaskName);
-			}
-
-			if (externalDepthMaskFile != string.Empty)
-			{
-				// +		this.CurrentPart.internalModel.gameObject	"mk1CabinInternal interior (UnityEngine.GameObject)"	UnityEngine.GameObject
-				var objectName = externalDepthMaskFile + "(Clone)";
-
-				var modelObject = internalModel.gameObject.transform.Find("model");
-
-				for (int i = 0; i < modelObject.childCount; i++)
-				{
-					var childObject = modelObject.GetChild(i);
-					if (childObject.name == objectName)
-					{
-						externalDepthMask = childObject;
-						break;
-					}
-				}
-
-				if (externalDepthMask == null)
-				{
-					Debug.LogError($"[FreeIva] Could not find external depth mask '{externalDepthMaskFile}' in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
-				}
-				else if (internalDepthMask == null)
-				{
-					// TODO: move this to OnLoad
-					var convexHullCalculator = new GK.ConvexHullCalculator();
-					var mesh = externalDepthMask.GetComponentInChildren<MeshFilter>().mesh;
-					List<Vector3> newVerts = null;
-					List<int> newIndices = null;
-					List<Vector3> newNormals = null;
-					convexHullCalculator.GenerateHull(mesh.vertices.ToList(), false, ref newVerts, ref newIndices, ref newNormals);
-
-					var newMesh = new Mesh();
-					newMesh.vertices = newVerts.ToArray();
-					newMesh.triangles = newIndices.ToArray();
-
-					internalDepthMask = new GameObject("InternalDepthMask").transform;
-					internalDepthMask.SetParent(internalModel.transform, false);
-					internalDepthMask.gameObject.AddComponent<MeshFilter>().mesh = newMesh;
-					var meshRenderer = internalDepthMask.gameObject.AddComponent<MeshRenderer>();
-					meshRenderer.sharedMaterial = Utils.GetDepthMaskMaterial();
-					internalDepthMask.gameObject.layer = (int)Layers.InternalSpace;
-				}	
-			}
 		}
 
 		void Update()
@@ -354,11 +348,20 @@ namespace FreeIva
 
 			if (cutParameters.Any())
 			{
-				MeshCutter.Cut(internalModel, cutParameters);
+				MeshCutter.CreateToolsForCutParameters(internalModel, cutParameters);
+				MeshCutter.CutInternalModel(internalModel, cutParameters);
+				
+				if (internalDepthMask != null)
+				{
+					MeshCutter.ApplyCut(internalDepthMask, cutParameters);
+
+					var mesh = internalDepthMask.GetComponent<MeshFilter>().mesh;
+
+					Debug.Log($"[FreeIva] after cutting internal depth mask: {mesh.vertices.Length} verts; {mesh.triangles.Length / 3} tris");
+				}
 			}
 
-			cutParameters.Clear();
-			cutParameters = null;
+			MeshCutter.DestroyTools(ref cutParameters);
 		}
 
 		new void Awake()
