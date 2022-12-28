@@ -25,6 +25,8 @@ namespace FreeIva
 
 			foreach (var ivaModule in perModelCache.Values)
 			{
+				if (ivaModule.externalDepthMask == ivaModule.internalDepthMask) continue;
+
 				if (ivaModule.externalDepthMask != null)
 				{
 					ivaModule.externalDepthMask.gameObject.SetActive(!internalModeActive);
@@ -88,6 +90,8 @@ namespace FreeIva
 
 		[KSPField]
 		public string externalDepthMaskFile = string.Empty;
+		[KSPField]
+		public string externalDepthMaskName = string.Empty;
 		public Transform externalDepthMask;
 
 		[KSPField]
@@ -165,40 +169,93 @@ namespace FreeIva
 				internalDepthMask = TransformUtil.FindInternalModelTransform(internalModel, internalDepthMaskName);
 			}
 
-			if (externalDepthMaskFile != string.Empty)
+			if (externalDepthMaskName != string.Empty)
+			{
+				externalDepthMask = TransformUtil.FindInternalModelTransform(internalModel, externalDepthMaskName);
+			}
+			else if (externalDepthMaskFile != string.Empty)
 			{
 				externalDepthMask = TransformUtil.FindModelFile(internalModel.gameObject.transform, externalDepthMaskFile);
+			}
 
-				if (externalDepthMask != null && internalDepthMask == null)
+			// try to find the external depth mask from existing meshes, based on the shader
+			if (externalDepthMask == null)
+			{
+				var modelTransform = internalModel.gameObject.transform.Find("model");
+				if (modelTransform != null)
 				{
-					var stopwatch = new System.Diagnostics.Stopwatch();
-					stopwatch.Start();
-					Profiler.BeginSample("DepthMaskHull");
+					// find all the depth mask renderers that aren't a child of the internal depth mask (if there is one)
+					var allRenderers = modelTransform.GetComponentsInChildren<MeshRenderer>();
 
-					var convexHullCalculator = new GK.ConvexHullCalculator();
-					var mesh = externalDepthMask.GetComponentInChildren<MeshFilter>().mesh;
-					List<Vector3> newVerts = null;
-					List<int> newIndices = null;
-					List<Vector3> newNormals = null;
-					convexHullCalculator.GenerateHull(mesh.vertices.ToList(), false, ref newVerts, ref newIndices, ref newNormals);
+					var rendererGroups = allRenderers.GroupBy(meshRenderer =>
+						meshRenderer.material.shader == Utils.GetDepthMask() &&
+						(internalDepthMask == null || !meshRenderer.transform.IsChildOf(internalDepthMask)));
 
-					var newMesh = new Mesh();
-					newMesh.vertices = newVerts.ToArray();
-					newMesh.triangles = newIndices.ToArray();
-					
-					internalDepthMask = new GameObject("InternalDepthMask").transform;
-					internalDepthMask.SetParent(internalModel.transform, false);
-					internalDepthMask.gameObject.AddComponent<MeshFilter>().mesh = newMesh;
-					var meshRenderer = internalDepthMask.gameObject.AddComponent<MeshRenderer>();
-					meshRenderer.sharedMaterial = Utils.GetDepthMaskMaterial();
-					internalDepthMask.gameObject.layer = (int)Layers.InternalSpace;
+					var depthMaskRenderers = rendererGroups.Where(group => group.Key).FirstOrDefault();
 
-					Profiler.EndSample();
-					stopwatch.Stop();
-					Debug.Log($"[FreeIVA] depth mask convex hull for {internalModel.internalName}; {newVerts.Count} verts; {newIndices.Count / 3} triangles; {stopwatch.Elapsed.TotalMilliseconds}ms");
+					if (depthMaskRenderers != null && depthMaskRenderers.Any())
+					{
+						externalDepthMask = depthMaskRenderers.First().transform;
+						// need to find the common ancestor of all the depth mask renderers
+						foreach (var renderer in depthMaskRenderers)
+						{
+							while (!renderer.transform.IsChildOf(externalDepthMask))
+							{
+								externalDepthMask = externalDepthMask.parent;
+							}
+						}
+
+						// if any of the OTHER renderers are also a child of this transform, we can't use it
+						var otherRenderers = rendererGroups.Where(group => !group.Key).FirstOrDefault();
+						if (otherRenderers != null)
+						{
+							if (otherRenderers.Any(otherRenderer => otherRenderer.transform.IsChildOf(externalDepthMask)))
+							{
+								Debug.LogWarning($"[FreeIva] INTERNAL '{internalModel.internalName}' auto-detected depth mask common ancestor '{externalDepthMask.name}' also has non-depth-mask renderers; cannot be used");
+								externalDepthMask = null;
+							}
+						}
+					}
+					else
+					{
+						Debug.LogWarning($"[FreeIva] could not auto-detect depth mask for INTERNAL '{internalModel.internalName}' - no matching MeshRenderers found");
+					}
 				}
 			}
 
+			// try to generate an internal depth mask from the external one
+			if (externalDepthMask != null && internalDepthMask == null)
+			{
+				var stopwatch = new System.Diagnostics.Stopwatch();
+				stopwatch.Start();
+				Profiler.BeginSample("DepthMaskHull");
+
+				var convexHullCalculator = new GK.ConvexHullCalculator();
+				var mesh = externalDepthMask.GetComponentInChildren<MeshFilter>().mesh;
+				List<Vector3> newVerts = null;
+				List<int> newIndices = null;
+				List<Vector3> newNormals = null;
+				convexHullCalculator.GenerateHull(mesh.vertices.ToList(), false, ref newVerts, ref newIndices, ref newNormals);
+
+				var newMesh = new Mesh();
+				newMesh.vertices = newVerts.ToArray();
+				newMesh.triangles = newIndices.ToArray();
+					
+				internalDepthMask = new GameObject("InternalDepthMask").transform;
+				internalDepthMask.position = externalDepthMask.position;
+				internalDepthMask.rotation = externalDepthMask.rotation;
+				internalDepthMask.localScale = externalDepthMask.localScale;
+				internalDepthMask.SetParent(internalModel.transform, true);
+				internalDepthMask.gameObject.AddComponent<MeshFilter>().mesh = newMesh;
+				var meshRenderer = internalDepthMask.gameObject.AddComponent<MeshRenderer>();
+				meshRenderer.sharedMaterial = Utils.GetDepthMaskMaterial();
+				internalDepthMask.gameObject.layer = (int)Layers.InternalSpace;
+
+				Profiler.EndSample();
+				stopwatch.Stop();
+				Debug.Log($"[FreeIVA] depth mask convex hull for {internalModel.internalName}; {newVerts.Count} verts; {newIndices.Count / 3} triangles; {stopwatch.Elapsed.TotalMilliseconds}ms");
+			}
+			
 			var cutNodes = node.GetNodes("Cut");
 			foreach (var cutNode in cutNodes)
 			{
