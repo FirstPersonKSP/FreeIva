@@ -105,8 +105,8 @@ namespace FreeIva
 		{
 			base.OnLoad(node);
 
+			// Find the bounds of the shell colliders, so that we can tell when the player exits the bounds of a centrifuge
 			ShellColliderBounds.SetMinMax(Vector3.positiveInfinity, Vector3.negativeInfinity);
-
 			foreach (var shellColliderName in node.GetValues("shellColliderName"))
 			{
 				var transform = TransformUtil.FindInternalModelTransform(internalModel, shellColliderName);
@@ -164,6 +164,12 @@ namespace FreeIva
 				DeleteInternalObject.DeleteObjects(internalProp, deleteObjectsNode);
 			}
 
+			OnLoad_DepthMasks();
+			OnLoad_MeshCuts(node);
+		}
+
+		private void OnLoad_DepthMasks()
+		{
 			if (internalDepthMaskName != string.Empty)
 			{
 				internalDepthMask = TransformUtil.FindInternalModelTransform(internalModel, internalDepthMaskName);
@@ -240,7 +246,7 @@ namespace FreeIva
 				var newMesh = new Mesh();
 				newMesh.vertices = newVerts.ToArray();
 				newMesh.triangles = newIndices.ToArray();
-					
+
 				internalDepthMask = new GameObject("InternalDepthMask").transform;
 				internalDepthMask.position = externalDepthMask.position;
 				internalDepthMask.rotation = externalDepthMask.rotation;
@@ -255,7 +261,10 @@ namespace FreeIva
 				stopwatch.Stop();
 				Debug.Log($"[FreeIVA] depth mask convex hull for {internalModel.internalName}; {newVerts.Count} verts; {newIndices.Count / 3} triangles; {stopwatch.Elapsed.TotalMilliseconds}ms");
 			}
-			
+		}
+
+		private void OnLoad_MeshCuts(ConfigNode node)
+		{
 			var cutNodes = node.GetNodes("Cut");
 			foreach (var cutNode in cutNodes)
 			{
