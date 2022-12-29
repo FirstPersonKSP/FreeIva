@@ -43,6 +43,34 @@ namespace FreeIva
 			return _depthMaskMaterial;
 		}
 
+		// really we should be loading this at startup or something
+		private static Shader _depthMaskCullingShader = null;
+		public static Shader GetDepthMaskCullingShader()
+		{
+			if (_depthMaskCullingShader == null)
+			{
+				WWW www = new WWW($"file://{KSPUtil.ApplicationRootPath}GameData/FreeIva/FreeIva.assetbundle");
+
+				_depthMaskCullingShader = www.assetBundle.LoadAsset<Shader>("DepthMask_Culling");
+
+				www.assetBundle.Unload(false);
+			}
+
+			return _depthMaskCullingShader;
+		}
+
+		private static Material _depthMaskCullingMaterial = null;
+
+		public static Material GetDepthMaskCullingMaterial()
+		{
+			if (_depthMaskCullingMaterial == null)
+			{
+				_depthMaskCullingMaterial = new Material(GetDepthMaskCullingShader());
+			}
+
+			return _depthMaskCullingMaterial;
+		}
+
 		public static LineRenderer line;
 		//public static LineRenderer upLine;
 		//public static LineRenderer rightLine;

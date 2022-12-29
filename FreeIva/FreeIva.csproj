@@ -78,6 +78,12 @@
     <Reference Include="$(ManagedPath)\UnityEngine.PhysicsModule.dll">
       <Private>false</Private>
     </Reference>
+    <Reference Include="$(ManagedPath)\UnityEngine.UnityWebRequestWWWModule.dll">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="$(ManagedPath)\UnityEngine.AssetBundleModule.dll">
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Publicize Include="Assembly-CSharp" />

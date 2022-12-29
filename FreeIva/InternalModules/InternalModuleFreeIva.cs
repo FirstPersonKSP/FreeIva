@@ -257,13 +257,20 @@ namespace FreeIva
 				internalDepthMask.localScale = externalDepthMask.localScale;
 				internalDepthMask.SetParent(internalModel.transform, true);
 				internalDepthMask.gameObject.AddComponent<MeshFilter>().mesh = newMesh;
-				var meshRenderer = internalDepthMask.gameObject.AddComponent<MeshRenderer>();
-				meshRenderer.sharedMaterial = Utils.GetDepthMaskMaterial();
+				internalDepthMask.gameObject.AddComponent<MeshRenderer>();
 				internalDepthMask.gameObject.layer = (int)Layers.InternalSpace;
 
 				Profiler.EndSample();
 				stopwatch.Stop();
 				Debug.Log($"[FreeIVA] depth mask convex hull for {internalModel.internalName}; {newVerts.Count} verts; {newIndices.Count / 3} triangles; {stopwatch.Elapsed.TotalMilliseconds}ms");
+			}
+
+			if (internalDepthMask != null)
+			{
+				foreach (var meshRenderer in internalDepthMask.GetComponentsInChildren<MeshRenderer>())
+				{
+					meshRenderer.sharedMaterial = Utils.GetDepthMaskCullingMaterial();
+				}
 			}
 		}
 
