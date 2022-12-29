@@ -25,7 +25,11 @@ namespace FreeIva
 
 			foreach (var ivaModule in perModelCache.Values)
 			{
-				if (ivaModule.externalDepthMask == ivaModule.internalDepthMask) continue;
+				if (ivaModule.externalDepthMask == ivaModule.internalDepthMask && ivaModule.externalDepthMask != null)
+				{
+					ivaModule.externalDepthMask.gameObject.SetActive(true);
+					continue;
+				}
 
 				if (ivaModule.externalDepthMask != null)
 				{
@@ -288,12 +292,12 @@ namespace FreeIva
 				// need to add cuts from props that are already loaded
 				foreach (var prop in internalModel.props)
 				{
-					foreach (var hatchModule in prop.internalModules.OfType<FreeIvaHatch>())
+					// since CountPropCuts counts all props with a HatchConfig module node, we need to call AddPropCut for each prop with a HatchConfig module
+					var hatchConfig = prop.GetComponent<HatchConfig>();
+					if (hatchConfig != null)
 					{
-						if (hatchModule.cutoutTransformName != string.Empty)
-						{
-							AddPropCut(hatchModule);
-						}
+						var hatchComponent = prop.GetComponent<FreeIvaHatch>();
+						AddPropCut(hatchComponent);
 					}
 				}
 			}
@@ -305,6 +309,9 @@ namespace FreeIva
 
 			foreach (var propNode in internalModel.internalConfig.GetNodes("PROP"))
 			{
+				var propName = propNode.GetValue("name");
+				var propPrefab = PartLoader.Instance.internalProps.FirstOrDefault(prop => prop.propName == propName);
+
 				foreach (var moduleNode in propNode.GetNodes("MODULE"))
 				{
 					if (moduleNode.GetValue("name") == nameof(HatchConfig))
