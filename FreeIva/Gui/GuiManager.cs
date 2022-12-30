@@ -202,7 +202,7 @@ namespace FreeIva
 			// PositionIvaObject(h.gameObject);
 			GUILayout.EndVertical();
 
-			float distance = Vector3.Distance(h.WorldPosition, InternalCamera.Instance.transform.position);
+			float distance = Vector3.Distance(h.transform.position, InternalCamera.Instance.transform.position);
 			GUILayout.Label(distance.ToString());
 
 			if (GUILayout.Button("Select current hatch"))

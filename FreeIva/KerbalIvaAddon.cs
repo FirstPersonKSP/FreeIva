@@ -345,8 +345,12 @@ namespace FreeIva
 			{
 				KerbalIva.UpdateOrientation(input.RotationInputEuler);
 
+				// turn off the colliders on the kerbal so we don't hit it with raycasts
+				bool collisionWasEnabled = KerbalIva.CollisionEnabled;
+				KerbalIva.CollisionEnabled = false;
 				TargetSeats();
 				TargetHatches(input.ToggleHatch, input.ToggleFarHatch);
+				KerbalIva.CollisionEnabled = collisionWasEnabled;
 			}
 		}
 
@@ -521,20 +525,36 @@ namespace FreeIva
 			}
 		}
 
-		// TODO: Replace this with clickable interaction colliders.
-		public bool IsTargeted(Vector3 position)
+		public bool IsTargeted(Transform targetTransform, Vector3 localPosition, ref float closestDistance)
 		{
-			float distance = Vector3.Distance(position, InternalCamera.Instance.transform.position);
-			float angle = Vector3.Angle(position - InternalCamera.Instance.transform.position, InternalCamera.Instance.transform.forward);
+			Vector3 targetPosition = targetTransform.TransformPoint(localPosition);
 
-			if (angle > 90)
+			Vector3 toTarget = targetPosition - InternalCamera.Instance.transform.position;
+			float distance = toTarget.magnitude;
+			float angle = Vector3.Angle(toTarget, InternalCamera.Instance.transform.forward);
+
+			if (angle > 90 || distance > closestDistance)
 				return false;
 
 			float radius = (distance * Mathf.Sin(angle * Mathf.Deg2Rad)) / Mathf.Sin((90 - angle) * Mathf.Deg2Rad);
-			return (radius <= Settings.ObjectInteractionRadius);
+			if (radius <= Settings.ObjectInteractionRadius)
+			{
+				// if the ray hits something on the object that we're trying to reach, then consider it unobstructed
+				if (Physics.Raycast(new Ray(InternalCamera.Instance.transform.position, toTarget / distance), out RaycastHit raycastHitInfo, Math.Min(distance, closestDistance), 1 << (int)Layers.Kerbals) &&
+					!raycastHitInfo.transform.IsChildOf(targetTransform))
+				{
+					return false;
+				}
+				else
+				{
+					closestDistance = distance;
+					return true;
+				}
+			}
+
+			return false;
 		}
 
-		// TODO: Replace this with clickable interaction colliders.
 		public void TargetSeats()
 		{
 			float closestDistance = Settings.MaxInteractDistance;
@@ -542,23 +562,21 @@ namespace FreeIva
 			if (FreeIva.CurrentPart?.internalModel == null)
 				return;
 
-			for (int i = 0; i < FreeIva.CurrentPart.internalModel.seats.Count; i++)
+			foreach (var seat in FreeIva.CurrentPart.internalModel.seats)
 			{
-				if (FreeIva.CurrentPart.internalModel.seats[i].taken && !FreeIva.CurrentPart.internalModel.seats[i].crew.Equals(ActiveKerbal))
+				if (seat.taken && !seat.crew.Equals(ActiveKerbal))
 					continue;
 
-				if (FreeIva.CurrentPart.internalModel.seats[i].seatTransform == null)
+				if (seat.seatTransform == null)
 					continue; // Some parts were originally designed to have more seats, but later had their transforms removed without changing the seat count.
 
-				if (IsTargeted(FreeIva.CurrentPart.internalModel.seats[i].seatTransform.position))
+				// target a position halfway between the origin of the seat and the kerbal eye position
+				// the seat origin is often close to or underneath the shell collider, and the eye position is well above the "center" of the seat
+				Vector3 localTargetPosition = KerbalIva.ActiveKerbal.KerbalRef.eyeInitialPos * 0.5f;
+
+				if (IsTargeted(seat.seatTransform, localTargetPosition, ref closestDistance))
 				{
-					float distance = Vector3.Distance(FreeIva.CurrentPart.internalModel.seats[i].seatTransform.position,
-						InternalCamera.Instance.transform.position);
-					if (distance < closestDistance)
-					{
-						TargetedSeat = FreeIva.CurrentPart.internalModel.seats[i];
-						closestDistance = distance;
-					}
+					TargetedSeat = seat;
 				}
 			}
 
@@ -568,14 +586,9 @@ namespace FreeIva
 
 		void ConsiderHatch(ref FreeIvaHatch targetedHatch, ref float closestDistance, FreeIvaHatch newHatch)
 		{
-			if (newHatch.enabled && IsTargeted(newHatch.WorldPosition))
+			if (newHatch.enabled && IsTargeted(newHatch.transform, Vector3.zero, ref closestDistance))
 			{
-				float distance = Vector3.Distance(newHatch.WorldPosition, InternalCamera.Instance.transform.position);
-				if (distance < closestDistance)
-				{
-					targetedHatch = newHatch;
-					closestDistance = distance;
-				}
+				targetedHatch = newHatch;
 			}
 		}
 

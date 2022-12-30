@@ -33,7 +33,7 @@ namespace FreeIva
 			set
 			{
 				KerbalCollider.enabled = value;
-				KerbalFeetCollider.enabled = UseRelativeMovement();
+				KerbalFeetCollider.enabled = value && UseRelativeMovement();
 			}
 		}
 

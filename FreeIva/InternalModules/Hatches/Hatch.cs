@@ -78,9 +78,6 @@ namespace FreeIva
 		ModuleDockingNode m_dockingNodeModule;
 		InternalProp m_blockedProp;
 
-		// Where the GameObject is located. Used for basic interaction targeting (i.e. when to show the "Open hatch?" prompt).
-		public virtual Vector3 WorldPosition => transform.position;
-
 		private FreeIvaHatch _connectedHatch = null;
 		// The other hatch that this one is connected or docked to, if present.
 		public FreeIvaHatch ConnectedHatch => _connectedHatch;
