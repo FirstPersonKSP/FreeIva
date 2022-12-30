@@ -233,36 +233,66 @@ namespace FreeIva
 				}
 			}
 
-			// try to generate an internal depth mask from the external one
-			if (externalDepthMask != null && internalDepthMask == null)
+			// try to generate an internal depth mask from the internal geometry
+			if (internalDepthMask == null)
 			{
 				var stopwatch = new System.Diagnostics.Stopwatch();
 				stopwatch.Start();
 				Profiler.BeginSample("DepthMaskHull");
 
 				var convexHullCalculator = new GK.ConvexHullCalculator();
-				var mesh = externalDepthMask.GetComponentInChildren<MeshFilter>().mesh;
+
+				var currentVertices = new List<Vector3>();
+				var modelTransform = internalModel.transform.Find("model");
+
+				foreach (var meshRenderer in modelTransform.GetComponentsInChildren<MeshRenderer>())
+				{
+					var meshFilter = meshRenderer.GetComponent<MeshFilter>();
+
+					Vector3 meshPosition = modelTransform.InverseTransformPoint(meshRenderer.transform.position);
+					Quaternion meshRotation = Quaternion.Inverse(modelTransform.rotation) * meshRenderer.transform.rotation;
+
+					if (meshPosition == Vector3.zero && Quaternion.Dot(meshRotation, Quaternion.identity) > 0.999f)
+					{
+						currentVertices.AddRange(meshFilter.mesh.vertices);
+					}
+					else
+					{
+						currentVertices.Capacity += meshFilter.mesh.vertices.Length;
+						foreach (var vertex in meshFilter.mesh.vertices)
+						{
+							currentVertices.Add(meshRotation * vertex + meshPosition);
+						}
+					}
+				}
+
 				List<Vector3> newVerts = null;
 				List<int> newIndices = null;
 				List<Vector3> newNormals = null;
-				convexHullCalculator.GenerateHull(mesh.vertices.ToList(), false, ref newVerts, ref newIndices, ref newNormals);
 
-				var newMesh = new Mesh();
-				newMesh.vertices = newVerts.ToArray();
-				newMesh.triangles = newIndices.ToArray();
+				if (currentVertices.Count > 0)
+				{
+					convexHullCalculator.GenerateHull(currentVertices, false, ref newVerts, ref newIndices, ref newNormals);
 
-				internalDepthMask = new GameObject("InternalDepthMask").transform;
-				internalDepthMask.position = externalDepthMask.position;
-				internalDepthMask.rotation = externalDepthMask.rotation;
-				internalDepthMask.localScale = externalDepthMask.localScale;
-				internalDepthMask.SetParent(internalModel.transform, true);
-				internalDepthMask.gameObject.AddComponent<MeshFilter>().mesh = newMesh;
-				internalDepthMask.gameObject.AddComponent<MeshRenderer>();
-				internalDepthMask.gameObject.layer = (int)Layers.InternalSpace;
+					var newMesh = new Mesh();
+					newMesh.vertices = newVerts.ToArray();
+					newMesh.triangles = newIndices.ToArray();
+
+					internalDepthMask = new GameObject("InternalDepthMask").transform;
+					internalDepthMask.SetParent(internalModel.transform, false);
+					internalDepthMask.localScale = Vector3.one * 1.01f;
+					internalDepthMask.gameObject.AddComponent<MeshFilter>().mesh = newMesh;
+					internalDepthMask.gameObject.AddComponent<MeshRenderer>();
+					internalDepthMask.gameObject.layer = (int)Layers.InternalSpace;
+				}
 
 				Profiler.EndSample();
 				stopwatch.Stop();
-				Debug.Log($"[FreeIVA] depth mask convex hull for {internalModel.internalName}; {newVerts.Count} verts; {newIndices.Count / 3} triangles; {stopwatch.Elapsed.TotalMilliseconds}ms");
+
+				if (internalDepthMask != null)
+				{
+					Debug.Log($"[FreeIVA] depth mask convex hull for {internalModel.internalName}; {newVerts.Count} verts; {newIndices.Count / 3} triangles; {stopwatch.Elapsed.TotalMilliseconds}ms");
+				}
 			}
 
 			if (internalDepthMask != null)
