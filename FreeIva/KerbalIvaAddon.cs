@@ -344,13 +344,8 @@ namespace FreeIva
 			if (!buckled && !FreeIva.Paused)
 			{
 				KerbalIva.UpdateOrientation(input.RotationInputEuler);
-
-				// turn off the colliders on the kerbal so we don't hit it with raycasts
-				bool collisionWasEnabled = KerbalIva.CollisionEnabled;
-				KerbalIva.CollisionEnabled = false;
 				TargetSeats();
 				TargetHatches(input.ToggleHatch, input.ToggleFarHatch);
-				KerbalIva.CollisionEnabled = collisionWasEnabled;
 			}
 		}
 
@@ -528,6 +523,40 @@ namespace FreeIva
 			}
 		}
 
+		bool ClearLineOfSight(Vector3 from, Transform target, Vector3 targetPosition)
+		{
+			// first test a direct ray
+			if (Physics.Linecast(from, targetPosition, out RaycastHit raycastHit, 1 << (int)Layers.Kerbals, QueryTriggerInteraction.Ignore))
+			{
+				// if we hit the thing we're trying to reach, success
+				if (raycastHit.transform.IsChildOf(target))
+				{
+					return true;
+				}
+				// if we hit something other than the source object, it's obstructed
+				else if (!raycastHit.transform.IsChildOf(KerbalIva.transform))
+				{
+					return false;
+				}
+
+				// the ray hit ourselves - test a new ray from the hit point
+				Vector3 toHit = Vector3.Normalize(raycastHit.point - from) * 0.01f;
+				if (Physics.Linecast(raycastHit.point + toHit, targetPosition, out raycastHit, 1 << (int)Layers.Kerbals, QueryTriggerInteraction.Ignore))
+				{
+					if (raycastHit.transform.IsChildOf(target))
+					{
+						return true;
+					}
+					else
+					{
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+
 		public bool IsTargeted(Transform targetTransform, Vector3 localPosition, ref float closestDistance)
 		{
 			Vector3 targetPosition = targetTransform.TransformPoint(localPosition);
@@ -542,16 +571,14 @@ namespace FreeIva
 			float radius = (distance * Mathf.Sin(angle * Mathf.Deg2Rad)) / Mathf.Sin((90 - angle) * Mathf.Deg2Rad);
 			if (radius <= Settings.ObjectInteractionRadius)
 			{
-				// if the ray hits something on the object that we're trying to reach, then consider it unobstructed
-				if (Physics.Raycast(new Ray(InternalCamera.Instance.transform.position, toTarget / distance), out RaycastHit raycastHitInfo, Math.Min(distance, closestDistance), 1 << (int)Layers.Kerbals) &&
-					!raycastHitInfo.transform.IsChildOf(targetTransform))
-				{
-					return false;
-				}
-				else
+				if (ClearLineOfSight(InternalCamera.Instance.transform.position, targetTransform, targetPosition))
 				{
 					closestDistance = distance;
 					return true;
+				}
+				else
+				{
+					return false;
 				}
 			}
 
