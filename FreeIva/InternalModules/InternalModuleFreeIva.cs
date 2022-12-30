@@ -272,18 +272,25 @@ namespace FreeIva
 
 				if (currentVertices.Count > 0)
 				{
-					convexHullCalculator.GenerateHull(currentVertices, false, ref newVerts, ref newIndices, ref newNormals);
+					try
+					{
+						convexHullCalculator.GenerateHull(currentVertices, false, ref newVerts, ref newIndices, ref newNormals);
 
-					var newMesh = new Mesh();
-					newMesh.vertices = newVerts.ToArray();
-					newMesh.triangles = newIndices.ToArray();
+						var newMesh = new Mesh();
+						newMesh.vertices = newVerts.ToArray();
+						newMesh.triangles = newIndices.ToArray();
 
-					internalDepthMask = new GameObject("InternalDepthMask").transform;
-					internalDepthMask.SetParent(internalModel.transform, false);
-					internalDepthMask.localScale = Vector3.one * 1.01f;
-					internalDepthMask.gameObject.AddComponent<MeshFilter>().mesh = newMesh;
-					internalDepthMask.gameObject.AddComponent<MeshRenderer>();
-					internalDepthMask.gameObject.layer = (int)Layers.InternalSpace;
+						internalDepthMask = new GameObject("InternalDepthMask").transform;
+						internalDepthMask.SetParent(internalModel.transform, false);
+						// internalDepthMask.localScale = Vector3.one * 1.001f;
+						internalDepthMask.gameObject.AddComponent<MeshFilter>().mesh = newMesh;
+						internalDepthMask.gameObject.AddComponent<MeshRenderer>();
+						internalDepthMask.gameObject.layer = (int)Layers.InternalSpace;
+					}
+					catch (Exception ex)
+					{
+						Debug.LogException(ex);
+					}
 				}
 
 				Profiler.EndSample();
