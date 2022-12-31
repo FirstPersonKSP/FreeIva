@@ -169,7 +169,13 @@ namespace FreeIva
 			}
 
 			OnLoad_DepthMasks();
+			bool hasWindows = OnLoad_Windows(node);
 			OnLoad_MeshCuts(node);
+
+			if (internalDepthMask == null && !hasWindows)
+			{
+				Debug.LogWarning($"[FreeIva] INTERNAL '{internalModel.internalName}' has neither an internal depth mask nor detectable windows.  It may be possible to see the internals of other parts from here.");
+			}
 		}
 
 		private void OnLoad_DepthMasks()
@@ -209,6 +215,8 @@ namespace FreeIva
 						// need to find the common ancestor of all the depth mask renderers
 						foreach (var renderer in depthMaskRenderers)
 						{
+							renderer.gameObject.layer = (int)Layers.InternalSpace;
+
 							while (!renderer.transform.IsChildOf(externalDepthMask))
 							{
 								externalDepthMask = externalDepthMask.parent;
@@ -225,6 +233,10 @@ namespace FreeIva
 								externalDepthMask = null;
 							}
 						}
+						else
+						{
+							Debug.Log($"[FreeIva] INTERNAL '{internalModel.internalName}' auto-detected external depth mask transform '{externalDepthMask.name}'");
+						}
 					}
 					else
 					{
@@ -234,6 +246,7 @@ namespace FreeIva
 			}
 
 			// try to generate an internal depth mask from the internal geometry
+#if false
 			if (internalDepthMask == null)
 			{
 				var stopwatch = new System.Diagnostics.Stopwatch();
@@ -301,14 +314,84 @@ namespace FreeIva
 					Debug.Log($"[FreeIVA] depth mask convex hull for {internalModel.internalName}; {newVerts.Count} verts; {newIndices.Count / 3} triangles; {stopwatch.Elapsed.TotalMilliseconds}ms");
 				}
 			}
+#endif
 
 			if (internalDepthMask != null)
 			{
 				foreach (var meshRenderer in internalDepthMask.GetComponentsInChildren<MeshRenderer>())
 				{
 					meshRenderer.sharedMaterial = Utils.GetDepthMaskCullingMaterial();
+					meshRenderer.gameObject.layer = (int)Layers.InternalSpace;
 				}
 			}
+		}
+
+		static Dictionary<Shader, Shader> x_windowShaderTranslations = null;
+		static Shader[] x_windowShaders = null;
+
+		private bool OnLoad_Windows(ConfigNode node)
+		{
+			// transparents are normally 3000, opaque geometry is 2000
+			// we need something that will render before opaque geometry
+			const int WINDOW_RENDER_QUEUE = 1999;
+
+			bool hasWindows = false;
+
+			if (x_windowShaderTranslations == null)
+			{
+				// for transforms specified as windows, we might need to change their shader to one that does z-write
+				x_windowShaderTranslations = new Dictionary<Shader, Shader>()
+				{
+					{Shader.Find("Unlit/Transparent"), Shader.Find("KSP/Alpha/Unlit Transparent")},
+				};
+			}
+
+			if (x_windowShaders == null)
+			{
+				x_windowShaders = new Shader[]
+				{
+					Shader.Find("KSP/Alpha/Translucent Specular"),
+					Shader.Find("KSP/Alpha/Translucent"),
+					Shader.Find("KSP/Alpha/Unlit Transparent"),
+				};
+			}
+
+			var windowNames = node.GetValues("windowName");
+			foreach (var windowName in windowNames)
+			{
+				var windowTransform = TransformUtil.FindInternalModelTransform(internalModel, windowName);
+				if (windowTransform != null)
+				{
+					foreach (var meshRenderer in windowTransform.GetComponentsInChildren<MeshRenderer>())
+					{
+						if (x_windowShaderTranslations.TryGetValue(meshRenderer.material.shader, out Shader newShader))
+						{
+							meshRenderer.material.shader = newShader;
+						}
+
+						meshRenderer.material.renderQueue = WINDOW_RENDER_QUEUE;
+					}
+
+					hasWindows = true;
+				}
+			}
+
+			// if there aren't any window names specified, try to find them by shader (unless we have an internal depth mask)
+			if (!windowNames.Any() && internalDepthMask == null)
+			{
+				var modelTransform = internalModel.transform.Find("model");
+				foreach (var meshRenderer in modelTransform.GetComponentsInChildren<MeshRenderer>())
+				{
+					if (x_windowShaders.Contains(meshRenderer.material.shader))
+					{
+						hasWindows = true;
+						meshRenderer.material.renderQueue = WINDOW_RENDER_QUEUE;
+						Debug.Log($"[FreeIva] INTERNAL '{internalModel.internalName}' auto-detected window transform '{meshRenderer.transform.name}'");
+					}
+				}
+			}
+
+			return hasWindows;
 		}
 
 		private void OnLoad_MeshCuts(ConfigNode node)
@@ -467,7 +550,10 @@ namespace FreeIva
 			{
 				MeshCutter.CreateToolsForCutParameters(internalModel, cutParameters);
 				MeshCutter.CutInternalModel(internalModel, cutParameters);
-				
+
+
+// this code is only necessary for the internal depth masks that were generated via convex hull.  We're not doing that anymore
+#if false
 				if (internalDepthMask != null)
 				{
 					MeshCutter.ApplyCut(internalDepthMask, cutParameters);
@@ -476,6 +562,7 @@ namespace FreeIva
 
 					Debug.Log($"[FreeIva] after cutting internal depth mask: {mesh.vertices.Length} verts; {mesh.triangles.Length / 3} tris");
 				}
+#endif
 			}
 
 			MeshCutter.DestroyTools(ref cutParameters);
