@@ -168,6 +168,11 @@ namespace FreeIva
 				DeleteInternalObject.DeleteObjects(internalProp, deleteObjectsNode);
 			}
 
+			foreach (var reparentNode in node.GetNodes("Reparent"))
+			{
+				ReparentUtil.Reparent(internalProp, reparentNode);
+			}
+
 			OnLoad_DepthMasks();
 			bool hasWindows = OnLoad_Windows(node);
 			OnLoad_MeshCuts(node);
