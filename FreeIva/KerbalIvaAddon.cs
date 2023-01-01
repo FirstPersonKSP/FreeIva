@@ -65,6 +65,11 @@ namespace FreeIva
 			_instance = null;
 		}
 
+		void OnGUI()
+		{
+			GuiTutorial.Gui(GetInstanceID());
+		}
+
 		public void Update()
 		{
 			if (GameSettings.MODIFIER_KEY.GetKey() && Input.GetKeyDown(Settings.ToggleGravityKey))
@@ -97,12 +102,17 @@ namespace FreeIva
 			{
 				ActiveKerbal = null;
 				FreeIva.CurrentPart = null;
+				GuiTutorial.Active = false;
 			}
 			else
 			{
 				// In IVA.
 				if (_lastCameraMode != CameraManager.CameraMode.IVA)
 				{
+					GuiTutorial.Active = true;
+
+					ScreenMessages.PostScreenMessage($"Unbuckle [{Settings.UnbuckleKey}]", 2f, ScreenMessageStyle.LOWER_CENTER);
+
 					// Switching to IVA.
 					FreeIva.EnableInternals();
 					UpdateActiveKerbal();//false);

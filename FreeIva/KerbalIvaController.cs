@@ -425,18 +425,28 @@ namespace FreeIva
 
 			// if we're not in a centrifuge, see if we're trying to grab a rail in one
 			// TODO: can we handle *clicking* on one of these rails too?
-			if (currentCentrifuge == null && (input.Jump || input.MovementThrottle.y < 0) && KerbalCollisionTracker.RailColliderCount > 0)
+			if (currentCentrifuge == null && KerbalCollisionTracker.RailColliderCount > 0)
 			{
-				currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.Centrifuge;
+				var centrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.Centrifuge;
 
-				if (currentCentrifuge != null)
+				if (centrifuge != null && Mathf.Abs(centrifuge.CurrentSpinRate) > 0)
 				{
-					transform.SetParent(currentCentrifuge.IVARotationRoot, true);
-					KerbalIvaAddon.Instance.JumpLatched = true;
-					input.Jump = false;
+					ScreenMessages.PostScreenMessage($"Grab [{Settings.JumpKey}]", 0.1f, ScreenMessageStyle.LOWER_CENTER);
 
-					aimCamera = true;
-					oldCameraRotation = CameraAnchor.rotation;
+					if ((input.Jump || input.MovementThrottle.y < 0))
+					{
+						currentCentrifuge = centrifuge;
+
+						if (currentCentrifuge != null)
+						{
+							transform.SetParent(currentCentrifuge.IVARotationRoot, true);
+							KerbalIvaAddon.Instance.JumpLatched = true;
+							input.Jump = false;
+
+							aimCamera = true;
+							oldCameraRotation = CameraAnchor.rotation;
+						}
+					}
 				}
 			}
 

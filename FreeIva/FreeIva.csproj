@@ -98,6 +98,7 @@
     <Compile Include="ColliderUtil.cs" />
     <Compile Include="CutParameter.cs" />
     <Compile Include="Experimental\ColliderManipulator.cs" />
+    <Compile Include="Gui\GuiTutorial.cs" />
     <Compile Include="InternalModules\B9PSConditionalProp.cs" />
     <Compile Include="InternalModules\DeleteInternalObject.cs" />
     <Compile Include="InternalModules\DisableCollider.cs" />

@@ -61,6 +61,8 @@ namespace FreeIva
 		// should force the kerbal back to their seat to recover from falling through the part.
 		public static float MaxVelocityRelativeToPart = 20f;
 
+		public static bool ShowTutorial = true;
+
 		public static void LoadSettings()
 		{
 			Debug.Log("[FreeIVA] Loading settings...");
@@ -106,6 +108,8 @@ namespace FreeIva
 			// Misc.
 			if (settings.HasValue("HeadSize")) HelmetSize = float.Parse(settings.GetValue("HeadSize"));
 			if (settings.HasValue("NoHelmetSize")) NoHelmetSize = float.Parse(settings.GetValue("NoHelmetSize"));
+
+			settings.TryGetValue(nameof(ShowTutorial), ref ShowTutorial);
 		}
 	}
 }
