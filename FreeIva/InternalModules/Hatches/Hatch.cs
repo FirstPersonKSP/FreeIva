@@ -324,6 +324,12 @@ namespace FreeIva
 				CanEVA = airlockName != string.Empty;
 
 				var attachNode = part.FindAttachNode(attachNodeId);
+
+				if (attachNode == null && attachNodeId != string.Empty)
+				{
+					Debug.LogError($"[FreeIva] INTERNAL '{internalModel.internalName}' contains PROP '{internalProp.propName}' with attachNodeId '{attachNodeId}' but it was not found in PART '{part.partInfo.name}'");
+				}
+
 				var attachedPart = attachNode?.attachedPart;
 				if (attachedPart != null)
 				{
