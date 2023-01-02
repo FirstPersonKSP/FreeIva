@@ -272,6 +272,7 @@ namespace FreeIva
 
 		IVAInput input;
 		public bool JumpLatched;
+		public bool ToggleCrouchLatched;
 
 		private static float GetKeyInputAxis(KeyCode positive, KeyCode negative)
 		{
@@ -337,10 +338,12 @@ namespace FreeIva
 						1f, ScreenMessageStyle.LOWER_CENTER);
 			}
 
-			if (input.ToggleCrouch)
+			if (input.ToggleCrouch && !ToggleCrouchLatched)
 			{
 				KerbalIva.targetCrouchFraction = 1.0f - KerbalIva.targetCrouchFraction;
 			}
+
+			ToggleCrouchLatched = input.ToggleCrouch;
 
 			if (input.Unbuckle)
 			{
