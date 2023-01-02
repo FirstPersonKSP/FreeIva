@@ -641,7 +641,12 @@ namespace FreeIva
 			return flightEVA.onGoForEVA();
 		}
 
-		public bool GoEVA()
+		public void GoEVA()
+		{
+			StartCoroutine(GoEVA_Coroutine());
+		}
+
+		private IEnumerator GoEVA_Coroutine()
 		{
 			float acLevel = ScenarioUpgradeableFacilities.GetFacilityLevel(SpaceCenterFacility.AstronautComplex);
 			bool evaUnlocked = GameVariables.Instance.UnlockedEVA(acLevel);
@@ -657,11 +662,21 @@ namespace FreeIva
 				if (kerbalEVA != null)
 				{
 					CameraManager.Instance.SetCameraFlight();
-					return true;
+
+					yield return null;
+
+					// wait for kerbal to be ready
+					while (FlightGlobals.ActiveVessel == null || FlightGlobals.ActiveVessel.packed ||
+						FlightGlobals.ActiveVessel.evaController != gameObject.GetComponent<KerbalEVA>())
+					{
+						yield return null;
+					}
+
+					yield return null;
+
+					ThroughTheEyes.EnterFirstPerson();
 				}
 			}
-
-			return false;
 		}
 
 		public static void InitialiseAllHatchesClosed()
