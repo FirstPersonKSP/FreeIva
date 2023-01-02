@@ -35,17 +35,22 @@ namespace FreeIva
 				return;
 			}
 
-			Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal '{model.internalName}'");
 			var stopwatch = new System.Diagnostics.Stopwatch();
 			stopwatch.Start();
 			Profiler.BeginSample("MeshCut");
 
 			var cutGroups = parameters.GroupBy(cutParameter => cutParameter.target);
 
+			int cutCount = 0;
+			int targetCount = 0;
+
 			foreach (var targetCuts in cutGroups)
 			{
 				var targetName = targetCuts.Key;
 				if (targetName == string.Empty) continue;
+
+				++targetCount;
+				cutCount += targetCuts.Count();
 
 				Debug.Log($"[FreeIVA/MeshCutter] Cutting on target '{targetName}' on internal '{model.internalName}'");
 				Transform targetTransform = TransformUtil.FindInternalModelTransform(model, targetName);
@@ -55,7 +60,10 @@ namespace FreeIva
 
 			Profiler.EndSample();
 			stopwatch.Stop();
-			Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal '{model.internalName}' done ({parameters.Count} cut(s) on {cutGroups.Count()} target(s)), time used: {stopwatch.Elapsed.TotalMilliseconds}ms");
+			if (cutCount > 0)
+			{
+				Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal '{model.internalName}': {cutCount} cut(s) on {targetCount} target(s), time used: {stopwatch.Elapsed.TotalMilliseconds}ms");
+			}
 		}
 
 		// applies a set of cuts to a single target.  The target field of the cutParameters is ignored
