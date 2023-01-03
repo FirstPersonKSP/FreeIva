@@ -36,6 +36,9 @@ namespace FreeIva
 		[KSPField]
 		public string blockedPropName = string.Empty;
 
+		[KSPField]
+		public bool isEvaHatch = false;
+
 		// ----- the following fields are set via HatchConfig, so that they can be different per placement of the prop
 
 		// The name of the part attach node this hatch is positioned on, as defined in the part.cfg's "node definitions".
@@ -321,7 +324,7 @@ namespace FreeIva
 			}
 			else
 			{
-				CanEVA = airlockName != string.Empty;
+				CanEVA = airlockName != string.Empty || isEvaHatch;
 
 				var attachNode = part.FindAttachNode(attachNodeId);
 
@@ -509,7 +512,7 @@ namespace FreeIva
 				// can't do anything.
 			}
 			// if we're trying to open a door to space, just go EVA
-			else if (connectedHatch == null && open && airlockName != string.Empty)
+			else if (connectedHatch == null && open && CanEVA)
 			{
 				GoEVA();
 			}
@@ -656,7 +659,6 @@ namespace FreeIva
 
 			if (kerbal != null && evaPossible && HighLogic.CurrentGame.Parameters.Flight.CanEVA)
 			{
-				// var kerbalEVA = FlightEVA.fetch.spawnEVA(kerbal.protoCrewMember, kerbal.InPart, FindAirlock(kerbal.InPart, airlockName), true);
 				var kerbalEVA = SpawnEVA(kerbal.protoCrewMember, part, FindAirlock(part, airlockName));
 
 				if (kerbalEVA != null)
