@@ -407,15 +407,18 @@ namespace FreeIva
 			SetRenderQueues(newPart);
 		}
 
+		static bool PartIsProbeCore(Part part)
+		{
+			return part.CrewCapacity == 0 && part.HasModuleImplementing<ModuleCommand>();
+		}
+
 		public static void EnableInternals()
 		{
 			try
 			{
 				foreach (Part p in FlightGlobals.ActiveVessel.parts)
 				{
-					var ivaModule = p.GetModule<ModuleFreeIva>();
-
-					if (ivaModule == null || ivaModule.autoCreateInternals)
+					if (!PartIsProbeCore(p))
 					{
 						if (p.internalModel == null)
 						{
