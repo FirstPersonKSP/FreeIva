@@ -110,6 +110,12 @@ namespace FreeIva
 				}
 			}
 
+			var deleteObjectsNode = node.GetNode("DeleteInternalObject");
+			if (deleteObjectsNode != null)
+			{
+				DeleteInternalObject.DeleteObjects(internalProp, deleteObjectsNode);
+			}
+
 			foreach (var reparentNode in node.GetNodes("Reparent"))
 			{
 				ReparentUtil.Reparent(internalProp, reparentNode);
