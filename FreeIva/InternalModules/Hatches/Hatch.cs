@@ -522,6 +522,10 @@ namespace FreeIva
 			{
 				GoEVA();
 			}
+			else if (connectedHatch == null && open && (attachNodeId != string.Empty || dockingPortNodeName != string.Empty))
+			{
+				// this hatch must be connected to something
+			}
 			else
 			{
 				if (m_doorTransform != null)
