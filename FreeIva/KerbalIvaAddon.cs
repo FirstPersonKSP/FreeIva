@@ -379,7 +379,6 @@ namespace FreeIva
 			HideCurrentKerbal(false);
 			DisablePartHighlighting(false);
 			InputLockManager.RemoveControlLock("FreeIVA");
-			InternalCamera.Instance._camera.eventMask |= (1 << (int)Layers.Kerbals);
 			//ActiveKerbal.flightLog.AddEntry("Buckled");
 			ScreenMessages.PostScreenMessage("Buckled", 1f, ScreenMessageStyle.LOWER_CENTER);
 		}
@@ -391,7 +390,6 @@ namespace FreeIva
 			buckled = true;
 			DisablePartHighlighting(false);
 			InputLockManager.RemoveControlLock("FreeIVA");
-			InternalCamera.Instance._camera.eventMask |= (1 << (int)Layers.Kerbals);
 
 			// the original seat should still be pointing at this kerbal.  If not, they probably went EVA or something
 			if (OriginalSeat.crew == null)
@@ -474,7 +472,6 @@ namespace FreeIva
 			HideCurrentKerbal(true);
 
 			InputLockManager.SetControlLock(ControlTypes.ALL_SHIP_CONTROLS | ControlTypes.CAMERAMODES, "FreeIVA");
-			InternalCamera.Instance._camera.eventMask &= ~(1 << (int)Layers.Kerbals); // prevent the kerbal collider from blocking mouse clicks
 			//ActiveKerbal.flightLog.AddEntry("Unbuckled");
 			ScreenMessages.PostScreenMessage("Unbuckled", 1f, ScreenMessageStyle.LOWER_CENTER);
 			KerbalIva.Activate(ActiveKerbal);

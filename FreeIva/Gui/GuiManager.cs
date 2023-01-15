@@ -18,6 +18,8 @@ namespace FreeIva
 
 		private static bool _advancedMode = false;
 
+		static GameObject lastHitGameObject;
+
 		public static void Gui()
 		{
 			if (GUILayout.Button("Hide GUI until next launch"))
@@ -51,6 +53,29 @@ namespace FreeIva
 			KerbalIvaAddon.Gravity = GUILayout.Toggle(KerbalIvaAddon.Gravity, "Gravity");
 			KerbalIvaAddon.EnablePhysics = GUILayout.Toggle(KerbalIvaAddon.EnablePhysics, "Enable Physics");
 			GUILayout.EndHorizontal();
+
+
+			if (Input.GetMouseButtonDown(0))
+			{
+				RaycastHit hit;
+				//Send a ray from the camera to the mouseposition
+				Ray ray = InternalCamera.Instance._camera.ScreenPointToRay(Input.mousePosition);
+				//Create a raycast from the Camera and output anything it hits
+				if (Physics.Raycast(ray, out hit, 1000f, InternalCamera.Instance._camera.eventMask, QueryTriggerInteraction.Collide))
+					//Check the hit GameObject has a Collider
+					if (hit.collider != null)
+					{
+						//Click a GameObject to return that GameObject your mouse pointer hit
+						lastHitGameObject = hit.collider.gameObject;
+						//Set this GameObject you clicked as the currently selected in the EventSystem
+						
+					}
+			}
+
+			if (lastHitGameObject != null)
+			{
+				GUILayout.Label("Hit collider: " + lastHitGameObject.name);
+			}
 
 			_advancedMode = GUILayout.Toggle(_advancedMode, "Advanced mode");
 
