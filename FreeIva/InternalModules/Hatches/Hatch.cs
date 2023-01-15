@@ -39,6 +39,9 @@ namespace FreeIva
 		[KSPField]
 		public bool isEvaHatch = false;
 
+		// if the hatch has a window, we need to make sure we can't see other parts' internals through it when it's not connected to anything
+		public MeshRenderer m_windowRenderer;
+
 		// ----- the following fields are set via HatchConfig, so that they can be different per placement of the prop
 
 		// The name of the part attach node this hatch is positioned on, as defined in the part.cfg's "node definitions".
@@ -91,6 +94,8 @@ namespace FreeIva
 		public bool IsOpen { get; private set; }
 
 		public bool CanEVA { get; private set; }
+
+		static Shader[] x_windowShaders = null;
 
 		public override void OnLoad(ConfigNode node)
 		{
@@ -146,6 +151,28 @@ namespace FreeIva
 			else if (doorTransformName != string.Empty)
 			{
 				Debug.LogError($"[FreeIva] doorTransform {doorTransformName} not found in {internalProp.propName}");
+			}
+
+			// try to find a window to manage
+			// note this is similar to what we do for internal modules except we consider depth masks to be windows
+			if (x_windowShaders == null)
+			{
+				x_windowShaders = new Shader[]
+				{
+					Shader.Find("KSP/Alpha/Translucent Specular"),
+					Shader.Find("KSP/Alpha/Translucent"),
+					Shader.Find("KSP/Alpha/Unlit Transparent"),
+					Shader.Find("DepthMask")
+				};
+			}
+			foreach (var renderer in internalProp.gameObject.GetComponentsInChildren<MeshRenderer>())
+			{
+				if (x_windowShaders.Contains(renderer.material.shader))
+				{
+					m_windowRenderer = renderer;
+					renderer.material.renderQueue = InternalModuleFreeIva.WINDOW_RENDER_QUEUE;
+					break;
+				}
 			}
 		}
 		public override void OnAwake()
@@ -388,6 +415,19 @@ namespace FreeIva
 
 				enabled = false;
 				_connectedHatch.enabled = false;
+			}
+
+			// if we have a connection, or this is just some internal hatch with no functionality, we want to be able to see internals beyond the window, so set the draw order later
+			if (m_windowRenderer != null)
+			{
+				if (ConnectedHatch != null || (dockingPortNodeName == string.Empty && attachNodeId == string.Empty && airlockName == string.Empty))
+				{
+					m_windowRenderer.material.renderQueue = 3000; // typical for transparent geometry
+				}
+				else
+				{
+					m_windowRenderer.material.renderQueue = InternalModuleFreeIva.WINDOW_RENDER_QUEUE;
+				}
 			}
 
 			SetTubeScale();

@@ -334,12 +334,12 @@ namespace FreeIva
 		static Dictionary<Shader, Shader> x_windowShaderTranslations = null;
 		static Shader[] x_windowShaders = null;
 
+		// transparents are normally 3000, opaque geometry is 2000
+		// we need something that will render before opaque geometry so that it writes to the z-buffer early and prevents other internals from drawing behind it
+		public static readonly int WINDOW_RENDER_QUEUE = 1999;
+
 		private bool OnLoad_Windows(ConfigNode node)
 		{
-			// transparents are normally 3000, opaque geometry is 2000
-			// we need something that will render before opaque geometry
-			const int WINDOW_RENDER_QUEUE = 1999;
-
 			bool hasWindows = false;
 
 			if (x_windowShaderTranslations == null)
