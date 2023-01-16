@@ -373,7 +373,8 @@ namespace FreeIva
 					CanEVA = attachedIvaModule == null ? false : attachedIvaModule.doesNotBlockEVA;
 				}
 
-				useBlockedProp = (attachNodeId != string.Empty || dockingPortNodeName != string.Empty) && !CanEVA && blockedPropName != string.Empty;
+				// don't use blocked props for docking port hatches, because they could become unblocked
+				useBlockedProp = (attachNodeId != string.Empty && dockingPortNodeName == string.Empty) && !CanEVA && blockedPropName != string.Empty;
 			}
 
 			if (useBlockedProp && m_blockedProp == null)
