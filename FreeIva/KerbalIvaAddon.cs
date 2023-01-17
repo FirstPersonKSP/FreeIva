@@ -35,7 +35,6 @@ namespace FreeIva
 		public InternalSeat OriginalSeat = null;
 		public InternalSeat TargetedSeat = null;
 		public static bool Gravity = true;
-		public static bool EnablePhysics = true;
 #if Experimental
 		public static bool CanHoldItems = false;
 #endif
@@ -74,7 +73,7 @@ namespace FreeIva
 		{
 			if (GameSettings.MODIFIER_KEY.GetKey() && Input.GetKeyDown(Settings.ToggleGravityKey))
 			{
-				Gravity = !Gravity;
+				Gravity = !Gravity && Settings.EnableCollisions;
 				ScreenMessages.PostScreenMessage("[FreeIva] Gravity " + (Gravity ? "Enabled" : "Disabled"), 1f, ScreenMessageStyle.LOWER_CENTER);
 				KerbalIva.KerbalFeetCollider.enabled = KerbalIva.UseRelativeMovement();
 			}
@@ -473,6 +472,8 @@ namespace FreeIva
 			FreeIva.SetRenderQueues(FreeIva.CurrentPart);
 			FreeIva.InitialPart = FreeIva.CurrentPart;
 			OriginalSeat = ActiveKerbal.seat;
+
+			Gravity = Gravity && Settings.EnableCollisions;
 
 			HideCurrentKerbal(true);
 

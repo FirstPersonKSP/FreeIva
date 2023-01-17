@@ -49,9 +49,8 @@ namespace FreeIva
 			}
 
 			GUILayout.BeginHorizontal();
-			KerbalIvaAddon.KerbalIva.CollisionEnabled= !GUILayout.Toggle(!KerbalIvaAddon.KerbalIva.CollisionEnabled, "Disable collisions");
+			Settings.EnableCollisions= !GUILayout.Toggle(!Settings.EnableCollisions, "Disable collisions");
 			KerbalIvaAddon.Gravity = GUILayout.Toggle(KerbalIvaAddon.Gravity, "Gravity");
-			KerbalIvaAddon.EnablePhysics = GUILayout.Toggle(KerbalIvaAddon.EnablePhysics, "Enable Physics");
 			GUILayout.EndHorizontal();
 
 

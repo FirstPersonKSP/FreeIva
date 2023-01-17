@@ -32,6 +32,7 @@ namespace FreeIva
 			get { return KerbalCollider.enabled; }
 			set
 			{
+				value = value && Settings.EnableCollisions;
 				KerbalCollider.enabled = value;
 				KerbalFeetCollider.enabled = value && UseRelativeMovement();
 			}
@@ -128,13 +129,13 @@ namespace FreeIva
 			{
 				Vector3 flightAccel = GetInternalAcceleration();
 				OrientToGravity(flightAccel);
-				KerbalFeetCollider.enabled = true;
 			}
 			else
 			{
 				transform.rotation = Quaternion.identity;
-				KerbalFeetCollider.enabled = false;
 			}
+
+			CollisionEnabled = true;
 
 			InternalCamera.Instance.transform.parent = CameraAnchor;
 			SetCameraOrientation(InternalCamera.Instance.transform.rotation);

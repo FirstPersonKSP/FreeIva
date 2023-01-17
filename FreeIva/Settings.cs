@@ -62,6 +62,7 @@ namespace FreeIva
 		public static float MaxVelocityRelativeToPart = 20f;
 
 		public static bool ShowTutorial = true;
+		public static bool EnableCollisions = true;
 
 		public static void LoadSettings()
 		{
@@ -110,6 +111,7 @@ namespace FreeIva
 			if (settings.HasValue("NoHelmetSize")) NoHelmetSize = float.Parse(settings.GetValue("NoHelmetSize"));
 
 			settings.TryGetValue(nameof(ShowTutorial), ref ShowTutorial);
+			settings.TryGetValue(nameof(EnableCollisions), ref EnableCollisions);
 		}
 	}
 }
