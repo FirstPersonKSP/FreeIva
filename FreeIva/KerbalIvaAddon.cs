@@ -417,7 +417,7 @@ namespace FreeIva
 			{
 				destModel.SitKerbalAt(crewMember, newSeat);
 			}
-			else
+			else if (destModel.part.protoModuleCrew.Count < destModel.part.CrewCapacity)
 			{
 				sourceModel.part.RemoveCrewmember(crewMember);
 				destModel.part.AddCrewmemberAt(crewMember, destModel.seats.IndexOf(newSeat));
@@ -434,6 +434,11 @@ namespace FreeIva
 					GameEvents.onCrewTransferred.Add(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.onCrewTransferred);
 				}
 				Vessel.CrewWasModified(sourceModel.part.vessel, destModel.part.vessel);
+			}
+			else
+			{
+				// this would normally be done inside AddCrewMemberAt
+				destModel.SitKerbalAt(crewMember, newSeat);
 			}
 
 			// this is basically InternalSeat.SpawnCrew but without creating the new kerbal (because we already have one)
