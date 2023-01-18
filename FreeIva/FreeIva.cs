@@ -231,7 +231,7 @@ namespace FreeIva
 		}
 
 		public static int DepthMaskQueue = 999;
-		private static HashSet<Part> visibleParts = new HashSet<Part>();
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -242,9 +242,12 @@ namespace FreeIva
 			return;
 		}
 
+		List<Part> possibleParts = new List<Part>();
 		Vector3 _previousCameraPosition = Vector3.zero;
 		public void UpdateCurrentPart()
 		{
+			if (KerbalIvaAddon.Instance.buckled) return;
+
 			if (InternalCamera.Instance == null)
 			{
 				Debug.LogError("InternalCamera was null");
@@ -261,7 +264,7 @@ namespace FreeIva
 
 			// Part colliders are larger than the parts themselves and overlap.
 			// Find which of the containing parts we're nearest to.
-			List<Part> possibleParts = new List<Part>();
+			possibleParts.Clear();
 
 			if (CurrentPart != null) // e.g. on part destroyed.
 			{
@@ -364,41 +367,23 @@ namespace FreeIva
 		public static bool PartBoundsCamera(Part p)
 		{
 			Profiler.BeginSample("PartBoundsCamera");
-			var part = GameObjectBoundsCamera(p.gameObject);
-			Profiler.EndSample();
-			return part;
-		}
+			bool result = false;
 
-		private static bool GameObjectBoundsCamera(GameObject go)
-		{
-			// The transform containing the mesh can be buried several levels deep.
-			int childCount = go.transform.childCount;
-			for (int i = 0; i < childCount; i++)
+			if (p.internalModel != null)
 			{
-				Transform child = go.transform.GetChild(i);
-				if (child.name != "main camera pivot" && child.GetComponent<Part>() == null)
+				for (var ivaModule = InternalModuleFreeIva.GetForModel(p.internalModel); ivaModule != null; ivaModule = InternalModuleFreeIva.GetForModel(ivaModule.SecondaryInternalModel))
 				{
-					GameObject goc = child.gameObject;
-					MeshFilter[] meshc = goc.GetComponents<MeshFilter>();
-					for (int m = 0; m < meshc.Length; m++)
+					Vector3 localPosition = ivaModule.internalModel.transform.InverseTransformPoint(InternalCamera.Instance.transform.position);
+					if (ivaModule.ShellColliderBounds.Contains(localPosition))
 					{
-						Bounds meshBounds = meshc[m].mesh.bounds;
-						if (meshBounds != null)
-						{
-							Vector3 camPos = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-							// Bounds are relative to the transform position, not the world.
-							camPos -= goc.transform.position;
-
-							if (meshBounds.Contains(camPos))
-								return true;
-						}
+						result = true;
+						break;
 					}
-					bool foundGrandChild = GameObjectBoundsCamera(goc);
-					if (foundGrandChild)
-						return true;
 				}
 			}
-			return false;
+
+			Profiler.EndSample();
+			return result;
 		}
 
 		public static void UpdateCurrentPart(Part newCurrentPart)
