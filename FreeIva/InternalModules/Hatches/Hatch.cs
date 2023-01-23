@@ -301,7 +301,8 @@ namespace FreeIva
 					// note that some internal hatches have tubeExtent set in their config
 					if (tubeExtent == 0 && myAttachNode != null && _connectedHatch != null)
 					{
-						tubeExtent = Vector3.Dot(myAttachNode.originalPosition, myAttachNode.originalOrientation.normalized);
+						// note: using position here instead of originalPosition to accomodate b9ps potentially changing it
+						tubeExtent = Vector3.Dot(myAttachNode.position, myAttachNode.originalOrientation.normalized);
 					}
 
 					if (tubeExtent != 0)
