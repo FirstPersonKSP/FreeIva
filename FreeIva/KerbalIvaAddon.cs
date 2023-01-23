@@ -404,12 +404,14 @@ namespace FreeIva
 		public void MoveKerbalToSeat(ProtoCrewMember crewMember, InternalSeat newSeat)
 		{
 			var oldSeat = crewMember.seat;
-			var sourceModel = oldSeat.internalModel;
+			var sourceModel = oldSeat.internalModel; // note: this might not be the part where the protocrewmember actually exists.
 			var destModel = newSeat.internalModel;
 
 			// remove the kerbal from their old seat in a non-destructive way
 			oldSeat.kerbalRef = null;
-			sourceModel.UnseatKerbalAt(oldSeat);
+			sourceModel.UnseatKerbalAt(oldSeat); // does not mess with protocrewmember assignments
+
+			bool changeParts = false;
 
 			// transferring seats in the same part
 			if (sourceModel == destModel)
@@ -418,24 +420,35 @@ namespace FreeIva
 			}
 			else if (destModel.part.protoModuleCrew.Count < destModel.part.CrewCapacity)
 			{
-				sourceModel.part.RemoveCrewmember(crewMember);
-				destModel.part.AddCrewmemberAt(crewMember, destModel.seats.IndexOf(newSeat));
+				// fully move the kerbal
+				if (crewMember.KerbalRef.InPart.protoModuleCrew.Contains(crewMember))
+				{
+					crewMember.KerbalRef.InPart.RemoveCrewmember(crewMember);
+					destModel.part.AddCrewmemberAt(crewMember, destModel.seats.IndexOf(newSeat));
+					changeParts = true;
 
-				// suppress the portrait system's response to this message because it messes with internal model visibility
-				bool removePortraitEventHandler = !KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.portraitContainer.isActiveAndEnabled;
-				if (removePortraitEventHandler)
-				{
-					GameEvents.onCrewTransferred.Remove(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.onCrewTransferred);
+					// suppress the portrait system's response to this message because it messes with internal model visibility
+					bool removePortraitEventHandler = !KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.portraitContainer.isActiveAndEnabled;
+					if (removePortraitEventHandler)
+					{
+						GameEvents.onCrewTransferred.Remove(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.onCrewTransferred);
+					}
+					GameEvents.onCrewTransferred.Fire(new GameEvents.HostedFromToAction<ProtoCrewMember, Part>(crewMember, sourceModel.part, destModel.part));
+					if (removePortraitEventHandler)
+					{
+						GameEvents.onCrewTransferred.Add(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.onCrewTransferred);
+					}
+					Vessel.CrewWasModified(sourceModel.part.vessel, destModel.part.vessel);
 				}
-				GameEvents.onCrewTransferred.Fire(new GameEvents.HostedFromToAction<ProtoCrewMember, Part>(crewMember, sourceModel.part, destModel.part));
-				if (removePortraitEventHandler)
+				else
 				{
-					GameEvents.onCrewTransferred.Add(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.onCrewTransferred);
+					Debug.LogWarning($"[FreeIva] Kerbal {crewMember.name} did not exist in crew of source part {crewMember.KerbalRef.InPart.partInfo.name}");
+					destModel.SitKerbalAt(crewMember, newSeat);
 				}
-				Vessel.CrewWasModified(sourceModel.part.vessel, destModel.part.vessel);
 			}
 			else
 			{
+				// put the kerbal in the seat without adjusting crew assignments
 				// this would normally be done inside AddCrewMemberAt
 				destModel.SitKerbalAt(crewMember, newSeat);
 			}
@@ -448,7 +461,7 @@ namespace FreeIva
 				kerbal.transform.localPosition = newSeat.kerbalOffset;
 				kerbal.transform.localScale = Vector3.Scale(kerbal.transform.localScale, newSeat.kerbalScale);
 				kerbal.transform.localRotation = Quaternion.identity;
-				kerbal.InPart = destModel.part;
+				kerbal.InPart = changeParts ? destModel.part : kerbal.InPart;
 				kerbal.ShowHelmet(newSeat.allowCrewHelmet);
 				newSeat.kerbalRef = kerbal;
 			}
@@ -490,7 +503,7 @@ namespace FreeIva
 		{
 			ActiveKerbal = CameraManager.Instance.IVACameraActiveKerbal.protoCrewMember;
 			if (ActiveKerbal.KerbalRef != null && ActiveKerbal.KerbalRef.InPart != null)
-				FreeIva.UpdateCurrentPart(ActiveKerbal.KerbalRef.InPart);
+				FreeIva.UpdateCurrentPart(ActiveKerbal.seat.part);
 			return;
 		}
 
