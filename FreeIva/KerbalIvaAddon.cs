@@ -411,21 +411,37 @@ namespace FreeIva
 			oldSeat.kerbalRef = null;
 			sourceModel.UnseatKerbalAt(oldSeat); // does not mess with protocrewmember assignments
 
-			bool changeParts = false;
-
 			// transferring seats in the same part
-			if (sourceModel == destModel)
+			if (sourceModel.part == destModel.part)
 			{
 				destModel.SitKerbalAt(crewMember, newSeat);
 			}
 			else if (destModel.part.protoModuleCrew.Count < destModel.part.CrewCapacity)
 			{
+				bool removedCrewFromOldPart = false;
+
 				// fully move the kerbal
 				if (crewMember.KerbalRef.InPart.protoModuleCrew.Contains(crewMember))
 				{
 					crewMember.KerbalRef.InPart.RemoveCrewmember(crewMember);
+					removedCrewFromOldPart = true;
+				}
+				else
+				{
+					foreach (var part in sourceModel.vessel.parts)
+					{
+						if (part.protoModuleCrew.Contains(crewMember))
+						{
+							part.RemoveCrewmember(crewMember);
+							removedCrewFromOldPart = true;
+							break;
+						}
+					}
+				}
+
+				if (removedCrewFromOldPart)
+				{
 					destModel.part.AddCrewmemberAt(crewMember, destModel.seats.IndexOf(newSeat));
-					changeParts = true;
 
 					// suppress the portrait system's response to this message because it messes with internal model visibility
 					bool removePortraitEventHandler = !KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.portraitContainer.isActiveAndEnabled;
@@ -442,7 +458,7 @@ namespace FreeIva
 				}
 				else
 				{
-					Debug.LogWarning($"[FreeIva] Kerbal {crewMember.name} did not exist in crew of source part {crewMember.KerbalRef.InPart.partInfo.name}");
+					Debug.LogWarning($"[FreeIva] Kerbal {crewMember.name} did not exist in crew of source part {crewMember.KerbalRef.InPart.partInfo.name} nor anywhere on the vessel");
 					destModel.SitKerbalAt(crewMember, newSeat);
 				}
 			}
@@ -461,7 +477,7 @@ namespace FreeIva
 				kerbal.transform.localPosition = newSeat.kerbalOffset;
 				kerbal.transform.localScale = Vector3.Scale(kerbal.transform.localScale, newSeat.kerbalScale);
 				kerbal.transform.localRotation = Quaternion.identity;
-				kerbal.InPart = changeParts ? destModel.part : kerbal.InPart;
+				kerbal.InPart = destModel.part;
 				kerbal.ShowHelmet(newSeat.allowCrewHelmet);
 				newSeat.kerbalRef = kerbal;
 			}
