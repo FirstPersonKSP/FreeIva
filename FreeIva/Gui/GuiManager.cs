@@ -96,6 +96,7 @@ namespace FreeIva
 #if Experimental
 			PressureGui();
 #endif
+			ShadowsGui();
 			SeatGui();
 			PropGui();
 			MeshRendererGui();
@@ -109,6 +110,29 @@ namespace FreeIva
 			//GUILayout.Label("Closest part: " + (closestPart == null ? "None" : closestPart.name));
 			//GUILayout.Label("Closest bounds distance: " + DoCollisions());
 			//GUILayout.Label("Colliding: " + colliding);
+		}
+
+		private static bool showShadowGui = false;
+		private static void ShadowsGui()
+		{
+			if (GUILayout.Button((showShadowGui ? "Hide" : "Show") + " shadows configuration"))
+			{
+				showShadowGui = !showShadowGui;
+			}
+
+			if (!showShadowGui) return;
+
+			IVASun ivaSun = InternalSpace.Instance.transform.Find("IVASun").GetComponent<IVASun>();
+
+			float bias = ivaSun.ivaLight.shadowBias;
+			GuiUtils.slider("bias", ref bias, 0, 1);
+			ivaSun.ivaLight.shadowBias = bias;
+
+			float normalBias = ivaSun.ivaLight.shadowNormalBias;
+			GuiUtils.slider("normal bias", ref normalBias, 0, 1);
+			ivaSun.ivaLight.shadowNormalBias = normalBias;
+
+			ivaSun.ivaLight.shadows = (LightShadows)GuiUtils.radioButtons(Enum.GetNames(typeof(LightShadows)), (int)ivaSun.ivaLight.shadows);
 		}
 
 		private static bool showKerbalColliderGui = false;

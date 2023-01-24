@@ -104,6 +104,12 @@ namespace FreeIva
 			Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.InternalSpace);
 			Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.Kerbals, false);
 
+			var ivaSun = InternalSpace.Instance.transform.Find("IVASun").GetComponent<IVASun>();
+			ivaSun.ivaLight.shadowBias = 0;
+			ivaSun.ivaLight.shadowNormalBias = 0;
+			ivaSun.ivaLight.shadows = LightShadows.Hard;
+			
+
 			// prevent mouse clicks from hitting the kerbal collider or the internal shell
 			// Some of the shell colliders are a little too tight and block props
 			// This has a few downsides:

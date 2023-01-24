@@ -327,6 +327,8 @@ namespace FreeIva
 				{
 					meshRenderer.sharedMaterial = Utils.GetDepthMaskCullingMaterial();
 					meshRenderer.gameObject.layer = (int)Layers.InternalSpace;
+					meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+					meshRenderer.receiveShadows = false;
 				}
 			}
 		}
@@ -391,6 +393,7 @@ namespace FreeIva
 					{
 						hasWindows = true;
 						meshRenderer.material.renderQueue = WINDOW_RENDER_QUEUE;
+						meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 						Debug.Log($"[FreeIva] INTERNAL '{internalModel.internalName}' auto-detected window transform '{meshRenderer.transform.name}'");
 					}
 				}
