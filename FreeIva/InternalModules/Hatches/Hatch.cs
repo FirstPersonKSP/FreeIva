@@ -46,6 +46,7 @@ namespace FreeIva
 
 		// The name of the part attach node this hatch is positioned on, as defined in the part.cfg's "node definitions".
 		// e.g. top => node_stack_top.  Do not include the prefixes (they are stripped out during loading in the stock code).
+		[KSPField]
 		public string attachNodeId;
 
 		// some docking ports don't use AttachNodes (inline ports, inflatable airlock, shielded)
@@ -56,8 +57,10 @@ namespace FreeIva
 		[SerializeReference]
 		public ObjectsToHide HideWhenOpen;
 
+		[KSPField]
 		public string cutoutTargetTransformName = string.Empty;
 
+		[KSPField]
 		public string airlockName = string.Empty;
 
 		public float tubeExtent = 0;
