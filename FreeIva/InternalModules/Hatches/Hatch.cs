@@ -174,6 +174,18 @@ namespace FreeIva
 					break;
 				}
 			}
+
+			var tubeTransform = TransformUtil.FindPropTransform(internalProp, tubeTransformName);
+			if (tubeTransform != null)
+			{
+				foreach (var renderer in tubeTransform.GetComponentsInChildren<MeshRenderer>())
+				{
+					if (renderer.shadowCastingMode == UnityEngine.Rendering.ShadowCastingMode.On)
+					{
+						renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
+					}
+				}
+			}
 		}
 		public override void OnAwake()
 		{
