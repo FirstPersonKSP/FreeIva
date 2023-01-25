@@ -16,6 +16,9 @@ namespace FreeIva
 		[KSPField]
 		public bool doesNotBlockEVA = false;
 
+		[KSPField]
+		public bool allowsUnbuckling = true;
+
 		public override string GetModuleDisplayName()
 		{
 			return "FreeIVA";
@@ -23,6 +26,8 @@ namespace FreeIva
 
 		public override string GetInfo()
 		{
+			if (!allowsUnbuckling) return string.Empty;
+
 			string result = "This part can be traversed in IVA";
 
 			if (doesNotBlockEVA)

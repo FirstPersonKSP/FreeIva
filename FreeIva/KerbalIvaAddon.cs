@@ -496,6 +496,13 @@ namespace FreeIva
 		{
 			if (!buckled) return;
 
+			var freeIvaModule = FreeIva.CurrentPart.GetModule<ModuleFreeIva>();
+			if (freeIvaModule != null && !freeIvaModule.allowsUnbuckling)
+			{
+				ScreenMessages.PostScreenMessage("Cannot unbuckle in this part", 1f, ScreenMessageStyle.LOWER_CENTER);
+				return;
+			}
+
 			FreeIva.EnableInternals();
 			UpdateActiveKerbal();
 			FreeIva.SetRenderQueues(FreeIva.CurrentPart);
