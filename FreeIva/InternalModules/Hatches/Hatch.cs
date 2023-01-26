@@ -289,12 +289,13 @@ namespace FreeIva
 				tubeTransform.localScale = Vector3.one;
 				Vector3 tubeDownVectorWorld = tubeTransform.TransformVector(Vector3.down);
 
-				// if we're connected to another hatch through passthrough, find the midpoint between our attach nodes
-				if (_connectedHatch != null && !PartsAreConnected(_connectedHatch.part, part))
+				// if we're connected to another hatch, find the midpoint between the hatches
+				if (_connectedHatch != null)
 				{
 					var otherTubeTransform = TransformUtil.FindPropTransform(_connectedHatch.internalProp, _connectedHatch.tubeTransformName);
 
 					// if the other transform doesn't have a tube, then we scale ours to reach the other prop's origin
+					// NOTE: we used to scale the tube to only reach the attachnode, which might avoid some edge cases but this is simpler and also handles docking ports and parts that were offset after attaching
 					if (otherTubeTransform == null)
 					{
 						tubeScale = Vector3.Distance(tubeTransform.position, _connectedHatch.transform.position);
@@ -303,27 +304,6 @@ namespace FreeIva
 					{
 						// otherwise we find the midpoint
 						tubeScale = Vector3.Distance(tubeTransform.position, otherTubeTransform.position) * 0.5f;
-					}
-				}
-				else
-				{
-					var myAttachNode = part.FindAttachNode(attachNodeId);
-
-					// try to determine tube length from attach node if we're connected to something
-					// note that some internal hatches have tubeExtent set in their config
-					if (tubeExtent == 0 && myAttachNode != null && _connectedHatch != null)
-					{
-						// note: using position here instead of originalPosition to accomodate b9ps potentially changing it
-						tubeExtent = Vector3.Dot(myAttachNode.position, myAttachNode.originalOrientation.normalized);
-					}
-
-					if (tubeExtent != 0)
-					{
-						Vector3 tubePositionInIVA = internalModel.transform.InverseTransformPoint(tubeTransform.position);
-						Vector3 tubeDownVectorIVA = internalModel.transform.InverseTransformDirection(tubeDownVectorWorld).normalized;
-
-						float tubePositionOnAxis = Vector3.Dot(tubeDownVectorIVA, tubePositionInIVA);
-						tubeScale = tubeExtent - tubePositionOnAxis;
 					}
 				}
 
