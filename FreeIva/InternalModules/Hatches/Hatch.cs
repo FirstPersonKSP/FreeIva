@@ -183,10 +183,7 @@ namespace FreeIva
 			{
 				foreach (var renderer in tubeTransform.GetComponentsInChildren<MeshRenderer>())
 				{
-					if (renderer.shadowCastingMode == UnityEngine.Rendering.ShadowCastingMode.On)
-					{
-						renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
-					}
+					renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
 				}
 			}
 		}
@@ -726,6 +723,7 @@ namespace FreeIva
 
 			if (kerbal != null && evaPossible && HighLogic.CurrentGame.Parameters.Flight.CanEVA)
 			{
+				part.hatchObstructionCheckOutwardDistance = 0.5f;
 				var kerbalEVA = SpawnEVA(kerbal.protoCrewMember, part, FindAirlock(part, airlockName));
 
 				if (kerbalEVA != null)
