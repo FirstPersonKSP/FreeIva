@@ -110,7 +110,8 @@ namespace FreeIva
 			base.OnLoad(node);
 
 			// Find the bounds of the shell colliders, so that we can tell when the player exits the bounds of a centrifuge
-			ShellColliderBounds.SetMinMax(Vector3.positiveInfinity, Vector3.negativeInfinity);
+			ShellColliderBounds.center = Vector3.zero;
+			ShellColliderBounds.size = -Vector3.one;
 			foreach (var shellColliderName in node.GetValues("shellColliderName"))
 			{
 				var transform = TransformUtil.FindInternalModelTransform(internalModel, shellColliderName);
