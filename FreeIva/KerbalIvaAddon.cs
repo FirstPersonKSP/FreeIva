@@ -110,12 +110,16 @@ namespace FreeIva
 				{
 					GuiTutorial.Active = true;
 
-					ScreenMessages.PostScreenMessage($"Unbuckle [{Settings.UnbuckleKey}]", 2f, ScreenMessageStyle.LOWER_CENTER);
-
 					// Switching to IVA.
 					FreeIva.EnableInternals();
 					UpdateActiveKerbal();//false);
 					FreeIva.SetRenderQueues(FreeIva.CurrentPart);
+
+					var freeIvaModule = FreeIva.CurrentPart.GetModule<ModuleFreeIva>();
+					if (freeIvaModule != null && freeIvaModule.allowsUnbuckling)
+					{
+						ScreenMessages.PostScreenMessage($"Unbuckle [{Settings.UnbuckleKey}]", 2f, ScreenMessageStyle.LOWER_CENTER);
+					}
 				}
 
 				// Check if we're changing crew member using the 'V' key.
