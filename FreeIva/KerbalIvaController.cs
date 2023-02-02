@@ -27,6 +27,9 @@ namespace FreeIva
 
 		public bool IsOnLadder { get; private set; }
 
+		// used by VR when grabbing ladders
+		public bool FreezeUpdates;
+
 		public bool CollisionEnabled
 		{
 			get { return KerbalCollider.enabled; }
@@ -63,6 +66,7 @@ namespace FreeIva
 			KerbalRigidbody.useGravity = false;
 			KerbalRigidbody.mass = KerbalMass;
 			KerbalRigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
+			KerbalRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
 			// Rotating the object would offset the rotation of the controls from the camera position.
 			KerbalRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
 
@@ -376,7 +380,11 @@ namespace FreeIva
 
 		public void UpdatePosition(Vector3 flightAccel, Vector3 movementThrottle, bool jump)
 		{
-			if (UseRelativeMovement())
+			if (FreezeUpdates)
+			{
+				// nothing!
+			}
+			else if (UseRelativeMovement())
 			{
 				UpdateLadderState(movementThrottle, jump);
 				if (IsOnLadder)
