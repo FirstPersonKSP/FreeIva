@@ -51,5 +51,12 @@ namespace FreeIva
 				ScreenMessages.PostScreenMessage("OnMouseUp", 1f, ScreenMessageStyle.LOWER_CENTER);
 			foreach (Action a in mouseUpActions) { a(); }
 		}
+
+		void OnDestroy()
+		{
+			mouseOverActions.Clear();
+			mouseDownActions.Clear();
+			mouseUpActions.Clear();
+		}
 	}
 }
