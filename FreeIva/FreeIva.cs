@@ -315,54 +315,51 @@ namespace FreeIva
 
 			if (possibleParts.Count == 1)
 			{
-				//Debug.Log("# Only one part found: " + possibleParts[0]);
 				CurrentPart = possibleParts[0];
-				if (CurrentPart != lastPart)
-					OnIvaPartChanged.Fire(CurrentPart);
-				/*else
-                    Debug.Log("# Same part as before: " + CurrentPart + " at " + CurrentPart.transform.position);*/
-				return;
 			}
-
-			float minDistance = float.MaxValue;
-			Part closestPart = null;
-			//Debug.Log("# Checking " + possibleParts.Count + " possibilities.");
-			foreach (Part pp in possibleParts)
+			else if (possibleParts.Count > 1)
 			{
-				Profiler.BeginSample("Testing possible part");
-				// Raycast from the camera to the centre of the collider.
-				// TODO: Figure out how to deal with multi-collider parts.
-				Vector3 c = pp.collider.bounds.center;
-				Vector3 direction = c - camPos;
-				Ray ray = new Ray(camPos, direction);
-				RaycastHit hitInfo;
-				if (!pp.collider.Raycast(ray, out hitInfo, direction.magnitude))
+				float minDistance = float.MaxValue;
+				Part closestPart = null;
+				//Debug.Log("# Checking " + possibleParts.Count + " possibilities.");
+				foreach (Part pp in possibleParts)
 				{
-					//Debug.Log("# Raycast missed part from inside: " + pp);
-					// Ray didn't hit the collider => we are inside the collider.
-					float dist = Vector3.Distance(pp.collider.bounds.center, camPos);
-					if (dist < minDistance)
+					Profiler.BeginSample("Testing possible part");
+					// Raycast from the camera to the centre of the collider.
+					// TODO: Figure out how to deal with multi-collider parts.
+					Vector3 c = pp.collider.bounds.center;
+					Vector3 direction = c - camPos;
+					Ray ray = new Ray(camPos, direction);
+					RaycastHit hitInfo;
+					if (!pp.collider.Raycast(ray, out hitInfo, direction.magnitude))
 					{
-						closestPart = pp;
-						minDistance = dist;
+						//Debug.Log("# Raycast missed part from inside: " + pp);
+						// Ray didn't hit the collider => we are inside the collider.
+						float dist = Vector3.Distance(pp.collider.bounds.center, camPos);
+						if (dist < minDistance)
+						{
+							closestPart = pp;
+							minDistance = dist;
+						}
+						/*else
+							Debug.Log("# Part was further away: " + minDistance + " vs part's " + dist);*/
 					}
 					/*else
-                        Debug.Log("# Part was further away: " + minDistance + " vs part's " + dist);*/
+						Debug.Log("# Raycast hit part from outside: " + pp);*/
+					Profiler.EndSample();
 				}
-				/*else
-                    Debug.Log("# Raycast hit part from outside: " + pp);*/
-				Profiler.EndSample();
+				if (closestPart != null)
+				{
+					CurrentPart = closestPart;
+				}
 			}
-			if (closestPart != null)
+
+			if (CurrentPart != lastPart)
 			{
 				Profiler.BeginSample("OnIvaPartChanged");
-				//Debug.Log("# New closest part found: " + closestPart);
-				CurrentPart = closestPart;
-				if (CurrentPart != lastPart)
-					OnIvaPartChanged.Fire(CurrentPart);
+				CameraManager.Instance.activeInternalPart = CurrentPart;
+				OnIvaPartChanged.Fire(CurrentPart);
 				Profiler.EndSample();
-				/*else
-                    Debug.Log("# Same part as before: " + CurrentPart + " at " + CurrentPart.transform.position);*/
 			}
 			/*else
                 Debug.Log("# No closest part found.");*/

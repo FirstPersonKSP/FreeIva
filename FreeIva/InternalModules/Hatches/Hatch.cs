@@ -652,6 +652,7 @@ namespace FreeIva
 			return part.airlock;
 		}
 
+		// NOTE: this code has been copied to RPM - should also be updated there if we make any changes
 		KerbalEVA SpawnEVA(ProtoCrewMember pCrew, Part airlockPart, Transform fromAirlock)
 		{
 			var flightEVA = FlightEVA.fetch;
