@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 
 namespace FreeIva
 {
@@ -172,6 +173,30 @@ namespace FreeIva
 			foreach (var reparentNode in node.GetNodes("Reparent"))
 			{
 				ReparentUtil.Reparent(internalProp, reparentNode);
+			}
+
+			foreach (var shadowsNode in node.GetNodes("Shadows"))
+			{
+				foreach (var value in shadowsNode.values.values)
+				{
+					var transform = TransformUtil.FindInternalModelTransform(internalModel, value.name);
+					if (transform != null)
+					{
+						var meshRenderer = transform.GetComponent<MeshRenderer>();
+						if (meshRenderer != null)
+						{
+							if (Enum.TryParse(value.value, out ShadowCastingMode shadowCastingMode))
+							{
+								meshRenderer.shadowCastingMode = shadowCastingMode;
+							}
+							else
+							{
+								string validNames = string.Join(", ", Enum.GetNames(typeof(ShadowCastingMode)));
+								Debug.LogError($"[FreeIva] INTERNAL '{internalModel.internalName}' invalid shadow casting mode for transform '{value.name}': '{value.value}'. Valid names: {validNames}");
+							}
+						}
+					}
+				}
 			}
 
 			OnLoad_DepthMasks();
