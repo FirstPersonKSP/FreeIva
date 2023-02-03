@@ -133,7 +133,8 @@ namespace FreeIva
 			bool hasWindows = OnLoad_Windows(node);
 			OnLoad_MeshCuts(node);
 
-			if (internalDepthMask == null && !hasWindows)
+			bool intentionallyLeftBlank = internalDepthMaskName == string.Empty && node.HasValue(nameof(internalDepthMaskName));
+			if (internalDepthMask == null && !hasWindows && !intentionallyLeftBlank)
 			{
 				Debug.LogWarning($"[FreeIva] INTERNAL '{internalModel.internalName}' has neither an internal depth mask nor detectable windows.  It may be possible to see the internals of other parts from here.");
 			}
