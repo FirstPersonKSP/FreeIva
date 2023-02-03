@@ -461,7 +461,7 @@ namespace FreeIva
 			}
 		}
 
-		public void AddPropCut(FreeIvaHatch hatch)
+		private void AddPropCut(FreeIvaHatch hatch)
 		{
 			if (hatch.cutoutTransformName != string.Empty)
 			{

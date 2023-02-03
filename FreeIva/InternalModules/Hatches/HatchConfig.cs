@@ -62,15 +62,6 @@ namespace FreeIva
 					}
 				}
 			}
-
-			var freeIvaModule = internalModel.GetComponentInChildren<InternalModuleFreeIva>();
-				
-			// it's possible that this prop is before the FreeIva module in the INTERNAL node.
-			// skip adding the cut for now, and the module will pick it up in its OnLoad function
-			if (freeIvaModule != null)
-			{
-				freeIvaModule.AddPropCut(propHatch);
-			}
 		}
 	}
 }
