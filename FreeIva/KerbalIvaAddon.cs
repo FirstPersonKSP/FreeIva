@@ -19,22 +19,21 @@ namespace FreeIva
 	[KSPAddon(KSPAddon.Startup.Flight, false)]
 	public class KerbalIvaAddon : MonoBehaviour
 	{
-		public static KerbalIvaController KerbalIva;
-
+		public KerbalIvaController KerbalIva;
 #if Experimental
-		public static GameObject KerbalWorldSpace;
-		public static Collider KerbalWorldSpaceCollider;
-		public static PhysicMaterial KerbalWorldSpacePhysics;
-		public static Rigidbody KerbalWorldSpaceRigidbody;
-		public static Renderer KerbalWorldSpaceRenderer;
+		public GameObject KerbalWorldSpace;
+		public Collider KerbalWorldSpaceCollider;
+		public PhysicMaterial KerbalWorldSpacePhysics;
+		public Rigidbody KerbalWorldSpaceRigidbody;
+		public Renderer KerbalWorldSpaceRenderer;
 #endif
 
 		public bool buckled = true;
 		public bool cameraPositionLocked = false;
-		public static ProtoCrewMember ActiveKerbal;
+		public ProtoCrewMember ActiveKerbal;
 		public InternalSeat OriginalSeat = null;
 		public InternalSeat TargetedSeat = null;
-		public static bool Gravity = true;
+		public bool Gravity = true;
 #if Experimental
 		public static bool CanHoldItems = false;
 #endif
@@ -62,6 +61,7 @@ namespace FreeIva
 			GameObject.Destroy(KerbalIva);
 			GameEvents.OnCameraChange.Remove(OnCameraChange);
 			_instance = null;
+			KerbalIva = null;
 		}
 
 		void OnGUI()

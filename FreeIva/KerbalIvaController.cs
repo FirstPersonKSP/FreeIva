@@ -150,7 +150,7 @@ namespace FreeIva
 		public bool UseRelativeMovement()
 		{
 			// eventually we might want to include flying in atmosphere, etc
-			return FlightGlobals.ActiveVessel.LandedOrSplashed && KerbalIvaAddon.Gravity || (currentCentrifuge != null && currentCentrifuge.CurrentSpinRate != 0);
+			return FlightGlobals.ActiveVessel.LandedOrSplashed && KerbalIvaAddon.Instance.Gravity || (currentCentrifuge != null && currentCentrifuge.CurrentSpinRate != 0);
 		}
 
 		public Vector3 currentRelativeOrientation;
@@ -243,7 +243,7 @@ namespace FreeIva
 			Vector3 desiredInternalVelocity = orientation * desiredLocalSpeed;
 			bool grounded = GetGroundPlane(flightAccel, out Plane groundPlane);
 
-			if (KerbalIvaAddon.Gravity)
+			if (KerbalIvaAddon.Instance.Gravity)
 			{
 				float gravityScale = grounded ? 0.1f : 1f;
 				KerbalRigidbody.AddForce(gravityScale * flightAccel, ForceMode.Acceleration);

@@ -102,6 +102,9 @@ namespace FreeIva
 		public string internalDepthMaskName = string.Empty;
 		public Transform internalDepthMask;
 
+		[KSPField]
+		public string autoCutoutTargetName = string.Empty; // for auto-hatch configuration, target this gameobject for cutouts (if left empty we will try to auto-detect it)
+
 		[SerializeField]
 		public Bounds ShellColliderBounds;
 
@@ -445,6 +448,62 @@ namespace FreeIva
 		{
 			if (HighLogic.LoadedScene != GameScenes.LOADING) return;
 
+			// try to find the part associated with this model (note there might be more than one...)
+			var part = PartLoader.Instance.loadedParts.FirstOrDefault(p => p.internalConfig.GetValue("name") == internalModel.internalName);
+
+			// try to find the primary internal shell
+			Transform autoCutoutTarget = TransformUtil.FindInternalModelTransform(internalModel, autoCutoutTargetName, autoCutoutTargetName != string.Empty);
+			if (autoCutoutTarget == null && autoCutoutTargetName == string.Empty)
+			{
+				var modelTransform = internalModel.transform.Find("model");
+				int mostVertices = 0;
+				foreach (var meshFilter in modelTransform.GetComponentsInChildren<MeshFilter>())
+				{
+					if (meshFilter.mesh.vertexCount > mostVertices)
+					{
+						mostVertices = meshFilter.mesh.vertexCount;
+						autoCutoutTarget = meshFilter.transform;
+					}
+				}
+
+				if (autoCutoutTarget != null)
+				{
+					autoCutoutTargetName = autoCutoutTarget.name;
+					Debug.Log($"[FreeIva] auto-dected primary cutout target {autoCutoutTargetName}");
+				}
+			}
+
+			foreach (var prop in internalModel.props)
+			{
+				var hatch = prop.GetComponent<FreeIvaHatch>();
+				if (hatch != null)
+				{
+					var hatchConfig = prop.GetComponent<HatchConfig>();
+
+					if (hatchConfig != null)
+					{
+						AddPropCut(hatch);
+					}
+					else
+					{
+						// try to auto-configure this prop
+
+						// for cutouts....
+						if (autoCutoutTargetName != string.Empty && hatch.cutoutTransformName != string.Empty)
+						{
+							hatch.cutoutTargetTransformName = autoCutoutTargetName;
+							AddPropCut(hatch);
+						}
+
+						// for attachnodes...
+
+						// for airlocks...
+
+						// for docking ports...
+					}
+				}
+			}
+
 			ExecuteMeshCuts();
 		}
 
@@ -551,16 +610,6 @@ namespace FreeIva
 		void ExecuteMeshCuts()
 		{
 			if (HighLogic.LoadedScene != GameScenes.LOADING) return;
-
-			foreach (var prop in internalModel.props)
-			{
-				var hatchConfig = prop.GetComponent<HatchConfig>();
-				if (hatchConfig != null)
-				{
-					var hatchComponent = prop.GetComponent<FreeIvaHatch>();
-					AddPropCut(hatchComponent);
-				}
-			}
 
 			if (cutParameters.Any())
 			{

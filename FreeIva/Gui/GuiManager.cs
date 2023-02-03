@@ -38,7 +38,7 @@ namespace FreeIva
             if (partIndex < 0)
                 partIndex = FlightGlobals.ActiveVessel.Parts.Count - 1;
             CurrentPart = FlightGlobals.ActiveVessel.Parts[partIndex];*/
-			GuiUtils.label("Active kerbal", KerbalIvaAddon.ActiveKerbal == null ? "null" : KerbalIvaAddon.ActiveKerbal.name);
+			GuiUtils.label("Active kerbal", KerbalIvaAddon.Instance.ActiveKerbal == null ? "null" : KerbalIvaAddon.Instance.ActiveKerbal.name);
 			GuiUtils.label("Part (" + (_partIndex + 1) + "/" + FlightGlobals.ActiveVessel.Parts.Count + ")", FreeIva.CurrentPart);
 
 			// Internals
@@ -50,7 +50,7 @@ namespace FreeIva
 
 			GUILayout.BeginHorizontal();
 			Settings.EnableCollisions= !GUILayout.Toggle(!Settings.EnableCollisions, "Disable collisions");
-			KerbalIvaAddon.Gravity = GUILayout.Toggle(KerbalIvaAddon.Gravity, "Gravity");
+			KerbalIvaAddon.Instance.Gravity = GUILayout.Toggle(KerbalIvaAddon.Instance.Gravity, "Gravity");
 			GUILayout.EndHorizontal();
 
 
@@ -145,7 +145,7 @@ namespace FreeIva
 				return;
 
 
-			var distance = InternalCamera.Instance.transform.position - KerbalIvaAddon.KerbalIva.transform.position;
+			var distance = InternalCamera.Instance.transform.position - KerbalIvaAddon.Instance.KerbalIva.transform.position;
 			GuiUtils.label("Distance from camera to Kerbal IVA", distance);
 
 			GUILayout.BeginHorizontal();
@@ -154,18 +154,18 @@ namespace FreeIva
 #if Experimental
 			KerbalIvaController.CanHoldItems = GUILayout.Toggle(KerbalIvaController.CanHoldItems, "Can move objects");
 #endif
-			bool helmet = GUILayout.Toggle(KerbalIvaAddon.KerbalIva.WearingHelmet, "Helmet");
+			bool helmet = GUILayout.Toggle(KerbalIvaAddon.Instance.KerbalIva.WearingHelmet, "Helmet");
 			//if (helmet != KerbalIva.WearingHelmet)
 			//{
 			if (helmet)
-				KerbalIvaAddon.KerbalIva.HelmetOn();
+				KerbalIvaAddon.Instance.KerbalIva.HelmetOn();
 			else
-				KerbalIvaAddon.KerbalIva.HelmetOff();
+				KerbalIvaAddon.Instance.KerbalIva.HelmetOff();
 			//}
 			GUILayout.EndHorizontal();
 
 
-			GuiUtils.label("ladder count", KerbalIvaAddon.KerbalIva.KerbalCollisionTracker.RailColliderCount);
+			GuiUtils.label("ladder count", KerbalIvaAddon.Instance.KerbalIva.KerbalCollisionTracker.RailColliderCount);
 			Settings.KerbalHeight = GuiUtils.editFloat("Kerbal height", Settings.KerbalHeight);
 			Settings.KerbalHeightWithHelmet = GuiUtils.editFloat("Kerbal height with helmet", Settings.KerbalHeightWithHelmet);
 		}
@@ -782,31 +782,31 @@ namespace FreeIva
 
 			if (showPhysicsGui)
 			{
-				float staticFriction = KerbalIvaAddon.KerbalIva.KerbalCollider.material.staticFriction;
+				float staticFriction = KerbalIvaAddon.Instance.KerbalIva.KerbalCollider.material.staticFriction;
 				GuiUtils.slider("Static friction", ref staticFriction, 0, 2);
-				KerbalIvaAddon.KerbalIva.KerbalCollider.material.staticFriction = staticFriction;
+				KerbalIvaAddon.Instance.KerbalIva.KerbalCollider.material.staticFriction = staticFriction;
 
-				float dynamicFriction = KerbalIvaAddon.KerbalIva.KerbalCollider.material.dynamicFriction;
+				float dynamicFriction = KerbalIvaAddon.Instance.KerbalIva.KerbalCollider.material.dynamicFriction;
 				GuiUtils.slider("Dynamic friction", ref dynamicFriction, 0, 2);
-				KerbalIvaAddon.KerbalIva.KerbalCollider.material.dynamicFriction = dynamicFriction;
+				KerbalIvaAddon.Instance.KerbalIva.KerbalCollider.material.dynamicFriction = dynamicFriction;
 
-				float bounciness = KerbalIvaAddon.KerbalIva.KerbalCollider.material.bounciness;
+				float bounciness = KerbalIvaAddon.Instance.KerbalIva.KerbalCollider.material.bounciness;
 				GuiUtils.slider("Bounciness", ref bounciness, 0, 1);
-				KerbalIvaAddon.KerbalIva.KerbalCollider.material.bounciness = bounciness;
+				KerbalIvaAddon.Instance.KerbalIva.KerbalCollider.material.bounciness = bounciness;
 
 				// Kerbal in EVA suit: 0.09375 (93.75 kg)
-				float mass = KerbalIvaAddon.KerbalIva.KerbalRigidbody.mass;
+				float mass = KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.mass;
 				GuiUtils.slider("Mass", ref mass, 0, 5);
-				KerbalIvaAddon.KerbalIva.KerbalRigidbody.mass = mass;
+				KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.mass = mass;
 
 				GuiUtils.slider("ForwardSpeed", ref Settings.ForwardSpeed, 0, 50);
 				GuiUtils.slider("JumpForce", ref Settings.JumpForce, 0, 20);
 
-				GuiUtils.label("Velocity", KerbalIvaAddon.KerbalIva.KerbalRigidbody.velocity);
+				GuiUtils.label("Velocity", KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.velocity);
 				if (FreeIva.CurrentPart != null && FreeIva.CurrentPart.Rigidbody != null)
 				{
 					// this is all sorts of wrong - need to transform between internal/world space
-					GuiUtils.label("Velocity relative to part", FreeIva.CurrentPart.Rigidbody.velocity - KerbalIvaAddon.KerbalIva.KerbalRigidbody.velocity);
+					GuiUtils.label("Velocity relative to part", FreeIva.CurrentPart.Rigidbody.velocity - KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.velocity);
 				}
 
 				GuiUtils.label("Flight forces (world space)", KerbalIvaAddon.flightForces);
@@ -814,8 +814,8 @@ namespace FreeIva
 				GuiUtils.label("IVA Rot", InternalSpace.WorldToInternal(Quaternion.identity).eulerAngles);
 
 				// Debug
-				Vector3 gForce = FlightGlobals.getGeeForceAtPosition(KerbalIvaAddon.KerbalIva.transform.position);
-				Vector3 centrifugalForce = FlightGlobals.getCentrifugalAcc(KerbalIvaAddon.KerbalIva.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
+				Vector3 gForce = FlightGlobals.getGeeForceAtPosition(KerbalIvaAddon.Instance.KerbalIva.transform.position);
+				Vector3 centrifugalForce = FlightGlobals.getCentrifugalAcc(KerbalIvaAddon.Instance.KerbalIva.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
 				Vector3 coriolisForce = FlightGlobals.getCoriolisAcc(FreeIva.CurrentPart.vessel.rb_velocity + Krakensbane.GetFrameVelocityV3f(), FreeIva.CurrentPart.orbit.referenceBody);
 
 				GuiUtils.label("Main G-Force", gForce);
@@ -824,7 +824,7 @@ namespace FreeIva
 
 				GuiUtils.label("Main G Internal", InternalSpace.InternalToWorld(gForce));
 
-				KerbalIvaAddon.KerbalIva.KerbalFeetCollider.center = GuiUtils.editVector("KerbalFeet Center", KerbalIvaAddon.KerbalIva.KerbalFeetCollider.center);
+				KerbalIvaAddon.Instance.KerbalIva.KerbalFeetCollider.center = GuiUtils.editVector("KerbalFeet Center", KerbalIvaAddon.Instance.KerbalIva.KerbalFeetCollider.center);
 			}
 		}
 

@@ -87,7 +87,7 @@ namespace FreeIva
 				}
 			}
 
-			if (result.taken && result.crew != KerbalIvaAddon.ActiveKerbal)
+			if (result.taken && result.crew != KerbalIvaAddon.Instance.ActiveKerbal)
 			{
 				result = null;
 			}

@@ -30,17 +30,17 @@ namespace FreeIva
 			GuiUtils.label("Strafe Left", Settings.LeftKey);
 			GuiUtils.label("Strafe Right", Settings.RightKey);
 
-			if (KerbalIvaAddon.KerbalIva.IsOnLadder || (!KerbalIvaAddon.KerbalIva.UseRelativeMovement() || KerbalIvaAddon.KerbalIva.KerbalCollisionTracker.RailColliderCount > 0))
+			if (KerbalIvaAddon.Instance.KerbalIva.IsOnLadder || (!KerbalIvaAddon.Instance.KerbalIva.UseRelativeMovement() || KerbalIvaAddon.Instance.KerbalIva.KerbalCollisionTracker.RailColliderCount > 0))
 			{
 				GuiUtils.label("Move Up", Settings.UpKey);
 				GuiUtils.label("Move Down", Settings.DownKey);
 			}
 
-			if (KerbalIvaAddon.KerbalIva.UseRelativeMovement())
+			if (KerbalIvaAddon.Instance.KerbalIva.UseRelativeMovement())
 			{
 				GuiUtils.label("Crouch", Settings.CrouchKey);
 
-				if (KerbalIvaAddon.KerbalIva.IsOnLadder)
+				if (KerbalIvaAddon.Instance.KerbalIva.IsOnLadder)
 				{
 					GuiUtils.label("Release Ladder", Settings.JumpKey);
 				}
@@ -57,7 +57,7 @@ namespace FreeIva
 
 			GuiUtils.label("Return to Seat", GameSettings.CAMERA_MODE.primary.code);
 
-			if (KerbalIvaAddon.KerbalIva.UseRelativeMovement() || !KerbalIvaAddon.Gravity)
+			if (KerbalIvaAddon.Instance.KerbalIva.UseRelativeMovement() || !KerbalIvaAddon.Instance.Gravity)
 			{
 				GuiUtils.label("Toggle Gravity", GameSettings.MODIFIER_KEY.primary.code + " + " + Settings.ToggleGravityKey);
 			}
