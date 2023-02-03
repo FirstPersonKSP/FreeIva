@@ -75,7 +75,6 @@ namespace FreeIva
 		public List<FreeIvaHatch> Hatches = new List<FreeIvaHatch>(); // hatches will register themselves with us
 
 		List<CutParameter> cutParameters = new List<CutParameter>();
-		int propCutsRemaining = 0;
 
 		[KSPField]
 		public string secondaryInternalName = string.Empty;
@@ -110,6 +109,90 @@ namespace FreeIva
 		{
 			base.OnLoad(node);
 
+			OnLoad_ShellCollider(node);
+			OnLoad_CopyColliders();
+
+			foreach (var disableColliderNode in node.GetNodes("DisableCollider"))
+			{
+				DisableCollider.DisableColliders(internalProp, disableColliderNode);
+			}
+
+			foreach (var deleteObjectsNode in node.GetNodes("DeleteInternalObject"))
+			{
+				DeleteInternalObject.DeleteObjects(internalProp, deleteObjectsNode);
+			}
+
+			foreach (var reparentNode in node.GetNodes("Reparent"))
+			{
+				ReparentUtil.Reparent(internalProp, reparentNode);
+			}
+
+			OnLoad_Shadows(node);
+
+			OnLoad_DepthMasks();
+			bool hasWindows = OnLoad_Windows(node);
+			OnLoad_MeshCuts(node);
+
+			if (internalDepthMask == null && !hasWindows)
+			{
+				Debug.LogWarning($"[FreeIva] INTERNAL '{internalModel.internalName}' has neither an internal depth mask nor detectable windows.  It may be possible to see the internals of other parts from here.");
+			}
+		}
+
+		private void OnLoad_CopyColliders()
+		{
+			if (CopyPartCollidersToInternalColliders)
+			{
+				var partBoxColliders = GetComponentsInChildren<BoxCollider>();
+
+				if (partBoxColliders.Length > 0)
+				{
+					foreach (var c in partBoxColliders)
+					{
+						if (c.isTrigger || c.tag != "Untagged")
+						{
+							continue;
+						}
+
+						var go = Instantiate(c.gameObject);
+						go.transform.parent = internalModel.transform;
+						go.layer = (int)Layers.Kerbals;
+						go.transform.position = InternalSpace.WorldToInternal(c.transform.position);
+						go.transform.rotation = InternalSpace.WorldToInternal(c.transform.rotation);
+					}
+				}
+			}
+		}
+
+		private void OnLoad_Shadows(ConfigNode node)
+		{
+			foreach (var shadowsNode in node.GetNodes("Shadows"))
+			{
+				foreach (var value in shadowsNode.values.values)
+				{
+					var transform = TransformUtil.FindInternalModelTransform(internalModel, value.name);
+					if (transform != null)
+					{
+						var meshRenderer = transform.GetComponent<MeshRenderer>();
+						if (meshRenderer != null)
+						{
+							if (Enum.TryParse(value.value, out ShadowCastingMode shadowCastingMode))
+							{
+								meshRenderer.shadowCastingMode = shadowCastingMode;
+							}
+							else
+							{
+								string validNames = string.Join(", ", Enum.GetNames(typeof(ShadowCastingMode)));
+								Debug.LogError($"[FreeIva] INTERNAL '{internalModel.internalName}' invalid shadow casting mode for transform '{value.name}': '{value.value}'. Valid names: {validNames}");
+							}
+						}
+					}
+				}
+			}
+		}
+
+		private void OnLoad_ShellCollider(ConfigNode node)
+		{
 			// Find the bounds of the shell colliders, so that we can tell when the player exits the bounds of a centrifuge
 			ShellColliderBounds.center = Vector3.zero;
 			ShellColliderBounds.size = -Vector3.one;
@@ -134,78 +217,6 @@ namespace FreeIva
 				{
 					Debug.LogError($"[FreeIva] shellCollider {shellColliderName} not found in internal {internalModel.internalName}");
 				}
-			}
-
-			if (CopyPartCollidersToInternalColliders)
-			{
-				var partBoxColliders = GetComponentsInChildren<BoxCollider>();
-
-				if (partBoxColliders.Length > 0)
-				{
-					foreach (var c in partBoxColliders)
-					{
-						if (c.isTrigger || c.tag != "Untagged")
-						{
-							continue;
-						}
-
-						var go = Instantiate(c.gameObject);
-						go.transform.parent = internalModel.transform;
-						go.layer = (int)Layers.Kerbals;
-						go.transform.position = InternalSpace.WorldToInternal(c.transform.position);
-						go.transform.rotation = InternalSpace.WorldToInternal(c.transform.rotation);
-					}
-				}
-			}
-
-			var disableColliderNode = node.GetNode("DisableCollider");
-			if (disableColliderNode != null)
-			{
-				DisableCollider.DisableColliders(internalProp, disableColliderNode);
-			}
-
-			var deleteObjectsNode = node.GetNode("DeleteInternalObject");
-			if (deleteObjectsNode != null)
-			{
-				DeleteInternalObject.DeleteObjects(internalProp, deleteObjectsNode);
-			}
-
-			foreach (var reparentNode in node.GetNodes("Reparent"))
-			{
-				ReparentUtil.Reparent(internalProp, reparentNode);
-			}
-
-			foreach (var shadowsNode in node.GetNodes("Shadows"))
-			{
-				foreach (var value in shadowsNode.values.values)
-				{
-					var transform = TransformUtil.FindInternalModelTransform(internalModel, value.name);
-					if (transform != null)
-					{
-						var meshRenderer = transform.GetComponent<MeshRenderer>();
-						if (meshRenderer != null)
-						{
-							if (Enum.TryParse(value.value, out ShadowCastingMode shadowCastingMode))
-							{
-								meshRenderer.shadowCastingMode = shadowCastingMode;
-							}
-							else
-							{
-								string validNames = string.Join(", ", Enum.GetNames(typeof(ShadowCastingMode)));
-								Debug.LogError($"[FreeIva] INTERNAL '{internalModel.internalName}' invalid shadow casting mode for transform '{value.name}': '{value.value}'. Valid names: {validNames}");
-							}
-						}
-					}
-				}
-			}
-
-			OnLoad_DepthMasks();
-			bool hasWindows = OnLoad_Windows(node);
-			OnLoad_MeshCuts(node);
-
-			if (internalDepthMask == null && !hasWindows)
-			{
-				Debug.LogWarning($"[FreeIva] INTERNAL '{internalModel.internalName}' has neither an internal depth mask nor detectable windows.  It may be possible to see the internals of other parts from here.");
 			}
 		}
 
@@ -428,6 +439,14 @@ namespace FreeIva
 			return hasWindows;
 		}
 
+		// dirty hack: the stock internal model loader will deactivate the internal space when it's done loading, so this gives us a place to do "final processing" after all props have been added
+		void OnDisable()
+		{
+			if (HighLogic.LoadedScene != GameScenes.LOADING) return;
+
+			ExecuteMeshCuts();
+		}
+
 		private void OnLoad_MeshCuts(ConfigNode node)
 		{
 			var cutNodes = node.GetNodes("Cut");
@@ -440,49 +459,6 @@ namespace FreeIva
 					cutParameters.Add(cp);
 				}
 			}
-
-			// I can't find a better way to gather all the prop cuts and execute them at once for the entire IVA
-			propCutsRemaining = CountPropCuts();
-
-			if (propCutsRemaining == 0)
-			{
-				ExecuteMeshCuts();
-			}
-			else
-			{
-				// need to add cuts from props that are already loaded
-				foreach (var prop in internalModel.props)
-				{
-					// since CountPropCuts counts all props with a HatchConfig module node, we need to call AddPropCut for each prop with a HatchConfig module
-					var hatchConfig = prop.GetComponent<HatchConfig>();
-					if (hatchConfig != null)
-					{
-						var hatchComponent = prop.GetComponent<FreeIvaHatch>();
-						AddPropCut(hatchComponent);
-					}
-				}
-			}
-		}
-
-		int CountPropCuts()
-		{
-			int count = 0;
-
-			foreach (var propNode in internalModel.internalConfig.GetNodes("PROP"))
-			{
-				var propName = propNode.GetValue("name");
-				var propPrefab = PartLoader.Instance.internalProps.FirstOrDefault(prop => prop.propName == propName);
-
-				foreach (var moduleNode in propNode.GetNodes("MODULE"))
-				{
-					if (moduleNode.GetValue("name") == nameof(HatchConfig))
-					{
-						++count;
-					}
-				}
-			}
-
-			return count;
 		}
 
 		public void AddPropCut(FreeIvaHatch hatch)
@@ -502,11 +478,6 @@ namespace FreeIva
 				{
 					Debug.LogError($"[FreeIva] could not find cutout transform {hatch.cutoutTransformName} on prop {hatch.internalProp.propName}");
 				}
-			}
-
-			if (--propCutsRemaining == 0)
-			{
-				ExecuteMeshCuts();
 			}
 		}
 
@@ -579,6 +550,16 @@ namespace FreeIva
 		void ExecuteMeshCuts()
 		{
 			if (HighLogic.LoadedScene != GameScenes.LOADING) return;
+
+			foreach (var prop in internalModel.props)
+			{
+				var hatchConfig = prop.GetComponent<HatchConfig>();
+				if (hatchConfig != null)
+				{
+					var hatchComponent = prop.GetComponent<FreeIvaHatch>();
+					AddPropCut(hatchComponent);
+				}
+			}
 
 			if (cutParameters.Any())
 			{
