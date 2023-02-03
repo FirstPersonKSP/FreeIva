@@ -95,7 +95,7 @@ namespace FreeIva
 			return result;
 		}
 
-		private void OnClick()
+		public void OnClick()
 		{
 			if (KerbalIvaAddon.Instance.buckled)
 			{
