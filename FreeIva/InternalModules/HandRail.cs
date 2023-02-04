@@ -12,6 +12,8 @@ namespace FreeIva
 		[KSPField]
 		public string transformName = string.Empty;
 
+		public static readonly string COLLIDER_TAG = "Ladder";
+
 		public override void OnLoad(ConfigNode node)
 		{
 			base.OnLoad(node);
@@ -35,6 +37,7 @@ namespace FreeIva
 							{
 								var c = ColliderUtil.CreateCollider(railTransform, colliderNode, dbgName);
 								c.isTrigger = true;
+								c.gameObject.tag = COLLIDER_TAG;
 							}
 						}
 						else
@@ -45,6 +48,7 @@ namespace FreeIva
 					else
 					{
 						collider.isTrigger = true;
+						collider.gameObject.tag = COLLIDER_TAG;
 						ColliderUtil.AddColliderVisualizer(collider);
 					}
 				}
