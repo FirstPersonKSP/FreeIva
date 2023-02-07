@@ -101,6 +101,7 @@
     <Compile Include="Gui\GuiTutorial.cs" />
     <Compile Include="InternalModules\B9PSConditionalProp.cs" />
     <Compile Include="InternalModules\ChangeObjectLayer.cs" />
+    <Compile Include="InternalModules\CivilianKerbal.cs" />
     <Compile Include="InternalModules\DeleteInternalObject.cs" />
     <Compile Include="InternalModules\DisableCollider.cs" />
     <Compile Include="InternalModules\FreeIvaInternalCameraSwitch.cs" />
