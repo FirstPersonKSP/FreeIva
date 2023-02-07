@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Expansions.Missions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -568,6 +569,18 @@ namespace FreeIva
 			return result;
 		}
 
+		void PlaceKerbalAt(string prefabName, string bodyName, int seatIndex)
+		{
+			var prefab = AssetBase.GetPrefab(prefabName) ?? GameDatabase.Instance.GetModel(prefabName);
+			var bodyPrefab = prefab.transform.Find(bodyName)?.gameObject;
+			var kerbal = GameObject.Instantiate(bodyPrefab);
+			kerbal.transform.SetParent(internalModel.seats[seatIndex].seatTransform, false);
+			kerbal.transform.localPosition = Vector3.zero;
+			kerbal.transform.localRotation = Quaternion.identity;
+			kerbal.SetLayerRecursive(16);
+			kerbal.SetActive(true);
+		}
+
 		void Start()
 		{
 			if (!HighLogic.LoadedSceneIsFlight) return;
@@ -593,6 +606,13 @@ namespace FreeIva
 				{
 					Debug.LogError($"[FreeIva] Could not find a module to handle deployment in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
 				}
+			}
+
+			if (internalModel.seats.Count > 0 && part.CrewCapacity == 0)
+			{
+				PlaceKerbalAt("Instructor_Gene", "instructor_Gene", 0);
+				PlaceKerbalAt("Strategy_ScienceGuy", "linus", 1);
+				PlaceKerbalAt("Strategy_MechanicGuy", "Gus", 2);
 			}
 		}
 
