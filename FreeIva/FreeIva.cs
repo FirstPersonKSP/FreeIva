@@ -371,7 +371,7 @@ namespace FreeIva
 			Profiler.BeginSample("PartBoundsCamera");
 			bool result = false;
 
-			if (p.internalModel != null)
+			if (p.internalModel != null && p.internalModel.isActiveAndEnabled)
 			{
 				for (var ivaModule = InternalModuleFreeIva.GetForModel(p.internalModel); ivaModule != null; ivaModule = InternalModuleFreeIva.GetForModel(ivaModule.SecondaryInternalModel))
 				{
