@@ -104,6 +104,9 @@ namespace FreeIva
 		public Transform internalDepthMask;
 
 		[KSPField]
+		public Vector3 customGravity = Vector3.zero;
+
+		[KSPField]
 		public string autoCutoutTargetName = string.Empty; // for auto-hatch configuration, target this gameobject for cutouts (if left empty we will try to auto-detect it)
 
 		[SerializeField]

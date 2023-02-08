@@ -150,7 +150,7 @@ namespace FreeIva
 		public bool UseRelativeMovement()
 		{
 			// eventually we might want to include flying in atmosphere, etc
-			return FlightGlobals.ActiveVessel.LandedOrSplashed && KerbalIvaAddon.Instance.Gravity || (currentCentrifuge != null && currentCentrifuge.CurrentSpinRate != 0);
+			return (FlightGlobals.ActiveVessel.LandedOrSplashed || FreeIva.CurrentInternalModuleFreeIva.customGravity != Vector3.zero) && KerbalIvaAddon.Instance.Gravity || (currentCentrifuge != null && currentCentrifuge.CurrentSpinRate != 0);
 		}
 
 		public Vector3 currentRelativeOrientation;
@@ -418,6 +418,10 @@ namespace FreeIva
 			if (currentCentrifuge != null)
 			{
 				flightAccel = GetCentrifugeAccel();
+			}
+			else if (FreeIva.CurrentInternalModuleFreeIva.customGravity != Vector3.zero)
+			{
+				flightAccel = FreeIva.CurrentInternalModuleFreeIva.customGravity;
 			}
 			else
 			{
