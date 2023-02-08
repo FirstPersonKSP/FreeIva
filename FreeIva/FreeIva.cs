@@ -61,7 +61,6 @@ namespace FreeIva
 	public class FreeIva : MonoBehaviour
 	{
 		public static EventData<Part> OnIvaPartChanged = new EventData<Part>("OnIvaPartChanged");
-		public static Part InitialPart;
 		public static Part CurrentPart;
 		public static GameObject SelectedObject = null;
 		private static InternalModuleFreeIva _currentInternalModuleFreeIva = null;
@@ -412,23 +411,42 @@ namespace FreeIva
 		{
 			try
 			{
-				foreach (Part p in FlightGlobals.ActiveVessel.parts)
+				if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA && PartIsProbeCore(CameraManager.Instance.activeInternalPart))
 				{
-					if (!PartIsProbeCore(p))
+					InternalModel currentInternal = CameraManager.Instance.activeInternalPart.internalModel;
+
+					foreach (Part p in FlightGlobals.ActiveVessel.parts)
 					{
-						if (p.internalModel == null)
+						if (p != currentInternal.part && p.internalModel != null)
 						{
-							p.CreateInternalModel();
+							p.internalModel.gameObject.SetActive(false);
+						}
+					}
+
+					currentInternal.gameObject.SetActive(true);
+					currentInternal.SetVisible(true);
+				}
+				else
+				{
+					foreach (Part p in FlightGlobals.ActiveVessel.parts)
+					{
+						if (!PartIsProbeCore(p))
+						{
+							if (p.internalModel == null)
+							{
+								p.CreateInternalModel();
+								if (p.internalModel != null)
+								{
+									p.internalModel.Initialize(p);
+									p.internalModel.SpawnCrew();
+								}
+							}
+
 							if (p.internalModel != null)
 							{
-								p.internalModel.Initialize(p);
-								p.internalModel.SpawnCrew();
+								p.internalModel.gameObject.SetActive(true);
+								p.internalModel.SetVisible(true);
 							}
-						}
-
-						if (p.internalModel != null)
-						{
-							p.internalModel.SetVisible(true);
 						}
 					}
 				}

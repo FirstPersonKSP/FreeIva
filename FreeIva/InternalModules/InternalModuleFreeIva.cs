@@ -53,7 +53,7 @@ namespace FreeIva
 				{
 					ivaModule.part.DespawnIVA();
 				}
-				else
+				else if (ivaModule.isActiveAndEnabled)
 				{
 					foreach (var hatch in ivaModule.Hatches)
 					{

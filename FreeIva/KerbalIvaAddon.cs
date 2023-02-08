@@ -510,7 +510,6 @@ namespace FreeIva
 			FreeIva.EnableInternals();
 			UpdateActiveKerbal();
 			FreeIva.SetRenderQueues(FreeIva.CurrentPart);
-			FreeIva.InitialPart = FreeIva.CurrentPart;
 			OriginalSeat = ActiveKerbal.seat;
 
 			Gravity = Gravity && Settings.EnableCollisions;
@@ -681,7 +680,7 @@ namespace FreeIva
 		void TargetHatchesInPart(Part part, ref FreeIvaHatch targetedHatch, ref float closestDistance)
 		{
 			InternalModuleFreeIva ivaModule = InternalModuleFreeIva.GetForModel(part.internalModel);
-			while (ivaModule != null)
+			while (ivaModule != null && ivaModule.isActiveAndEnabled)
 			{
 				foreach (FreeIvaHatch h in ivaModule.Hatches)
 				{
@@ -699,14 +698,17 @@ namespace FreeIva
 
 			for (var internalModule = FreeIva.CurrentInternalModuleFreeIva; internalModule != null; internalModule = InternalModuleFreeIva.GetForModel(internalModule.SecondaryInternalModel))
 			{
-				foreach (FreeIvaHatch h in internalModule.Hatches)
+				if (internalModule.isActiveAndEnabled)
 				{
-					ConsiderHatch(ref targetedHatch, ref closestDistance, h);
-
-					// if this hatch is open, consider other hatches in the adjacent part
-					if (h.IsOpen && h.ConnectedHatch != null)
+					foreach (FreeIvaHatch h in internalModule.Hatches)
 					{
-						TargetHatchesInPart(h.ConnectedHatch.part, ref targetedHatch, ref closestDistance);
+						ConsiderHatch(ref targetedHatch, ref closestDistance, h);
+
+						// if this hatch is open, consider other hatches in the adjacent part
+						if (h.IsOpen && h.ConnectedHatch != null)
+						{
+							TargetHatchesInPart(h.ConnectedHatch.part, ref targetedHatch, ref closestDistance);
+						}
 					}
 				}
 			}
