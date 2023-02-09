@@ -128,10 +128,10 @@ namespace FreeIva
 			currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.Centrifuge;
 
 			transform.SetParent(currentCentrifuge?.IVARotationRoot, true);
+			Vector3 flightAccel = GetInternalAcceleration();
 
 			if (UseRelativeMovement())
 			{
-				Vector3 flightAccel = GetInternalAcceleration();
 				OrientToGravity(flightAccel);
 			}
 			else
@@ -147,10 +147,11 @@ namespace FreeIva
 			gameObject.SetActive(true);
 		}
 
+		bool usingRelativeMovement;
+
 		public bool UseRelativeMovement()
 		{
-			// eventually we might want to include flying in atmosphere, etc
-			return (FlightGlobals.ActiveVessel.LandedOrSplashed || FreeIva.CurrentInternalModuleFreeIva.customGravity != Vector3.zero) && KerbalIvaAddon.Instance.Gravity || (currentCentrifuge != null && currentCentrifuge.CurrentSpinRate != 0);
+			return usingRelativeMovement;
 		}
 
 		public Vector3 currentRelativeOrientation;
@@ -463,10 +464,8 @@ namespace FreeIva
 				}
 			}
 
-			Vector3 flightAccel = GetInternalAcceleration();
-
 			// try exiting a centrifuge
-			if (currentCentrifuge != null && flightAccel.magnitude < 0.05f)
+			if (currentCentrifuge != null && GetCentrifugeAccel().magnitude < 0.05f)
 			{
 				currentCentrifuge = null;
 				transform.SetParent(null, true);
@@ -484,6 +483,21 @@ namespace FreeIva
 					currentCentrifuge = null;
 					transform.SetParent(null, true);
 				}
+			}
+
+			// determine whether we are in gravity
+			Vector3 flightAccel = GetInternalAcceleration(); // note this consumes the centrifuge information that we might have just modified above
+			if (currentCentrifuge != null && currentCentrifuge.CurrentSpinRate != 0)
+			{
+				usingRelativeMovement = true; // this is the old logic, but do we want to be able to disable gravity in centrifuges?  Does it work properly with the spin?
+			}
+			else if (!KerbalIvaAddon.Instance.Gravity)
+			{
+				usingRelativeMovement = false;
+			}
+			else
+			{
+				usingRelativeMovement = !flightAccel.IsZero();
 			}
 
 			KerbalFeetCollider.enabled = UseRelativeMovement();

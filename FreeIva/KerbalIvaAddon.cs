@@ -198,11 +198,16 @@ namespace FreeIva
 		// Returns (8.018946, 0.0083341, -5.557827) while clamped to the runway.
 		public Vector3 GetFlightAccelerationWorldSpace()
 		{
-			Vector3 gravityAccel = FlightGlobals.getGeeForceAtPosition(KerbalIva.transform.position);
-			Vector3 centrifugalAccel = FlightGlobals.getCentrifugalAcc(KerbalIva.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
-			Vector3 coriolisAccel = FlightGlobals.getCoriolisAcc(FreeIva.CurrentPart.vessel.rb_velocity + Krakensbane.GetFrameVelocityV3f(), FreeIva.CurrentPart.orbit.referenceBody);
+			//Vector3 gravityAccel = FlightGlobals.getGeeForceAtPosition(KerbalIva.transform.position);
+			//Vector3 centrifugalAccel = FlightGlobals.getCentrifugalAcc(KerbalIva.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
+			//Vector3 coriolisAccel = FlightGlobals.getCoriolisAcc(FreeIva.CurrentPart.vessel.rb_velocity + Krakensbane.GetFrameVelocityV3f(), FreeIva.CurrentPart.orbit.referenceBody);
 
-			return gravityAccel + centrifugalAccel + coriolisAccel;
+			// this should be the linear acceleration of the vessel itself
+			// TODO: add centrifugal forces from the vessel rotating?
+			Vector3 result = -FlightGlobals.ActiveVessel.perturbation_immediate;
+			
+			return result.sqrMagnitude <= 1e-3f ? Vector3.zero : result;
+			//return gravityAccel + centrifugalAccel + coriolisAccel;
 		}
 
 		public Vector3 GetFlightAccelerationInternalSpace()
