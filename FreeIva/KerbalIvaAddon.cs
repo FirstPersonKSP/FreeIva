@@ -527,6 +527,9 @@ namespace FreeIva
 			KerbalIva.Activate(ActiveKerbal);
 			buckled = false;
 
+			// eventually might want to attach this kerbal to the rigid body (or combine their gameobjects etc) but for now this is important to signal to ProbeControlRoom that the kerbal is unbuckled
+			ActiveKerbal.KerbalRef.transform.SetParent(null, true);
+
 			DisablePartHighlighting(true);
 		}
 
