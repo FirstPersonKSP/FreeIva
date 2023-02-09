@@ -271,6 +271,7 @@ namespace FreeIva
 			public Vector3 RotationInputEuler;
 			public bool Unbuckle;
 			public bool Buckle;
+			public bool SwitchTo;
 			public bool ToggleCameraLock;
 			public bool ToggleHatch;
 			public bool ToggleFarHatch;
@@ -307,6 +308,8 @@ namespace FreeIva
 					}
 				}
 			}
+
+			input.SwitchTo = GameSettings.CAMERA_NEXT.GetKeyDown(true);
 
 			if (!Instance.buckled && !FreeIva.Paused)
 			{
@@ -361,6 +364,10 @@ namespace FreeIva
 			{
 				Buckle();
 			}
+			else if (input.SwitchTo)
+			{
+				SwitchToKerbal();
+			}
 
 			if (!buckled && !FreeIva.Paused)
 			{
@@ -373,7 +380,7 @@ namespace FreeIva
 		//private bool _reseatingCrew = false;
 		public void Buckle()
 		{
-			if (TargetedSeat == null)
+			if (TargetedSeat == null || (TargetedSeat.taken && TargetedSeat.crew != ActiveKerbal))
 				return;
 
 			Debug.Log(ActiveKerbal.name + " is entering seat " + TargetedSeat.transform.name + " in part " + FreeIva.CurrentPart);
@@ -408,6 +415,20 @@ namespace FreeIva
 			TargetedSeat = OriginalSeat;
 			Buckle();
 			ScreenMessages.PostScreenMessage(ActiveKerbal.name + " returned to their seat.", 1f, ScreenMessageStyle.LOWER_CENTER);
+		}
+
+		void SwitchToKerbal()
+		{
+			if (buckled || TargetedSeat == null || TargetedSeat.crew == ActiveKerbal)
+			{
+				return;
+			}
+
+			var targetKerbal = TargetedSeat.kerbalRef;
+			ReturnToSeat();
+
+			CameraManager.Instance.SetCameraIVA(targetKerbal, true);
+			targetKerbal.IVAEnable(true);
 		}
 
 		public void MoveKerbalToSeat(ProtoCrewMember crewMember, InternalSeat newSeat)
@@ -657,9 +678,6 @@ namespace FreeIva
 
 			foreach (var seat in FreeIva.CurrentPart.internalModel.seats)
 			{
-				if (seat.taken && !seat.crew.Equals(ActiveKerbal))
-					continue;
-
 				if (seat.seatTransform == null)
 					continue; // Some parts were originally designed to have more seats, but later had their transforms removed without changing the seat count.
 
@@ -674,7 +692,17 @@ namespace FreeIva
 			}
 
 			if (TargetedSeat != null)
-				ScreenMessages.PostScreenMessage("Enter seat [" + Settings.UnbuckleKey + "]", 0.1f, ScreenMessageStyle.LOWER_CENTER);
+			{
+				// is someone else here?
+				if (TargetedSeat.taken && TargetedSeat.crew != ActiveKerbal)
+				{
+					ScreenMessages.PostScreenMessage($"[{GameSettings.CAMERA_NEXT.primary}] Switch to {TargetedSeat.crew.name}", 0.1f, ScreenMessageStyle.LOWER_CENTER);
+				}
+				else
+				{
+					ScreenMessages.PostScreenMessage("Enter seat [" + Settings.UnbuckleKey + "]", 0.1f, ScreenMessageStyle.LOWER_CENTER);
+				}
+			}
 		}
 
 		void ConsiderHatch(ref FreeIvaHatch targetedHatch, ref float closestDistance, FreeIvaHatch newHatch)
