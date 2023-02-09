@@ -128,7 +128,7 @@ namespace FreeIva
 			currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.Centrifuge;
 
 			transform.SetParent(currentCentrifuge?.IVARotationRoot, true);
-			Vector3 flightAccel = GetInternalAcceleration();
+			Vector3 flightAccel = UpdateGravity();
 
 			if (UseRelativeMovement())
 			{
@@ -432,6 +432,25 @@ namespace FreeIva
 			return flightAccel;
 		}
 
+		Vector3 UpdateGravity()
+		{
+			Vector3 flightAccel = GetInternalAcceleration(); // note this consumes the centrifuge information that we might have just modified above
+			if (currentCentrifuge != null && currentCentrifuge.CurrentSpinRate != 0)
+			{
+				usingRelativeMovement = true; // this is the old logic, but do we want to be able to disable gravity in centrifuges?  Does it work properly with the spin?
+			}
+			else if (!KerbalIvaAddon.Instance.Gravity)
+			{
+				usingRelativeMovement = false;
+			}
+			else
+			{
+				usingRelativeMovement = !flightAccel.IsZero();
+			}
+
+			return flightAccel;
+		}
+
 		public void DoFixedUpdate(KerbalIvaAddon.IVAInput input)
 		{
 			bool aimCamera = false;
@@ -486,19 +505,7 @@ namespace FreeIva
 			}
 
 			// determine whether we are in gravity
-			Vector3 flightAccel = GetInternalAcceleration(); // note this consumes the centrifuge information that we might have just modified above
-			if (currentCentrifuge != null && currentCentrifuge.CurrentSpinRate != 0)
-			{
-				usingRelativeMovement = true; // this is the old logic, but do we want to be able to disable gravity in centrifuges?  Does it work properly with the spin?
-			}
-			else if (!KerbalIvaAddon.Instance.Gravity)
-			{
-				usingRelativeMovement = false;
-			}
-			else
-			{
-				usingRelativeMovement = !flightAccel.IsZero();
-			}
+			Vector3 flightAccel = UpdateGravity();
 
 			KerbalFeetCollider.enabled = UseRelativeMovement();
 
