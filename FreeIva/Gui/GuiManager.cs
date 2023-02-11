@@ -767,7 +767,7 @@ namespace FreeIva
 				GuiUtils.label("camera forward surface", cameraForwardSurface);
 
 
-				var flightForces = KerbalIvaAddon.Instance.GetFlightAccelerationInternalSpace();
+				var flightForces = KerbalIvaAddon.GetFlightAccelerationInternalSpace();
 				GuiUtils.label("Absolute X", flightForces.x);
 				GuiUtils.label("Absolute Y", flightForces.y);
 				GuiUtils.label("Absolute Z", flightForces.z);

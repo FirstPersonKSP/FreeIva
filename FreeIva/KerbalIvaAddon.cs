@@ -196,7 +196,7 @@ namespace FreeIva
 		}
 
 		// Returns (8.018946, 0.0083341, -5.557827) while clamped to the runway.
-		public Vector3 GetFlightAccelerationWorldSpace()
+		public static Vector3 GetFlightAccelerationWorldSpace()
 		{
 			//Vector3 gravityAccel = FlightGlobals.getGeeForceAtPosition(KerbalIva.transform.position);
 			//Vector3 centrifugalAccel = FlightGlobals.getCentrifugalAcc(KerbalIva.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
@@ -210,7 +210,7 @@ namespace FreeIva
 			//return gravityAccel + centrifugalAccel + coriolisAccel;
 		}
 
-		public Vector3 GetFlightAccelerationInternalSpace()
+		public static Vector3 GetFlightAccelerationInternalSpace()
 		{
 			// TODO: need to subtract the centrifugal acceleration caused by the ship's movement
 			// ideally for an object in orbit, this function should return a zero vector
@@ -222,6 +222,42 @@ namespace FreeIva
 			Quaternion direction = Quaternion.LookRotation(accelWorldSpace);
 			Quaternion internalDirection = InternalSpace.WorldToInternal(direction);
 			return internalDirection * Vector3.forward * magnitude;
+		}
+
+		public static Vector3 GetCentrifugeAccel(ICentrifuge centrifuge, Vector3 internalSpacePosition)
+		{
+			float omega = Mathf.Deg2Rad * Mathf.Abs(centrifuge.CurrentSpinRate);
+			if (omega == 0) return Vector3.zero;
+
+			// for now, we'll assume that the centrifuge is spinning around the "top/bottom" axis - Z in local IVA space
+			Transform rotationRoot = centrifuge.IVARotationRoot;
+			Vector3 localKerbalPosition = rotationRoot.InverseTransformPoint(internalSpacePosition);
+			localKerbalPosition.z = 0;
+
+			// centripetal acceleration = omega^2 * r
+			Vector3 localAcceleration = omega * omega * localKerbalPosition;
+
+			return rotationRoot.TransformVector(localAcceleration);
+		}
+
+		public static Vector3 GetInternalSubjectiveAcceleration(InternalModuleFreeIva ivaModule, Vector3 internalSpacePosition)
+		{
+			if (!Instance.Gravity)
+			{
+				return Vector3.zero;
+			}
+			else if (ivaModule.Centrifuge != null && ivaModule.Centrifuge.CurrentSpinRate != 0)
+			{
+				return GetCentrifugeAccel(ivaModule.Centrifuge, internalSpacePosition);
+			}
+			else if (ivaModule.customGravity != Vector3.zero)
+			{
+				return ivaModule.customGravity;
+			}
+			else
+			{
+				return GetFlightAccelerationInternalSpace();
+			}
 		}
 
 		public void FixedUpdate()

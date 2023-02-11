@@ -125,7 +125,7 @@ namespace FreeIva
 
 			KerbalCollisionTracker.RailColliderCount = 0;
 			KerbalCollisionTracker.CurrentInternalModel = kerbal.seat.internalModel;
-			currentCentrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.Centrifuge;
+			currentCentrifuge = InternalModuleFreeIva.GetForModel(kerbal.seat.internalModel)?.Centrifuge;
 
 			transform.SetParent(currentCentrifuge?.IVARotationRoot, true);
 			Vector3 flightAccel = UpdateGravity();
@@ -364,19 +364,7 @@ namespace FreeIva
 		public Vector3 GetCentrifugeAccel()
 		{
 			if (currentCentrifuge == null) return Vector3.zero;
-
-			float omega = Mathf.Deg2Rad * Mathf.Abs(currentCentrifuge.CurrentSpinRate);
-			if (omega == 0) return Vector3.zero;
-
-			// for now, we'll assume that the centrifuge is spinning around the "top/bottom" axis - Z in local IVA space
-			Transform rotationRoot = currentCentrifuge.IVARotationRoot;
-			Vector3 localKerbalPosition = rotationRoot.InverseTransformPoint(transform.position);
-			localKerbalPosition.z = 0;
-
-			// centripetal acceleration = omega^2 * r
-			Vector3 localAcceleration = omega * omega * localKerbalPosition;
-
-			return rotationRoot.TransformVector(localAcceleration);
+			return KerbalIvaAddon.GetCentrifugeAccel(currentCentrifuge, transform.position);
 		}
 
 		public void UpdatePosition(Vector3 flightAccel, Vector3 movementThrottle, bool jump)
@@ -411,43 +399,12 @@ namespace FreeIva
 #endif
 		}
 
-		public Vector3 GetInternalAcceleration()
-		{
-			// TODO: eventually combine these so that a centrifuge on the surface works properly (yikes)
-
-			Vector3 flightAccel;
-			if (currentCentrifuge != null)
-			{
-				flightAccel = GetCentrifugeAccel();
-			}
-			else if (FreeIva.CurrentInternalModuleFreeIva.customGravity != Vector3.zero)
-			{
-				flightAccel = FreeIva.CurrentInternalModuleFreeIva.customGravity;
-			}
-			else
-			{
-				flightAccel = KerbalIvaAddon.Instance.GetFlightAccelerationInternalSpace();
-			}
-
-			return flightAccel;
-		}
-
 		Vector3 UpdateGravity()
 		{
-			Vector3 flightAccel = GetInternalAcceleration(); // note this consumes the centrifuge information that we might have just modified above
-			if (currentCentrifuge != null && currentCentrifuge.CurrentSpinRate != 0)
-			{
-				usingRelativeMovement = true; // this is the old logic, but do we want to be able to disable gravity in centrifuges?  Does it work properly with the spin?
-			}
-			else if (!KerbalIvaAddon.Instance.Gravity)
-			{
-				usingRelativeMovement = false;
-			}
-			else
-			{
-				usingRelativeMovement = !flightAccel.IsZero();
-			}
-
+			Vector3 flightAccel = KerbalIvaAddon.GetInternalSubjectiveAcceleration(FreeIva.CurrentInternalModuleFreeIva, transform.position);
+			
+			usingRelativeMovement = !flightAccel.IsZero();
+			
 			return flightAccel;
 		}
 
