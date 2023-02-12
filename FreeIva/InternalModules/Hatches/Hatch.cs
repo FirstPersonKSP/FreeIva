@@ -29,6 +29,7 @@ namespace FreeIva
 
 		[KSPField]
 		public string tubeTransformName = string.Empty;
+		public Transform tubeTransform = null;
 
 		[KSPField]
 		public string cutoutTransformName = string.Empty;
@@ -178,7 +179,7 @@ namespace FreeIva
 				}
 			}
 
-			var tubeTransform = TransformUtil.FindPropTransform(internalProp, tubeTransformName);
+			tubeTransform = TransformUtil.FindPropTransform(internalProp, tubeTransformName);
 			if (tubeTransform != null)
 			{
 				foreach (var renderer in tubeTransform.GetComponentsInChildren<MeshRenderer>())
@@ -282,7 +283,6 @@ namespace FreeIva
 		void SetTubeScale()
 		{
 			// scale tube appropriately
-			var tubeTransform = TransformUtil.FindPropTransform(internalProp, tubeTransformName);
 			if (tubeTransform != null)
 			{
 				float tubeScale = 0;

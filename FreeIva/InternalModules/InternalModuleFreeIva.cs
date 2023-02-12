@@ -107,7 +107,7 @@ namespace FreeIva
 		public Vector3 customGravity = Vector3.zero;
 
 		[KSPField]
-		public string autoCutoutTargetName = string.Empty; // for auto-hatch configuration, target this gameobject for cutouts (if left empty we will try to auto-detect it)
+		public string autoCutoutTargetName = string.Empty; // for auto-hatch configuration, target this gameobject for cutouts
 
 		[SerializeField]
 		public Bounds ShellColliderBounds;
@@ -447,6 +447,8 @@ namespace FreeIva
 			return hasWindows;
 		}
 
+		static Quaternion x_partToInternalSpace = Quaternion.Euler(90, 0, 180);
+
 		// dirty hack: the stock internal model loader will deactivate the internal space when it's done loading, so this gives us a place to do "final processing" after all props have been added
 		void OnDisable()
 		{
@@ -454,28 +456,6 @@ namespace FreeIva
 
 			// try to find the part associated with this model (note there might be more than one...)
 			var part = PartLoader.Instance.loadedParts.FirstOrDefault(p => p.internalConfig.GetValue("name") == internalModel.internalName);
-
-			// try to find the primary internal shell
-			Transform autoCutoutTarget = TransformUtil.FindInternalModelTransform(internalModel, autoCutoutTargetName, autoCutoutTargetName != string.Empty);
-			if (autoCutoutTarget == null && autoCutoutTargetName == string.Empty)
-			{
-				var modelTransform = internalModel.transform.Find("model");
-				int mostVertices = 0;
-				foreach (var meshFilter in modelTransform.GetComponentsInChildren<MeshFilter>())
-				{
-					if (meshFilter.mesh.vertexCount > mostVertices)
-					{
-						mostVertices = meshFilter.mesh.vertexCount;
-						autoCutoutTarget = meshFilter.transform;
-					}
-				}
-
-				if (autoCutoutTarget != null)
-				{
-					autoCutoutTargetName = autoCutoutTarget.name;
-					Debug.Log($"[FreeIva] auto-dected primary cutout target {autoCutoutTargetName}");
-				}
-			}
 
 			foreach (var prop in internalModel.props)
 			{
@@ -500,6 +480,30 @@ namespace FreeIva
 						}
 
 						// for attachnodes...
+						if (part != null && hatch.tubeTransform != null)
+						{
+							foreach (var attachNode in part.partPrefab.attachNodes)
+							{
+								Vector3 attachNodeInternalSpace = x_partToInternalSpace * attachNode.position;
+								Vector3 localPosition = hatch.tubeTransform.InverseTransformPoint(attachNodeInternalSpace);
+
+								if (localPosition.y >= -1 && localPosition.y <= 0)
+								{
+									localPosition.y = 0;
+									if (localPosition.sqrMagnitude < 0.1f)
+									{
+										Debug.Log($"[FreeIva] INTERNAL '{internalModel.internalName}' hatch PROP '{prop.propName}' at ({prop.transform.position}) auto-detected attachnode '{attachNode.id}'");
+										hatch.attachNodeId = attachNode.id;
+										break;
+									}
+								}
+							}
+
+							if (hatch.attachNodeId == string.Empty)
+							{
+								Debug.LogWarning($"[FreeIva] INTERNAL '{internalModel.internalName}' hatch PROP '{prop.propName}' at ({prop.transform.position}) could not auto-detect an attachnode");
+							}
+						}
 
 						// for airlocks...
 
