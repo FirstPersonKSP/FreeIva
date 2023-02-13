@@ -413,6 +413,22 @@ namespace FreeIva
 			}
 		}
 
+		void PlaySeatBuckleAudio(InternalSeat seat)
+		{
+			// this sucks: the buckle props aren't actually directly connected to the seat object
+			// because in most IVAs, the seat is a standalone prop and the InternalSeat module is just placed directly in the internal
+			// maybe we should fix that on loading or something?
+			foreach (var buckleButton in seat.internalModel.GetComponentsInChildren<PropBuckleButton>())
+			{
+				if (Vector3.Distance(buckleButton.transform.position, seat.seatTransform.position) < 2f)
+				{
+					buckleButton.PlayBuckleSound();
+					break;
+				}
+			}
+		}
+
+
 		//private bool _reseatingCrew = false;
 		public void Buckle()
 		{
@@ -432,6 +448,8 @@ namespace FreeIva
 			InputLockManager.RemoveControlLock("FreeIVA");
 			//ActiveKerbal.flightLog.AddEntry("Buckled");
 			ScreenMessages.PostScreenMessage("Buckled", 1f, ScreenMessageStyle.LOWER_CENTER);
+
+			PlaySeatBuckleAudio(TargetedSeat);
 		}
 
 		public void ReturnToSeat()
@@ -586,6 +604,8 @@ namespace FreeIva
 
 			// eventually might want to attach this kerbal to the rigid body (or combine their gameobjects etc) but for now this is important to signal to ProbeControlRoom that the kerbal is unbuckled
 			ActiveKerbal.KerbalRef.transform.SetParent(null, true);
+
+			PlaySeatBuckleAudio(OriginalSeat);
 
 			DisablePartHighlighting(true);
 		}

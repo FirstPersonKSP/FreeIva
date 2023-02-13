@@ -12,6 +12,8 @@ namespace FreeIva
 		[KSPField]
 		public string transformName = string.Empty;
 
+		[SerializeField] AudioSource m_audioSource;
+
 		public override void OnLoad(ConfigNode node)
 		{
 			base.OnLoad(node);
@@ -48,7 +50,24 @@ namespace FreeIva
 				}
 				else
 				{
-					Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.name} could not find a transform named {transformName}");
+					Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName} could not find a transform named {transformName}");
+				}
+
+				string soundName = node.GetValue("soundName");
+				if (soundName != null && buttonTransform != null)
+				{
+					var buckleSound = GameDatabase.Instance.GetAudioClip(soundName);
+
+					if (buckleSound != null)
+					{
+						m_audioSource = buttonTransform.gameObject.AddComponent<AudioSource>();
+						m_audioSource.playOnAwake = false;
+						m_audioSource.clip = buckleSound;
+					}
+					else
+					{
+						Debug.LogError($"[FreeIva] PropBuckleButton on {internalProp.propName} could not find audio clip {soundName}");
+					}
 				}
 			}
 		}
@@ -93,6 +112,14 @@ namespace FreeIva
 			}
 
 			return result;
+		}
+
+		public void PlayBuckleSound()
+		{
+			if (m_audioSource != null)
+			{
+				m_audioSource.PlayOneShot(m_audioSource.clip);
+			}
 		}
 
 		public void OnClick()
