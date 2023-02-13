@@ -448,6 +448,7 @@ namespace FreeIva
 		}
 
 		static Quaternion x_partToInternalSpace = Quaternion.Euler(90, 0, 180);
+		static Quaternion x_internalToPartSpace = Quaternion.Inverse(x_partToInternalSpace);
 
 		// dirty hack: the stock internal model loader will deactivate the internal space when it's done loading, so this gives us a place to do "final processing" after all props have been added
 		void OnDisable()
@@ -455,7 +456,30 @@ namespace FreeIva
 			if (HighLogic.LoadedScene != GameScenes.LOADING) return;
 
 			// try to find the part associated with this model (note there might be more than one...)
+			// should we only do this if there are no HatchConfigs in any of the props?  I'm concerned about loading times, but probably should measure first
 			var part = PartLoader.Instance.loadedParts.FirstOrDefault(p => p.internalConfig.GetValue("name") == internalModel.internalName);
+
+			Transform[] airlocks = part?.partPrefab.airlock == null ? null : part.partPrefab.FindModelTransformsWithTag(FreeIvaHatch.AIRLOCK_TAG);
+			string[] airlockNames = airlocks == null ? null : new string[airlocks.Length];
+			if (airlocks != null)
+			{
+				var countByName = new Dictionary<string, int>(airlocks.Length);
+				for (int i = 0; i < airlocks.Length; i++)
+				{
+					string name = airlocks[i].name;
+					if (countByName.TryGetValue(name, out int count))
+					{
+						airlockNames[i] = name + "," + count;
+						++count;
+						countByName[name] = count;
+					}
+					else
+					{
+						airlockNames[i] = name;
+						countByName[name] = 1;
+					}
+				}
+			}
 
 			foreach (var prop in internalModel.props)
 			{
@@ -492,20 +516,36 @@ namespace FreeIva
 									localPosition.y = 0;
 									if (localPosition.sqrMagnitude < 0.1f)
 									{
-										Debug.Log($"[FreeIva] INTERNAL '{internalModel.internalName}' hatch PROP '{prop.propName}' at ({prop.transform.position}) auto-detected attachnode '{attachNode.id}'");
+										Debug.Log($"[FreeIva] INTERNAL '{internalModel.internalName}' hatch PROP '{prop.propName}' at {prop.transform.position} auto-detected attachnode '{attachNode.id}'");
 										hatch.attachNodeId = attachNode.id;
 										break;
 									}
 								}
 							}
-
-							if (hatch.attachNodeId == string.Empty)
-							{
-								Debug.LogWarning($"[FreeIva] INTERNAL '{internalModel.internalName}' hatch PROP '{prop.propName}' at ({prop.transform.position}) could not auto-detect an attachnode");
-							}
 						}
 
 						// for airlocks...
+						if (part != null && airlocks != null)
+						{
+							// since hatches do not have a defined "out" direction (different hatches are authored in different orientations), we do this in part space (because the airlocks DO have a defined "in" direction)
+							Vector3 hatchInPartSpace = x_internalToPartSpace * hatch.transform.position;
+							for (int airlockIndex = 0; airlockIndex < airlocks.Length; airlockIndex++)
+							{
+								var airlock = airlocks[airlockIndex];
+								Vector3 hatchInAirlockSpace = airlock.transform.InverseTransformPoint(hatchInPartSpace);
+
+								// airlock's +Z is toward the part (the way the kerbal faces)
+								if (hatchInAirlockSpace.z >= 0 && hatchInAirlockSpace.z <= 1)
+								{
+									hatchInAirlockSpace.z = 0;
+									if (hatchInAirlockSpace.sqrMagnitude <= 1) // we're pretty generous with positioning (compared to attachnodes) because these don't need to line up perfectly
+									{
+										hatch.airlockName = airlockNames[airlockIndex];
+										Debug.Log($"[FreeIva] INTERNAL '{internalModel.internalName}' hatch PROP '{prop.propName}' at {prop.transform.position} auto-detected airlock '{hatch.airlockName}'");
+									}
+								}
+							}
+						}
 
 						// for docking ports...
 					}

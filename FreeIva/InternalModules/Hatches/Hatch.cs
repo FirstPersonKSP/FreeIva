@@ -13,6 +13,8 @@ namespace FreeIva
 	/// </summary>
 	public class FreeIvaHatch : InternalModule
 	{
+		public static readonly string AIRLOCK_TAG = "Airlock";
+
 		// ----- fields set in prop config
 
 		[KSPField]
@@ -635,7 +637,7 @@ namespace FreeIva
 			{
 				var childTransform = TransformUtil.FindPartTransform(part, airlockName);
 
-				if (childTransform != null && childTransform.CompareTag("Airlock"))
+				if (childTransform != null && childTransform.CompareTag(AIRLOCK_TAG))
 				{
 					return childTransform;
 				}
