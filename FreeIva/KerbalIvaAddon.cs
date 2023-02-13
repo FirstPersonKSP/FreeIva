@@ -204,9 +204,9 @@ namespace FreeIva
 
 			// this should be the linear acceleration of the vessel itself
 			// TODO: add centrifugal forces from the vessel rotating?
-			Vector3 result = -FlightGlobals.ActiveVessel.perturbation_immediate;
+			Vector3 result = -FlightGlobals.ActiveVessel.perturbation;
 			
-			return result.sqrMagnitude <= 1e-3f ? Vector3.zero : result;
+			return result.sqrMagnitude <= 1e-4f ? Vector3.zero : result;
 			//return gravityAccel + centrifugalAccel + coriolisAccel;
 		}
 

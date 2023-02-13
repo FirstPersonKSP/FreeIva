@@ -195,7 +195,7 @@ namespace FreeIva
 			InternalCamera.Instance.transform.localRotation = Quaternion.identity;
 		}
 
-		void UpdatePosition_Weightless(Vector3 movementThrottle)
+		void UpdatePosition_Weightless(Vector3 movementThrottle, Vector3 flightAccel)
 		{
 			Vector3 desiredLocalSpeed = new Vector3(
 				movementThrottle.x * Settings.HorizontalSpeed,
@@ -210,6 +210,15 @@ namespace FreeIva
 
 			Vector3 velocityDelta = desiredInternalVelocity - KerbalRigidbody.velocity;
 
+			// if we're not trying to move and we're in microgravity, don't try to fight gravity
+			if (!tryingToMove && !flightAccel.IsZero())
+			{
+				Vector3 gravityDirection = flightAccel.normalized;
+				float velocityDeltaWithGravity = Math.Min(0, Vector3.Dot(gravityDirection, velocityDelta)); // if this is negative, the deceleration is trying to fight gravity - stop it
+
+				velocityDelta -= velocityDeltaWithGravity * gravityDirection;
+			}
+
 			float desiredDeltaSpeed = velocityDelta.magnitude;
 			float maxDeltaSpeed = GetMaxDeltaSpeed(tryingToMove, false);
 			if (desiredDeltaSpeed > maxDeltaSpeed)
@@ -217,13 +226,20 @@ namespace FreeIva
 				velocityDelta = velocityDelta.normalized * maxDeltaSpeed;
 			}
 
-			if (KerbalRigidbody.velocity.magnitude < 0.02f && !tryingToMove && desiredDeltaSpeed < maxDeltaSpeed)
+			if (KerbalRigidbody.velocity.magnitude < 0.02f && !tryingToMove && desiredDeltaSpeed < maxDeltaSpeed && flightAccel.IsZero())
 			{
 				KerbalRigidbody.Sleep();
 			}
 			else
 			{
+				KerbalRigidbody.WakeUp();
 				KerbalRigidbody.AddForce(velocityDelta, ForceMode.VelocityChange);
+
+				// for cases where we are in micro-gravity, still apply forces here
+				if (KerbalIvaAddon.Instance.Gravity && !flightAccel.IsZero())
+				{
+					KerbalRigidbody.AddForce(flightAccel, ForceMode.Acceleration);
+				}
 			}
 		}
 
@@ -388,7 +404,7 @@ namespace FreeIva
 			}
 			else
 			{
-				UpdatePosition_Weightless(movementThrottle);
+				UpdatePosition_Weightless(movementThrottle, flightAccel);
 			}
 
 #if Experimental
@@ -403,7 +419,7 @@ namespace FreeIva
 		{
 			Vector3 flightAccel = KerbalIvaAddon.GetInternalSubjectiveAcceleration(FreeIva.CurrentInternalModuleFreeIva, transform.position);
 			
-			usingRelativeMovement = !flightAccel.IsZero();
+			usingRelativeMovement = flightAccel.magnitude > 0.05; // allow free movement on gilly
 			
 			return flightAccel;
 		}
