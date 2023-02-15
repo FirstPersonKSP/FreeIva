@@ -219,6 +219,9 @@ namespace FreeIva
 			Vector3 accelWorldSpace = GetFlightAccelerationWorldSpace();
 
 			float magnitude = accelWorldSpace.magnitude;
+
+			if (magnitude == 0) return Vector3.zero;
+
 			Quaternion direction = Quaternion.LookRotation(accelWorldSpace);
 			Quaternion internalDirection = InternalSpace.WorldToInternal(direction);
 			return internalDirection * Vector3.forward * magnitude;
