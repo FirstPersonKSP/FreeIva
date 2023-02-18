@@ -255,7 +255,7 @@ namespace FreeIva
 			}
 			else if (ivaModule.customGravity != Vector3.zero)
 			{
-				return ivaModule.customGravity;
+				return ivaModule.transform.TransformDirection(ivaModule.customGravity);
 			}
 			else
 			{
