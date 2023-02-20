@@ -17,7 +17,8 @@ namespace FreeIva
 
 				if (transform != null)
 				{
-					GameObject.Destroy(transform.gameObject);
+					transform.SetParent(null, false);
+					GameObject.DestroyImmediate(transform.gameObject);
 				}
 			}
 		}
