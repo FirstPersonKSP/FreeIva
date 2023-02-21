@@ -20,7 +20,7 @@ namespace FreeIva
 
 			if (HighLogic.LoadedScene == GameScenes.LOADING)
 			{
-				Transform railTransform = TransformUtil.FindPropTransform(internalProp, transformName);
+				Transform railTransform = transformName == String.Empty ? transform : TransformUtil.FindPropTransform(internalProp, transformName);
 				if (railTransform != null)
 				{
 					railTransform.gameObject.layer = (int)Layers.Kerbals;
