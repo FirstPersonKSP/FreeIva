@@ -459,27 +459,7 @@ namespace FreeIva
 			// should we only do this if there are no HatchConfigs in any of the props?  I'm concerned about loading times, but probably should measure first
 			var part = PartLoader.Instance.loadedParts.FirstOrDefault(p => p.internalConfig.GetValue("name") == internalModel.internalName);
 
-			Transform[] airlocks = part?.partPrefab.airlock == null ? null : part.partPrefab.FindModelTransformsWithTag(FreeIvaHatch.AIRLOCK_TAG);
-			string[] airlockNames = airlocks == null ? null : new string[airlocks.Length];
-			if (airlocks != null)
-			{
-				var countByName = new Dictionary<string, int>(airlocks.Length);
-				for (int i = 0; i < airlocks.Length; i++)
-				{
-					string name = airlocks[i].name;
-					if (countByName.TryGetValue(name, out int count))
-					{
-						airlockNames[i] = name + "," + count;
-						++count;
-						countByName[name] = count;
-					}
-					else
-					{
-						airlockNames[i] = name;
-						countByName[name] = 1;
-					}
-				}
-			}
+			List<FreeIvaHatch> hatches = new List<FreeIvaHatch>();
 
 			foreach (var prop in internalModel.props)
 			{
@@ -495,6 +475,7 @@ namespace FreeIva
 					else
 					{
 						// try to auto-configure this prop
+						hatches.Add(hatch);
 
 						// for cutouts....
 						if (autoCutoutTargetName != string.Empty && hatch.cutoutTransformName != string.Empty)
@@ -523,34 +504,68 @@ namespace FreeIva
 								}
 							}
 						}
-
-						// for airlocks...
-						if (part != null && airlocks != null)
-						{
-							// since hatches do not have a defined "out" direction (different hatches are authored in different orientations), we do this in part space (because the airlocks DO have a defined "in" direction)
-							Vector3 hatchInPartSpace = x_internalToPartSpace * hatch.transform.position;
-							for (int airlockIndex = 0; airlockIndex < airlocks.Length; airlockIndex++)
-							{
-								var airlock = airlocks[airlockIndex];
-								Vector3 hatchInAirlockSpace = airlock.transform.InverseTransformPoint(hatchInPartSpace);
-
-								// airlock's +Z is toward the part (the way the kerbal faces)
-								if (hatchInAirlockSpace.z >= 0 && hatchInAirlockSpace.z <= 1)
-								{
-									hatchInAirlockSpace.z = 0;
-									if (hatchInAirlockSpace.sqrMagnitude <= 1) // we're pretty generous with positioning (compared to attachnodes) because these don't need to line up perfectly
-									{
-										hatch.airlockName = airlockNames[airlockIndex];
-										Debug.Log($"[FreeIva] INTERNAL '{internalModel.internalName}' hatch PROP '{prop.propName}' at {prop.transform.position} auto-detected airlock '{hatch.airlockName}'");
-									}
-								}
-							}
-						}
-
-						// for docking ports...
 					}
 				}
 			}
+
+			// auto-configure airlocks
+			// since hatches do not have a defined "out" direction (different hatches are authored in different orientations), we do this in part space (because the airlocks DO have a defined "in" direction)
+			Transform[] airlocks = part?.partPrefab.airlock == null ? null : part.partPrefab.FindModelTransformsWithTag(FreeIvaHatch.AIRLOCK_TAG);
+			string[] airlockNames = airlocks == null ? null : new string[airlocks.Length];
+
+			if (airlocks != null)
+			{
+				// get a unique name for each airlock
+				var countByName = new Dictionary<string, int>(airlocks.Length);
+				for (int i = 0; i < airlocks.Length; i++)
+				{
+					string name = airlocks[i].name;
+					if (countByName.TryGetValue(name, out int count))
+					{
+						airlockNames[i] = name + "," + count;
+						++count;
+						countByName[name] = count;
+					}
+					else
+					{
+						airlockNames[i] = name;
+						countByName[name] = 1;
+					}
+				}
+
+				for (int airlockIndex = 0; airlockIndex < airlocks.Length; airlockIndex++)
+				{
+					var airlock = airlocks[airlockIndex];
+					float bestDistanceSquared = 1; // we're pretty generous with positioning (compared to attachnodes) because these don't need to line up perfectly
+					FreeIvaHatch bestHatch = null;
+
+					foreach (var hatch in hatches)
+					{
+						Vector3 hatchInPartSpace = x_internalToPartSpace * hatch.transform.position;
+
+						Vector3 hatchInAirlockSpace = airlock.transform.InverseTransformPoint(hatchInPartSpace);
+
+						// airlock's +Z is toward the part (the way the kerbal faces)
+						if (hatchInAirlockSpace.z >= 0 && hatchInAirlockSpace.z <= 1)
+						{
+							hatchInAirlockSpace.z = 0;
+							if (hatchInAirlockSpace.sqrMagnitude <= bestDistanceSquared) 
+							{
+								bestDistanceSquared = hatchInAirlockSpace.sqrMagnitude;
+								bestHatch = hatch;
+							}
+						}
+					}
+
+					if (bestHatch != null)
+					{
+						bestHatch.airlockName = airlockNames[airlockIndex];
+						Debug.Log($"[FreeIva] INTERNAL '{internalModel.internalName}' hatch PROP '{bestHatch.internalProp.propName}' at {bestHatch.internalProp.transform.position} auto-detected airlock '{bestHatch.airlockName}'");
+					}
+				}
+			}
+
+			// TODO: auto-configure for docking ports...
 
 			ExecuteMeshCuts();
 		}
