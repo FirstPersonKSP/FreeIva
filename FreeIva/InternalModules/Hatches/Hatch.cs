@@ -159,6 +159,17 @@ namespace FreeIva
 				Debug.LogError($"[FreeIva] doorTransform {doorTransformName} not found in {internalProp.propName}");
 			}
 
+			string windowTransformName = node.GetValue(nameof(windowTransformName));
+			if (windowTransformName != null)
+			{
+				var windowTransform = TransformUtil.FindPropTransform(internalProp, windowTransformName);
+				m_windowRenderer = windowTransform?.GetComponentInChildren<MeshRenderer>();
+				if (m_windowRenderer != null)
+				{
+					m_windowRenderer.material.renderQueue = InternalModuleFreeIva.WINDOW_RENDER_QUEUE;
+				}
+			}
+
 			// try to find a window to manage
 			// note this is similar to what we do for internal modules except we consider depth masks to be windows
 			if (x_windowShaders == null)
@@ -171,13 +182,17 @@ namespace FreeIva
 					Shader.Find("DepthMask")
 				};
 			}
-			foreach (var renderer in internalProp.gameObject.GetComponentsInChildren<MeshRenderer>())
+
+			if (windowTransformName == null)
 			{
-				if (x_windowShaders.Contains(renderer.material.shader))
+				foreach (var renderer in internalProp.gameObject.GetComponentsInChildren<MeshRenderer>())
 				{
-					m_windowRenderer = renderer;
-					renderer.material.renderQueue = InternalModuleFreeIva.WINDOW_RENDER_QUEUE;
-					break;
+					if (x_windowShaders.Contains(renderer.material.shader))
+					{
+						m_windowRenderer = renderer;
+						renderer.material.renderQueue = InternalModuleFreeIva.WINDOW_RENDER_QUEUE;
+						break;
+					}
 				}
 			}
 
