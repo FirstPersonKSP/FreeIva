@@ -329,6 +329,11 @@ namespace FreeIva
 
 		private static void GetKeyboardInput(ref IVAInput input)
 		{
+			if (KOSPropMonitor.IsLocked())
+			{
+				return;
+			}
+
 			if (Input.GetKeyDown(Settings.UnbuckleKey))
 			{
 				if (Input.GetKey(Settings.ModifierKey))

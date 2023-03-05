@@ -139,6 +139,7 @@
     <Compile Include="Shim\Kerbalism_Animator.cs" />
     <Compile Include="Shim\Kerbalism_GravityRing.cs" />
     <Compile Include="Shim\Kerbalism_Transformator.cs" />
+    <Compile Include="Shim\KOSPropMonitor.cs" />
     <Compile Include="Shim\KPBS_PlanetaryModule.cs" />
     <Compile Include="Shim\Squad_ModuleAnimateGeneric.cs" />
     <Compile Include="Shim\SSPX_ModuleDeployableCentrifuge.cs" />
