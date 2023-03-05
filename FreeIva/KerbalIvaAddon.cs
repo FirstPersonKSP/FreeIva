@@ -80,21 +80,7 @@ namespace FreeIva
 
 			if (!buckled && GameSettings.CAMERA_MODE.GetKeyDown(true))
 			{
-				// Return the kerbal to its original seat.
-				TargetedSeat = ActiveKerbal.seat;
-
-				if (FreeIva.CurrentPart != null)
-				{
-					var targetPart = FreeIva.FindPartWithEmptySeat(FreeIva.CurrentPart);
-					if (targetPart != null)
-					{
-						// disabling this for now, because it's so different from the behavior when pressing C
-						// but it works, if we want to bring it back
-						// TargetedSeat = PropBuckleButton.FindClosestSeat(targetPart.internalModel, KerbalIva.transform.position, float.MaxValue);
-					}
-				}
-
-				Buckle();
+				ReturnToSeat(true);
 			}
 
 			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)
@@ -183,7 +169,7 @@ namespace FreeIva
 #endif
 				if (!buckled && ActiveKerbal != null)
 				{
-					ReturnToSeat();
+					ReturnToSeat(false);
 				}
 			}
 #if Experimental
@@ -406,7 +392,7 @@ namespace FreeIva
 			}
 			else if (input.Buckle)
 			{
-				Buckle();
+				Buckle(true);
 			}
 			else if (input.SwitchTo)
 			{
@@ -438,7 +424,7 @@ namespace FreeIva
 
 
 		//private bool _reseatingCrew = false;
-		public void Buckle()
+		public void Buckle(bool resetCamera)
 		{
 			if (TargetedSeat == null || (TargetedSeat.taken && TargetedSeat.crew != ActiveKerbal))
 				return;
@@ -449,6 +435,19 @@ namespace FreeIva
 
 			buckled = true;
 			MoveKerbalToSeat(ActiveKerbal, TargetedSeat);
+
+			if (resetCamera)
+			{
+				// SetCameraIVA will actually change to flight mode if called with the current kerbal and already in iva mode
+				// to prevent this, forcibly change the current camera mode (this will emit an extra mode changed event, but it should be fine)
+				CameraManager.Instance.currentCameraMode = CameraManager.CameraMode.Internal;
+				CameraManager.Instance.SetCameraIVA(ActiveKerbal.KerbalRef, false);
+				GameEvents.OnIVACameraKerbalChange.Fire(TargetedSeat.kerbalRef);
+
+				FreeIva.EnableInternals(); // SetCameraIVA also calls FlightGlobals.ActiveVessel.SetActiveInternalSpace(activeInternalPart); which will hide all other IVAs
+				FreeIva.SetRenderQueues(TargetedSeat.part);
+			}
+
 			KerbalIva.gameObject.SetActive(false);
 			KerbalIva.KerbalCollisionTracker.CurrentInternalModel = TargetedSeat.internalModel;
 			HideCurrentKerbal(false);
@@ -460,7 +459,20 @@ namespace FreeIva
 			PlaySeatBuckleAudio(TargetedSeat);
 		}
 
+		// These overloads are for KerbalR, so it won't need to be rebuilt
+		[Obsolete]
 		public void ReturnToSeat()
+		{
+			ReturnToSeat(true);
+		}
+
+		[Obsolete]
+		public void Buckle()
+		{
+			Buckle(true);
+		}
+
+		public void ReturnToSeat(bool resetCamera)
 		{
 			// some of this stuff should probably get moved to a common function
 			KerbalIva.gameObject.SetActive(false);
@@ -475,7 +487,7 @@ namespace FreeIva
 			}
 
 			TargetedSeat = OriginalSeat;
-			Buckle();
+			Buckle(resetCamera);
 			ScreenMessages.PostScreenMessage(ActiveKerbal.name + " returned to their seat.", 1f, ScreenMessageStyle.LOWER_CENTER);
 		}
 
@@ -487,7 +499,7 @@ namespace FreeIva
 			}
 
 			var targetKerbal = TargetedSeat.kerbalRef;
-			ReturnToSeat();
+			ReturnToSeat(false);
 
 			CameraManager.Instance.SetCameraIVA(targetKerbal, true);
 			targetKerbal.IVAEnable(true);
@@ -573,15 +585,6 @@ namespace FreeIva
 				kerbal.ShowHelmet(newSeat.allowCrewHelmet);
 				newSeat.kerbalRef = kerbal;
 			}
-
-			// SetCameraIVA will actually change to flight mode if called with the current kerbal and already in iva mode
-			// to prevent this, forcibly change the current camera mode (this will emit an extra mode changed event, but it should be fine)
-			CameraManager.Instance.currentCameraMode = CameraManager.CameraMode.Internal;
-			CameraManager.Instance.SetCameraIVA(crewMember.KerbalRef, false);
-			GameEvents.OnIVACameraKerbalChange.Fire(newSeat.kerbalRef);
-
-			FreeIva.EnableInternals(); // SetCameraIVA also calls FlightGlobals.ActiveVessel.SetActiveInternalSpace(activeInternalPart); which will hide all other IVAs
-			FreeIva.SetRenderQueues(newSeat.part);
 		}
 
 		public void Unbuckle()

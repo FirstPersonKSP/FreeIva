@@ -142,7 +142,7 @@ namespace FreeIva
 					if (distanceFromKerbal < MaxRangeFromKerbal)
 					{
 						KerbalIvaAddon.Instance.TargetedSeat = seat;
-						KerbalIvaAddon.Instance.Buckle();
+						KerbalIvaAddon.Instance.Buckle(true);
 					}
 				}
 			}
