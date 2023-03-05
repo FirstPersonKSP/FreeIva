@@ -80,7 +80,7 @@ namespace FreeIva
 
 			if (!buckled && GameSettings.CAMERA_MODE.GetKeyDown(true))
 			{
-				ReturnToSeat(true);
+				ReturnToSeat();
 			}
 
 			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)
@@ -169,7 +169,7 @@ namespace FreeIva
 #endif
 				if (!buckled && ActiveKerbal != null)
 				{
-					ReturnToSeat(false);
+					ReturnToSeatInternal(false);
 				}
 			}
 #if Experimental
@@ -392,7 +392,7 @@ namespace FreeIva
 			}
 			else if (input.Buckle)
 			{
-				Buckle(true);
+				Buckle();
 			}
 			else if (input.SwitchTo)
 			{
@@ -424,7 +424,7 @@ namespace FreeIva
 
 
 		//private bool _reseatingCrew = false;
-		public void Buckle(bool resetCamera)
+		private void BuckleInternal(bool resetCamera)
 		{
 			if (TargetedSeat == null || (TargetedSeat.taken && TargetedSeat.crew != ActiveKerbal))
 				return;
@@ -459,20 +459,17 @@ namespace FreeIva
 			PlaySeatBuckleAudio(TargetedSeat);
 		}
 
-		// These overloads are for KerbalR, so it won't need to be rebuilt
-		[Obsolete]
 		public void ReturnToSeat()
 		{
-			ReturnToSeat(true);
+			ReturnToSeatInternal(true);
 		}
 
-		[Obsolete]
 		public void Buckle()
 		{
-			Buckle(true);
+			BuckleInternal(true);
 		}
 
-		public void ReturnToSeat(bool resetCamera)
+		private void ReturnToSeatInternal(bool resetCamera)
 		{
 			// some of this stuff should probably get moved to a common function
 			KerbalIva.gameObject.SetActive(false);
@@ -487,7 +484,7 @@ namespace FreeIva
 			}
 
 			TargetedSeat = OriginalSeat;
-			Buckle(resetCamera);
+			BuckleInternal(resetCamera);
 			ScreenMessages.PostScreenMessage(ActiveKerbal.name + " returned to their seat.", 1f, ScreenMessageStyle.LOWER_CENTER);
 		}
 
@@ -499,7 +496,7 @@ namespace FreeIva
 			}
 
 			var targetKerbal = TargetedSeat.kerbalRef;
-			ReturnToSeat(false);
+			ReturnToSeatInternal(false);
 
 			CameraManager.Instance.SetCameraIVA(targetKerbal, true);
 			targetKerbal.IVAEnable(true);
