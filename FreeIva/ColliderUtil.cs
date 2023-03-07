@@ -7,9 +7,9 @@ using UnityEngine;
 
 namespace FreeIva
 {
-	internal static class ColliderUtil
+	public static class ColliderUtil
 	{
-		enum CapsuleAxis
+		public enum CapsuleAxis
 		{
 			X = 0,
 			Y = 1,
