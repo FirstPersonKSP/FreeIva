@@ -22,6 +22,26 @@ namespace FreeIva
 		[KSPField]
 		public string partInfo = string.Empty;
 
+		public override void OnLoad(ConfigNode node)
+		{
+			base.OnLoad(node);
+
+			foreach (var cfgValue in node.values.values)
+			{
+				switch (cfgValue.name)
+				{
+					case "deleteObject":
+						var obj = TransformUtil.FindPartTransform(part, cfgValue.value);
+						if (obj != null)
+						{
+							obj.SetParent(null, false);
+							GameObject.Destroy(obj.gameObject);
+						}
+						break;
+				}
+			}
+		}
+
 		public override string GetModuleDisplayName()
 		{
 			return "FreeIVA";

@@ -79,7 +79,7 @@ namespace FreeIva
 
 		public static Transform FindPartTransform(Part part, string transformName, bool emitError = true)
 		{
-			return FindModelTransform(part.transform.Find("model"), transformName, "part", part.partInfo.name, emitError);
+			return FindModelTransform(part.transform.Find("model"), transformName, "part", part.partInfo?.name, emitError);
 		}
 
 		public static Transform FindModelFile(Transform root, string modelFileName)
