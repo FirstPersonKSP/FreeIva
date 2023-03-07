@@ -158,11 +158,33 @@ namespace FreeIva
 		CameraManager.CameraMode _previousCameraMode = CameraManager.CameraMode.Flight;
 		public void OnCameraChange(CameraManager.CameraMode cameraMode)
 		{
-			if (cameraMode != CameraManager.CameraMode.IVA && _previousCameraMode == CameraManager.CameraMode.IVA)
+			if (cameraMode == CameraManager.CameraMode.IVA)
+			{
+				// STOP HIDING INTERNALS DAMMIT
+				var ivaOverlay = KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance?.ivaOverlay;
+				if (ivaOverlay != null)
+				{
+					ivaOverlay.onDismiss = null;
+				}
+			}
+			else if (cameraMode != CameraManager.CameraMode.IVA && _previousCameraMode == CameraManager.CameraMode.IVA)
 			{
 				InternalModuleFreeIva.RefreshDepthMasks();
 
 				InputLockManager.RemoveControlLock("FreeIVA");
+
+				// if ProbeControlRoom was enabled, we may have deactivated all the internal models.  The stock game doesn't expect this, so restore them
+				if (cameraMode == CameraManager.CameraMode.Flight && FlightGlobals.ActiveVessel != null)
+				{
+					foreach (var p in FlightGlobals.ActiveVessel.parts)
+					{
+						if (!FreeIva.PartIsProbeCore(p) && p.internalModel != null && !p.internalModel.gameObject.activeSelf)
+						{
+							p.internalModel.gameObject.SetActive(true);
+							p.internalModel.SpawnCrew();
+						}
+					}
+				}
 
 #if Experimental
 				KerbalWorldSpaceCollider.enabled = false;

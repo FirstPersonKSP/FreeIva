@@ -112,6 +112,8 @@ namespace FreeIva
 		[SerializeField]
 		public Bounds ShellColliderBounds;
 
+		#region OnLoad code
+
 		public override void OnLoad(ConfigNode node)
 		{
 			base.OnLoad(node);
@@ -450,11 +452,8 @@ namespace FreeIva
 		static Quaternion x_partToInternalSpace = Quaternion.Euler(90, 0, 180);
 		static Quaternion x_internalToPartSpace = Quaternion.Inverse(x_partToInternalSpace);
 
-		// dirty hack: the stock internal model loader will deactivate the internal space when it's done loading, so this gives us a place to do "final processing" after all props have been added
-		void OnDisable()
+		void OnLoad_Finalize()
 		{
-			if (HighLogic.LoadedScene != GameScenes.LOADING) return;
-
 			// try to find the part associated with this model (note there might be more than one...)
 			// should we only do this if there are no HatchConfigs in any of the props?  I'm concerned about loading times, but probably should measure first
 			var part = PartLoader.Instance.loadedParts.FirstOrDefault(p => p.internalConfig.GetValue("name") == internalModel.internalName);
@@ -549,7 +548,7 @@ namespace FreeIva
 						if (hatchInAirlockSpace.z >= 0 && hatchInAirlockSpace.z <= 1)
 						{
 							hatchInAirlockSpace.z = 0;
-							if (hatchInAirlockSpace.sqrMagnitude <= bestDistanceSquared) 
+							if (hatchInAirlockSpace.sqrMagnitude <= bestDistanceSquared)
 							{
 								bestDistanceSquared = hatchInAirlockSpace.sqrMagnitude;
 								bestHatch = hatch;
@@ -603,6 +602,34 @@ namespace FreeIva
 				}
 			}
 		}
+
+		void ExecuteMeshCuts()
+		{
+			if (HighLogic.LoadedScene != GameScenes.LOADING) return;
+
+			if (cutParameters.Any())
+			{
+				MeshCutter.CreateToolsForCutParameters(internalModel, cutParameters);
+				MeshCutter.CutInternalModel(internalModel, cutParameters);
+
+
+				// this code is only necessary for the internal depth masks that were generated via convex hull.  We're not doing that anymore
+#if false
+				if (internalDepthMask != null)
+				{
+					MeshCutter.ApplyCut(internalDepthMask, cutParameters);
+
+					var mesh = internalDepthMask.GetComponent<MeshFilter>().mesh;
+
+					Debug.Log($"[FreeIva] after cutting internal depth mask: {mesh.vertices.Length} verts; {mesh.triangles.Length / 3} tris");
+				}
+#endif
+			}
+
+			MeshCutter.DestroyTools(ref cutParameters);
+		}
+
+		#endregion
 
 		InternalModel CreateInternalModel(string internalName)
 		{
@@ -670,30 +697,31 @@ namespace FreeIva
 			}
 		}
 
-		void ExecuteMeshCuts()
+		void OnEnable()
 		{
-			if (HighLogic.LoadedScene != GameScenes.LOADING) return;
-
-			if (cutParameters.Any())
+			if (HighLogic.LoadedSceneIsFlight)
 			{
-				MeshCutter.CreateToolsForCutParameters(internalModel, cutParameters);
-				MeshCutter.CutInternalModel(internalModel, cutParameters);
-
-
-// this code is only necessary for the internal depth masks that were generated via convex hull.  We're not doing that anymore
-#if false
-				if (internalDepthMask != null)
+				if (SecondaryInternalModel != null)
 				{
-					MeshCutter.ApplyCut(internalDepthMask, cutParameters);
-
-					var mesh = internalDepthMask.GetComponent<MeshFilter>().mesh;
-
-					Debug.Log($"[FreeIva] after cutting internal depth mask: {mesh.vertices.Length} verts; {mesh.triangles.Length / 3} tris");
+					SecondaryInternalModel.gameObject.SetActive(true);
 				}
-#endif
 			}
+		}
 
-			MeshCutter.DestroyTools(ref cutParameters);
+		void OnDisable()
+		{
+			if (HighLogic.LoadedSceneIsFlight)
+			{
+				if (SecondaryInternalModel != null)
+				{
+					SecondaryInternalModel.gameObject.SetActive(false);
+				}
+			}
+			// dirty hack: the stock internal model loader will deactivate the internal space when it's done loading, so this gives us a place to do "final processing" after all props have been added
+			else if (HighLogic.LoadedScene == GameScenes.LOADING)
+			{
+				OnLoad_Finalize();
+			}
 		}
 
 		new void Awake()

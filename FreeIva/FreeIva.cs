@@ -402,7 +402,7 @@ namespace FreeIva
 			SetRenderQueues(newPart);
 		}
 
-		static bool PartIsProbeCore(Part part)
+		public static bool PartIsProbeCore(Part part)
 		{
 			return part.CrewCapacity == 0 && part.HasModuleImplementing<ModuleCommand>();
 		}
@@ -419,6 +419,7 @@ namespace FreeIva
 					{
 						if (p != currentInternal.part && p.internalModel != null)
 						{
+							p.internalModel.DespawnCrew();
 							p.internalModel.gameObject.SetActive(false);
 						}
 					}
