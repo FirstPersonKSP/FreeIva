@@ -71,6 +71,23 @@ namespace FreeIva
 
 		public void Update()
 		{
+			// if we just respawned the crew because we exited ProbeControlRoom, mark them all as "alive" so you don't have to wait 3 seconds to hit C to re-enter IVA
+			if (_markCrewAlive)
+			{
+				if (FlightGlobals.ActiveVessel != null)
+				{
+					foreach (var pcm in FlightGlobals.ActiveVessel.crew)
+					{
+						if (pcm.KerbalRef != null && pcm.KerbalRef.state == Kerbal.States.NO_SIGNAL)
+						{
+							pcm.KerbalRef.state = Kerbal.States.ALIVE;
+						}
+					}
+				}
+
+				_markCrewAlive = false;
+			}
+
 			if (GameSettings.MODIFIER_KEY.GetKey() && Input.GetKeyDown(Settings.ToggleGravityKey))
 			{
 				Gravity = !Gravity && Settings.EnableCollisions;
@@ -155,6 +172,7 @@ namespace FreeIva
 			}
 		}
 
+		bool _markCrewAlive = false;
 		CameraManager.CameraMode _previousCameraMode = CameraManager.CameraMode.Flight;
 		public void OnCameraChange(CameraManager.CameraMode cameraMode)
 		{
@@ -182,6 +200,7 @@ namespace FreeIva
 						{
 							p.internalModel.gameObject.SetActive(true);
 							p.internalModel.SpawnCrew();
+							_markCrewAlive = true;
 						}
 					}
 				}
