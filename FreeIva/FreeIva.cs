@@ -60,27 +60,15 @@ namespace FreeIva
 	[KSPAddon(KSPAddon.Startup.Flight, false)]
 	public class FreeIva : MonoBehaviour
 	{
-		public static EventData<Part> OnIvaPartChanged = new EventData<Part>("OnIvaPartChanged");
-		public static Part CurrentPart;
+		public static Part CurrentPart => CurrentInternalModuleFreeIva?.part;
 		public static GameObject SelectedObject = null;
-		private static InternalModuleFreeIva _currentInternalModuleFreeIva = null;
 		public static InternalModuleFreeIva CurrentInternalModuleFreeIva
 		{
-			get
-			{
-				if (CurrentPart == null) return null;
-				if (_currentInternalModuleFreeIva == null || _currentInternalModuleFreeIva.part != CurrentPart)
-				{
-					_currentInternalModuleFreeIva = InternalModuleFreeIva.GetForModel(CurrentPart.internalModel);
-					return _currentInternalModuleFreeIva;
-				}
-				return _currentInternalModuleFreeIva;
-			}
+			get; private set;
 		}
 
 		public void Start()
 		{
-			CurrentPart = FlightGlobals.ActiveVessel.rootPart;
 			GuiUtils.DrawGui =
 #if DEBUG
 			true;
@@ -97,7 +85,6 @@ namespace FreeIva
 			GameEvents.onCrewOnEva.Add(OnCrewOnEva);
 
 			Settings.LoadSettings();
-			OnIvaPartChanged.Add(IvaPartChanged);
 			SetRenderQueues(FlightGlobals.ActiveVessel.rootPart);
 
 			Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.InternalSpace);
@@ -226,7 +213,6 @@ namespace FreeIva
 			GameEvents.onSameVesselDock.Remove(OnSameVesselDockingChange);
 			GameEvents.onSameVesselUndock.Remove(OnSameVesselDockingChange);
 			GameEvents.onCrewOnEva.Remove(OnCrewOnEva);
-			OnIvaPartChanged.Remove(IvaPartChanged);
 			InputLockManager.RemoveControlLock("FreeIVA");
 		}
 
@@ -247,7 +233,7 @@ namespace FreeIva
 			return;
 		}
 
-		List<Part> possibleParts = new List<Part>();
+		List<InternalModuleFreeIva> possibleModules = new List<InternalModuleFreeIva>();
 		Vector3 _previousCameraPosition = Vector3.zero;
 		public void UpdateCurrentPart()
 		{
@@ -265,65 +251,60 @@ namespace FreeIva
 			//Debug.Log("###########################");
 			_previousCameraPosition = InternalCamera.Instance.transform.position;
 			Vector3 camPos = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-			Part lastPart = CurrentPart;
+			InternalModuleFreeIva newModule = null;
 
 			// Part colliders are larger than the parts themselves and overlap.
 			// Find which of the containing parts we're nearest to.
-			possibleParts.Clear();
+			possibleModules.Clear();
 
 			if (CurrentPart != null) // e.g. on part destroyed.
 			{
-				if (PartBoundsCamera(CurrentPart))
+				if (InternalModuleBoundsCamera(CurrentInternalModuleFreeIva))
 				{
-					//Debug.Log("# Adding previous currentpart.");
-					possibleParts.Add(CurrentPart);
+					possibleModules.Add(CurrentInternalModuleFreeIva);
 				}
-				// Check all attached parts.
-				if (CurrentPart.parent != null && PartBoundsCamera(CurrentPart.parent))
+				else
 				{
-					//Debug.Log("# Adding parent " + CurrentPart.parent);
-					possibleParts.Add(CurrentPart.parent);
+					GetInternalModulesBoundingCamera(CurrentPart, possibleModules);
+				}
+				
+				// Check all attached parts.
+				if (CurrentPart.parent != null)
+				{
+					GetInternalModulesBoundingCamera(CurrentPart.parent, possibleModules);
 				}
 				foreach (Part c in CurrentPart.children)
 				{
-					if (PartBoundsCamera(c))
-					{
-						//Debug.Log("# Adding child " + c);
-						possibleParts.Add(c);
-					}
+					GetInternalModulesBoundingCamera(c, possibleModules);
 				}
 			}
-			if (possibleParts.Count == 0)
+			if (possibleModules.Count == 0)
 			{
 				//Debug.Log("# Zero connected parts found, checking everything.");
 				foreach (Part p in FlightGlobals.ActiveVessel.parts)
 				{
-					if (PartBoundsCamera(p))
-					{
-						//Debug.Log("# Adding vessel part " + p);
-						possibleParts.Add(p);
-					}
+					GetInternalModulesBoundingCamera(p, possibleModules);
 				}
 			}
 
-			if (possibleParts.Count == 0)
+			if (possibleModules.Count == 0)
 			{
 				//Debug.Log("# No potential parts found");
 				return;
 			}
 
-			if (possibleParts.Count == 1)
+			if (possibleModules.Count == 1)
 			{
-				CurrentPart = possibleParts[0];
+				newModule = possibleModules[0];
 			}
-			else if (possibleParts.Count > 1)
+			else if (possibleModules.Count > 1)
 			{
 				float minDistance = float.MaxValue;
-				Part closestPart = null;
 				//Debug.Log("# Checking " + possibleParts.Count + " possibilities.");
-				foreach (Part pp in possibleParts)
+				foreach (InternalModuleFreeIva possibleModule in possibleModules)
 				{
 					Profiler.BeginSample("Testing possible part");
+					Part pp = possibleModule.part;
 					// Raycast from the camera to the centre of the collider.
 					// TODO: Figure out how to deal with multi-collider parts.
 					Vector3 c = pp.collider.bounds.center;
@@ -337,7 +318,7 @@ namespace FreeIva
 						float dist = Vector3.Distance(pp.collider.bounds.center, camPos);
 						if (dist < minDistance)
 						{
-							closestPart = pp;
+							newModule = possibleModule;
 							minDistance = dist;
 						}
 						/*else
@@ -347,59 +328,47 @@ namespace FreeIva
 						Debug.Log("# Raycast hit part from outside: " + pp);*/
 					Profiler.EndSample();
 				}
-				if (closestPart != null)
-				{
-					CurrentPart = closestPart;
-				}
 			}
 
-			if (CurrentPart != lastPart)
-			{
-				Profiler.BeginSample("OnIvaPartChanged");
-				CameraManager.Instance.activeInternalPart = CurrentPart;
-				OnIvaPartChanged.Fire(CurrentPart);
-				Profiler.EndSample();
-			}
+			SetCurrentPart(newModule);
 			/*else
                 Debug.Log("# No closest part found.");*/
 			// Keep the last part we were inside as the current part: We could be transitioning between hatches.
 			// TODO: Idendify/store when we are outside all parts (EVA from IVA?).
 		}
 
-		public static bool PartBoundsCamera(Part p)
+		static bool InternalModuleBoundsCamera(InternalModuleFreeIva ivaModule)
+		{
+			Vector3 localPosition = ivaModule.internalModel.transform.InverseTransformPoint(InternalCamera.Instance.transform.position);
+			return ivaModule.ShellColliderBounds.Contains(localPosition);
+		}
+
+		public static void GetInternalModulesBoundingCamera(Part p, List<InternalModuleFreeIva> modules)
 		{
 			Profiler.BeginSample("PartBoundsCamera");
-			bool result = false;
 
 			if (p.internalModel != null && p.internalModel.isActiveAndEnabled)
 			{
 				for (var ivaModule = InternalModuleFreeIva.GetForModel(p.internalModel); ivaModule != null; ivaModule = InternalModuleFreeIva.GetForModel(ivaModule.SecondaryInternalModel))
 				{
-					Vector3 localPosition = ivaModule.internalModel.transform.InverseTransformPoint(InternalCamera.Instance.transform.position);
-					if (ivaModule.ShellColliderBounds.Contains(localPosition))
+					if (InternalModuleBoundsCamera(ivaModule))
 					{
-						result = true;
-						break;
+						modules.Add(ivaModule);
+						break; // do we want to break here? Centrifuges typically have the rotating bit as the first model
 					}
 				}
 			}
 
 			Profiler.EndSample();
-			return result;
 		}
 
-		public static void UpdateCurrentPart(Part newCurrentPart)
+		public static void SetCurrentPart(InternalModuleFreeIva newModule)
 		{
-			if (FreeIva.CurrentPart != newCurrentPart)
+			if (FreeIva.CurrentInternalModuleFreeIva != newModule)
 			{
-				CurrentPart = newCurrentPart;
-				OnIvaPartChanged.Fire(CurrentPart);
+				CurrentInternalModuleFreeIva = newModule;
+				CameraManager.Instance.activeInternalPart = CurrentPart;
 			}
-		}
-
-		public void IvaPartChanged(Part newPart)
-		{
-			SetRenderQueues(newPart);
 		}
 
 		public static bool PartIsProbeCore(Part part)

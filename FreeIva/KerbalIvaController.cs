@@ -124,7 +124,6 @@ namespace FreeIva
 			KerbalRigidbody.velocity = Vector3.zero;
 
 			KerbalCollisionTracker.RailColliderCount = 0;
-			KerbalCollisionTracker.CurrentInternalModel = kerbal.seat.internalModel;
 			currentCentrifuge = InternalModuleFreeIva.GetForModel(kerbal.seat.internalModel)?.Centrifuge;
 
 			transform.SetParent(currentCentrifuge?.IVARotationRoot, true);
@@ -427,6 +426,17 @@ namespace FreeIva
 			return flightAccel;
 		}
 
+		void ExitCentrifuge()
+		{
+			// try to return to the stationary section
+			if (currentCentrifuge != null && currentCentrifuge == FreeIva.CurrentInternalModuleFreeIva.Centrifuge && FreeIva.CurrentInternalModuleFreeIva.SecondaryInternalModel != null)
+			{
+				FreeIva.SetCurrentPart(InternalModuleFreeIva.GetForModel(FreeIva.CurrentInternalModuleFreeIva.SecondaryInternalModel));
+			}
+			currentCentrifuge = null;
+			transform.SetParent(null, true);
+		}
+
 		public void DoFixedUpdate(KerbalIvaAddon.IVAInput input)
 		{
 			bool aimCamera = false;
@@ -436,7 +446,7 @@ namespace FreeIva
 			// TODO: can we handle *clicking* on one of these rails too?
 			if (currentCentrifuge == null && KerbalCollisionTracker.RailColliderCount > 0)
 			{
-				var centrifuge = InternalModuleFreeIva.GetForModel(KerbalCollisionTracker.CurrentInternalModel)?.Centrifuge;
+				var centrifuge = FreeIva.CurrentInternalModuleFreeIva?.Centrifuge;
 
 				if (centrifuge != null && Mathf.Abs(centrifuge.CurrentSpinRate) > 0)
 				{
@@ -464,8 +474,7 @@ namespace FreeIva
 			// try exiting a centrifuge
 			if (currentCentrifuge != null && GetCentrifugeAccel().magnitude < 0.05f)
 			{
-				currentCentrifuge = null;
-				transform.SetParent(null, true);
+				ExitCentrifuge();
 			}
 
 			if (currentCentrifuge != null)
@@ -477,8 +486,7 @@ namespace FreeIva
 
 				if (!centrifugeBounds.Contains(localPositionInIva))
 				{
-					currentCentrifuge = null;
-					transform.SetParent(null, true);
+					ExitCentrifuge();
 				}
 			}
 

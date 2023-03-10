@@ -103,19 +103,17 @@ namespace FreeIva
 			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)
 			{
 				ActiveKerbal = null;
-				FreeIva.CurrentPart = null;
 				GuiTutorial.Active = false;
 			}
 			else
 			{
-				// In IVA.
+				// Switching to IVA.
 				if (_lastCameraMode != CameraManager.CameraMode.IVA)
 				{
 					GuiTutorial.Active = true;
 
-					// Switching to IVA.
 					FreeIva.EnableInternals();
-					UpdateActiveKerbal();//false);
+					UpdateActiveKerbal();
 					FreeIva.SetRenderQueues(FreeIva.CurrentPart);
 
 					var freeIvaModule = FreeIva.CurrentPart.GetModule<ModuleFreeIva>();
@@ -132,7 +130,7 @@ namespace FreeIva
 				{
 					if (_changingCurrentIvaCrew)
 					{
-						UpdateActiveKerbal();//false);
+						UpdateActiveKerbal();
 						_changingCurrentIvaCrew = false;
 					}
 				}
@@ -142,16 +140,6 @@ namespace FreeIva
 
 				JumpLatched = JumpLatched && input.Jump;
 				input.Jump = input.Jump && !JumpLatched;
-
-				/*FreeIva.InitialPart.Events.Clear();
-                if (_transferStart != 0 && Planetarium.GetUniversalTime() > (0.25 + _transferStart))
-                {
-                    FlightGlobals.ActiveVessel.SpawnCrew();
-                    GameEvents.onVesselChange.Fire(FlightGlobals.ActiveVessel);
-                    InternalCamera.Instance.transform.parent = ActiveKerbal.KerbalRef.eyeTransform;
-                    _transferStart = 0;
-                }*/
-
 			}
 			_lastCameraMode = CameraManager.Instance.currentCameraMode;
 		}
@@ -490,7 +478,6 @@ namespace FreeIva
 			}
 
 			KerbalIva.gameObject.SetActive(false);
-			KerbalIva.KerbalCollisionTracker.CurrentInternalModel = TargetedSeat.internalModel;
 			HideCurrentKerbal(false);
 			DisablePartHighlighting(false);
 			InputLockManager.RemoveControlLock("FreeIVA");
@@ -663,8 +650,9 @@ namespace FreeIva
 		{
 			ActiveKerbal = CameraManager.Instance.IVACameraActiveKerbal.protoCrewMember;
 			if (ActiveKerbal.KerbalRef != null && ActiveKerbal.KerbalRef.InPart != null)
-				FreeIva.UpdateCurrentPart(ActiveKerbal.seat.part);
-			return;
+			{
+				FreeIva.SetCurrentPart(InternalModuleFreeIva.GetForModel(ActiveKerbal.seat.internalModel));
+			}
 		}
 
 		/// <summary>

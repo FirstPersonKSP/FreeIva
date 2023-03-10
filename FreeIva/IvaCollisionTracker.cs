@@ -19,8 +19,6 @@ namespace FreeIva
 		public List<Collision> Collisions => m_collisions;
 		public int RailColliderCount = 0;
 
-		public InternalModel CurrentInternalModel { get; set; }
-
 		void PrintCollisionInfo(string eventName, Collision collision)
 		{
 #if DEBUG
@@ -49,6 +47,7 @@ namespace FreeIva
         public void FixedUpdate()
         {
 			m_collisions.Clear();
+			RailColliderCount = 0;
         }
 
         public void OnCollisionEnter(Collision collision)
@@ -93,7 +92,11 @@ namespace FreeIva
 			HandRail rail = ColliderGetHandRail(other);
 			if (rail != null)
 			{
-				CurrentInternalModel = rail.internalModel;
+				if (rail.internalModel != FreeIva.CurrentInternalModuleFreeIva.internalModel)
+				{
+					FreeIva.SetCurrentPart(InternalModuleFreeIva.GetForModel(rail.internalModel));
+				}
+
 				++RailColliderCount;
 			}
 
@@ -107,11 +110,12 @@ namespace FreeIva
 #endif
 		}
 
-		public void OnTriggerExit(Collider other)
+		public void OnTriggerStay(Collider other)
 		{
-			if (ColliderGetHandRail(other) != null)
+			HandRail rail = ColliderGetHandRail(other);
+			if (rail != null)
 			{
-				--RailColliderCount;
+				++RailColliderCount;
 			}
 		}
 	}
