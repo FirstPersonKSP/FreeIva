@@ -130,6 +130,9 @@ namespace FreeIva
 			transform.SetParent(currentCentrifuge?.IVARotationRoot, true);
 			Vector3 flightAccel = UpdateGravity();
 
+			// interpolation doesn't seem to work with centrifuges
+			KerbalRigidbody.interpolation = currentCentrifuge == null ? RigidbodyInterpolation.Interpolate : RigidbodyInterpolation.None;
+
 			if (UseRelativeMovement())
 			{
 				OrientToGravity(flightAccel);
@@ -451,6 +454,8 @@ namespace FreeIva
 
 							aimCamera = true;
 							oldCameraRotation = CameraAnchor.rotation;
+
+							KerbalRigidbody.interpolation = RigidbodyInterpolation.None;
 						}
 					}
 				}
