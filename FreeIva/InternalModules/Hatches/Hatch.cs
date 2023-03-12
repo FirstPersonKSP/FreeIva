@@ -86,6 +86,11 @@ namespace FreeIva
 			public List<ObjectToHide> objects = new List<ObjectToHide>();
 		}
 
+		[SerializeField]
+		Transform m_handleTransform;
+		public Transform HandleTransform => m_handleTransform;
+
+		[SerializeField]
 		Transform m_doorTransform;
 		ModuleDockingNode m_dockingNodeModule;
 		InternalProp m_blockedProp;
@@ -132,26 +137,26 @@ namespace FreeIva
 				ReparentUtil.Reparent(internalProp, reparentNode);
 			}
 
-			var handleTransform = TransformUtil.FindPropTransform(internalProp, handleTransformName);
-			if (handleTransform != null)
+			m_handleTransform = TransformUtil.FindPropTransform(internalProp, handleTransformName);
+			if (m_handleTransform != null)
 			{
-				handleTransform.gameObject.layer = (int)Layers.InternalSpace;
+				m_handleTransform.gameObject.layer = (int)Layers.InternalSpace;
 
 				foreach (var collidernode in node.GetNodes("HandleCollider"))
 				{
-					ColliderUtil.CreateCollider(handleTransform, collidernode, internalProp.propName);
+					ColliderUtil.CreateCollider(m_handleTransform, collidernode, internalProp.propName);
 				}
 			}
 
-			var doorTransform = TransformUtil.FindPropTransform(internalProp, doorTransformName);
+			m_doorTransform = TransformUtil.FindPropTransform(internalProp, doorTransformName);
 
-			if (doorTransform != null)
+			if (m_doorTransform != null)
 			{
-				doorTransform.gameObject.layer = (int)Layers.Kerbals;
+				m_doorTransform.gameObject.layer = (int)Layers.Kerbals;
 
 				foreach (var colliderNode in node.GetNodes("DoorCollider"))
 				{
-					ColliderUtil.CreateCollider(doorTransform, colliderNode, internalProp.propName);
+					ColliderUtil.CreateCollider(m_doorTransform, colliderNode, internalProp.propName);
 				}
 			}
 			else if (doorTransformName != string.Empty)
@@ -233,8 +238,6 @@ namespace FreeIva
 					GameObject.Destroy(cutoutTransform.gameObject);
 				}
 			}
-
-			m_doorTransform = TransformUtil.FindPropTransform(internalProp, doorTransformName);
 
 			if (dockingPortNodeName != string.Empty)
 			{

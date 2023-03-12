@@ -800,7 +800,7 @@ namespace FreeIva
 
 		void ConsiderHatch(ref FreeIvaHatch targetedHatch, ref float closestDistance, FreeIvaHatch newHatch)
 		{
-			if (newHatch.enabled && IsTargeted(newHatch.transform, Vector3.zero, ref closestDistance))
+			if (newHatch.enabled && IsTargeted(newHatch.HandleTransform ?? newHatch.transform, Vector3.zero, ref closestDistance))
 			{
 				targetedHatch = newHatch;
 			}
