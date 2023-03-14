@@ -616,15 +616,16 @@ namespace FreeIva
 		{
 			if (!buckled) return;
 
+			UpdateActiveKerbal();
+
 			var freeIvaModule = FreeIva.CurrentPart.GetModule<ModuleFreeIva>();
-			if (freeIvaModule == null || !freeIvaModule.allowsUnbuckling)
+			if ((freeIvaModule && !freeIvaModule.allowsUnbuckling) || FreeIva.CurrentInternalModuleFreeIva == null)
 			{
 				ScreenMessages.PostScreenMessage("Cannot unbuckle in this part", 1f, ScreenMessageStyle.LOWER_CENTER);
 				return;
 			}
 
 			FreeIva.EnableInternals();
-			UpdateActiveKerbal();
 			FreeIva.SetRenderQueues(FreeIva.CurrentPart);
 			OriginalSeat = ActiveKerbal.seat;
 
