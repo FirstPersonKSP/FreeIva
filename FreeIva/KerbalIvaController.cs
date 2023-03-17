@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using KSP.Localization;
 
 /* The kerbal is made up of 3 objects:
  * At the root is the object that contains the collider(s) and rigid body.  This does not rotate except to orient relative to gravity.
@@ -22,6 +23,7 @@ namespace FreeIva
 		public Transform CameraAnchor;
 		public ProtoCrewMember ActiveKerbal;
 		public IvaCollisionTracker KerbalCollisionTracker;
+		private static string str_Grab = Localizer.Format("#FreeIVA_Message_Grab");
 
 		public bool WearingHelmet { get; private set; }
 
@@ -450,7 +452,7 @@ namespace FreeIva
 
 				if (centrifuge != null && Mathf.Abs(centrifuge.CurrentSpinRate) > 0)
 				{
-					ScreenMessages.PostScreenMessage($"Grab [{Settings.JumpKey}]", 0.1f, ScreenMessageStyle.LOWER_CENTER);
+					ScreenMessages.PostScreenMessage($"{str_Grab} [{Settings.JumpKey}]", 0.1f, ScreenMessageStyle.LOWER_CENTER); // Grab
 
 					if ((input.Jump || input.MovementThrottle.y < 0))
 					{
