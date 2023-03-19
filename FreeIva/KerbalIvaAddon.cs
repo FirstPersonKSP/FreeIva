@@ -801,7 +801,12 @@ namespace FreeIva
 
 		void ConsiderHatch(ref FreeIvaHatch targetedHatch, ref float closestDistance, FreeIvaHatch newHatch)
 		{
-			if (newHatch.enabled && IsTargeted(newHatch.HandleTransform ?? newHatch.transform, Vector3.zero, ref closestDistance))
+			// should each hatch specify its own offset point? This code is mostly for the benefit of the BDB LM, where the hatch origins are at the center of the IVA
+			Vector3 localOffset = newHatch.HandleTransform 
+				? newHatch.transform.InverseTransformPoint(newHatch.HandleTransform.position)
+				: Vector3.zero;
+
+			if (newHatch.enabled && IsTargeted(newHatch.transform, localOffset, ref closestDistance))
 			{
 				targetedHatch = newHatch;
 			}
