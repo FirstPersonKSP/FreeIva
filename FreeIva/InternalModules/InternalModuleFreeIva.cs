@@ -467,7 +467,7 @@ namespace FreeIva
 				{
 					var hatchConfig = prop.GetComponent<HatchConfig>();
 
-					if (hatchConfig != null)
+					if (hatchConfig != null || hatch.cutoutTargetTransformName != string.Empty)
 					{
 						AddPropCut(hatch);
 					}
@@ -484,7 +484,7 @@ namespace FreeIva
 						}
 
 						// for attachnodes...
-						if (part != null && hatch.tubeTransform != null)
+						if (part != null && hatch.tubeTransform != null && hatch.attachNodeId == string.Empty)
 						{
 							foreach (var attachNode in part.partPrefab.attachNodes)
 							{
@@ -540,6 +540,8 @@ namespace FreeIva
 
 					foreach (var hatch in hatches)
 					{
+						if (hatch.airlockName != string.Empty) continue;
+
 						Vector3 hatchInPartSpace = x_internalToPartSpace * hatch.transform.position;
 
 						Vector3 hatchInAirlockSpace = airlock.transform.InverseTransformPoint(hatchInPartSpace);

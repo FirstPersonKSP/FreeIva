@@ -60,7 +60,11 @@ namespace FreeIva
 
 		public static Transform FindInternalModelTransform(InternalModel model, string transformName, bool emitError = true)
 		{
-			return FindModelTransform(model.transform, transformName, "internal", model.internalName, emitError);
+			var rootTransform = model.name == transformName
+				? model.transform.Find("model")
+				: model.transform;
+
+			return FindModelTransform(rootTransform, transformName, "internal", model.internalName, emitError);
 		}
 
 		public static Transform FindPropTransform(InternalProp prop, string transformName, bool emitError = true)
