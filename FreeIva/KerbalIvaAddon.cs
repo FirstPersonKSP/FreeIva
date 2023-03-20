@@ -914,7 +914,7 @@ namespace FreeIva
 				
 				if (canOpenHatch)
 				{
-					ScreenMessages.PostScreenMessage((targetedHatch.IsOpen ? str_CloseHatch : str_OpenHatch) + " [" + Settings.OpenHatchKey + "]", //(targetedHatch.IsOpen ? "Close" : "Open") + " hatch [" + Settings.OpenHatchKey + "]"
+					ScreenMessages.PostScreenMessage((targetedHatch.IsOpen ? str_CloseHatch : str_OpenHatch) + " [" + Settings.OpenHatchKey + "]",
 						0.1f, ScreenMessageStyle.LOWER_CENTER);
 
 					if (openHatch)
