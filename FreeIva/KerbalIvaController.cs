@@ -452,7 +452,7 @@ namespace FreeIva
 
 				if (centrifuge != null && Mathf.Abs(centrifuge.CurrentSpinRate) > 0)
 				{
-					ScreenMessages.PostScreenMessage($"{str_Grab} [{Settings.JumpKey}]", 0.1f, ScreenMessageStyle.LOWER_CENTER); // Grab
+					ScreenMessages.PostScreenMessage($"{str_Grab} [{Settings.JumpKey}]", 0.1f, ScreenMessageStyle.LOWER_CENTER);
 
 					if ((input.Jump || input.MovementThrottle.y < 0))
 					{

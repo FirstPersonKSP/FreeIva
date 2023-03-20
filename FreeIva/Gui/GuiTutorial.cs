@@ -43,50 +43,50 @@ namespace FreeIva
 		{
 			GUILayout.BeginVertical();
 
-			GuiUtils.label(label_MouseLook, Mouse.Buttons.Right + " Click"); // "Mouse Look"
-			GuiUtils.label(label_Forward, Settings.ForwardKey); // "Forward"
-			GuiUtils.label(label_Backward, Settings.BackwardKey); // "Backward"
-			GuiUtils.label(label_StrafeLeft, Settings.LeftKey); // "Strafe Left"
-			GuiUtils.label(label_StrafeRight, Settings.RightKey); // "Strafe Right"
+			GuiUtils.label(label_MouseLook, Mouse.Buttons.Right + " Click"); 
+			GuiUtils.label(label_Forward, Settings.ForwardKey); 
+			GuiUtils.label(label_Backward, Settings.BackwardKey);
+			GuiUtils.label(label_StrafeLeft, Settings.LeftKey); 
+			GuiUtils.label(label_StrafeRight, Settings.RightKey);
 
 			if (KerbalIvaAddon.Instance.KerbalIva.IsOnLadder || (!KerbalIvaAddon.Instance.KerbalIva.UseRelativeMovement() || KerbalIvaAddon.Instance.KerbalIva.KerbalCollisionTracker.RailColliderCount > 0))
 			{
-				GuiUtils.label(label_MoveUp, Settings.UpKey); // "Move Up"
-				GuiUtils.label(label_MoveDown, Settings.DownKey); // "Move Down"
+				GuiUtils.label(label_MoveUp, Settings.UpKey);
+				GuiUtils.label(label_MoveDown, Settings.DownKey);
 			}
 
 			if (KerbalIvaAddon.Instance.KerbalIva.UseRelativeMovement())
 			{
-				GuiUtils.label(label_Crouch, Settings.CrouchKey); // "Crouch"
+				GuiUtils.label(label_Crouch, Settings.CrouchKey);
 
 				if (KerbalIvaAddon.Instance.KerbalIva.IsOnLadder)
 				{
-					GuiUtils.label(label_ReleaseLadder, Settings.JumpKey); // "Release Ladder"
+					GuiUtils.label(label_ReleaseLadder, Settings.JumpKey);
 				}
 				else
 				{
-					GuiUtils.label(label_Jump, Settings.JumpKey); // "Jump"
+					GuiUtils.label(label_Jump, Settings.JumpKey);
 				}
 			}
 			else
 			{
-				GuiUtils.label(label_RollCCW, Settings.RollCCWKey); // "Roll CCW"
-				GuiUtils.label(label_RollCW, Settings.RollCWKey); // "Roll CW"
+				GuiUtils.label(label_RollCCW, Settings.RollCCWKey);
+				GuiUtils.label(label_RollCW, Settings.RollCWKey);
 			}
 
-			GuiUtils.label(label_ReturnSeat, GameSettings.CAMERA_MODE.primary.code); // "Return to Seat"
+			GuiUtils.label(label_ReturnSeat, GameSettings.CAMERA_MODE.primary.code);
 
 			if (KerbalIvaAddon.Instance.KerbalIva.UseRelativeMovement() || !KerbalIvaAddon.Instance.Gravity)
 			{
-				GuiUtils.label(label_ToggleGravity, GameSettings.MODIFIER_KEY.primary.code + " + " + Settings.ToggleGravityKey); // "Toggle Gravity"
+				GuiUtils.label(label_ToggleGravity, GameSettings.MODIFIER_KEY.primary.code + " + " + Settings.ToggleGravityKey);
 			}
 
 			GUILayout.BeginHorizontal();
-			if (GUILayout.Button(button_Close)) // "Close"
+			if (GUILayout.Button(button_Close))
 			{
 				Active = false;
 			}
-			if (GUILayout.Button(button_CloseForever)) // "Close Forever"
+			if (GUILayout.Button(button_CloseForever))
 			{
 				Active = false;
 				Settings.ShowTutorial = false;

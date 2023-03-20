@@ -54,11 +54,11 @@ namespace FreeIva
 		{
 			if (!allowsUnbuckling) return string.Empty;
 
-			string result = partInfo == string.Empty ? str_CanTraverse : partInfo; // "This part can be traversed in IVA"
+			string result = partInfo == string.Empty ? str_CanTraverse : partInfo; 
 
 			if (doesNotBlockEVA)
 			{
-				string hatchInfo = str_NotBlockHatch; // "This part will not block EVA hatches"
+				string hatchInfo = str_NotBlockHatch;
 
 				if (passThroughNodeA == string.Empty)
 				{
