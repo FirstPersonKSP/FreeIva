@@ -4,12 +4,31 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FreeIva
 {
 	internal static class GuiTutorial
 	{
-		private static Rect windowPos = new Rect(Screen.width * 0.75f, Screen.height * 0.5f, 10, 10);
+		// Localisation strings
+		private static readonly string label_MouseLook = Localizer.Format("#FreeIVA_Tutorial_MouseLook");
+		private static readonly string label_Forward = Localizer.Format("#FreeIVA_Tutorial_Forward");
+		private static readonly string label_Backward = Localizer.Format("#FreeIVA_Tutorial_Backward");
+		private static readonly string label_StrafeLeft = Localizer.Format("#FreeIVA_Tutorial_StrafeLeft");
+		private static readonly string label_StrafeRight = Localizer.Format("#FreeIVA_Tutorial_StrafeRight");
+		private static readonly string label_MoveUp = Localizer.Format("#FreeIVA_Tutorial_MoveUp");
+		private static readonly string label_MoveDown = Localizer.Format("#FreeIVA_Tutorial_MoveDown");
+		private static readonly string label_Crouch = Localizer.Format("#FreeIVA_Tutorial_Crouch");
+		private static readonly string label_ReleaseLadder = Localizer.Format("#FreeIVA_Tutorial_ReleaseLadder");
+		private static readonly string label_Jump = Localizer.Format("#FreeIVA_Tutorial_Jump");
+		private static readonly string label_RollCCW = Localizer.Format("#FreeIVA_Tutorial_RollCCW");
+		private static readonly string label_RollCW = Localizer.Format("#FreeIVA_Tutorial_RollCW");
+		private static readonly string label_ReturnSeat = Localizer.Format("#FreeIVA_Tutorial_ReturnSeat");
+		private static readonly string label_ToggleGravity = Localizer.Format("#FreeIVA_Tutorial_ToggleGravity");
+		private static readonly string button_Close = Localizer.Format("#FreeIVA_Tutorial_Close");
+		private static readonly string button_CloseForever = Localizer.Format("#FreeIVA_Tutorial_CloseForever");
+
+        private static Rect windowPos = new Rect(Screen.width * 0.75f, Screen.height * 0.5f, 10, 10);
 		public static bool Active = false;
 
 		public static void Gui(int instanceId)
@@ -24,50 +43,50 @@ namespace FreeIva
 		{
 			GUILayout.BeginVertical();
 
-			GuiUtils.label("Mouse Look", Mouse.Buttons.Right + " Click");
-			GuiUtils.label("Forward", Settings.ForwardKey);
-			GuiUtils.label("Backward", Settings.BackwardKey);
-			GuiUtils.label("Strafe Left", Settings.LeftKey);
-			GuiUtils.label("Strafe Right", Settings.RightKey);
+			GuiUtils.label(label_MouseLook, Mouse.Buttons.Right + " Click"); 
+			GuiUtils.label(label_Forward, Settings.ForwardKey); 
+			GuiUtils.label(label_Backward, Settings.BackwardKey);
+			GuiUtils.label(label_StrafeLeft, Settings.LeftKey); 
+			GuiUtils.label(label_StrafeRight, Settings.RightKey);
 
 			if (KerbalIvaAddon.Instance.KerbalIva.IsOnLadder || (!KerbalIvaAddon.Instance.KerbalIva.UseRelativeMovement() || KerbalIvaAddon.Instance.KerbalIva.KerbalCollisionTracker.RailColliderCount > 0))
 			{
-				GuiUtils.label("Move Up", Settings.UpKey);
-				GuiUtils.label("Move Down", Settings.DownKey);
+				GuiUtils.label(label_MoveUp, Settings.UpKey);
+				GuiUtils.label(label_MoveDown, Settings.DownKey);
 			}
 
 			if (KerbalIvaAddon.Instance.KerbalIva.UseRelativeMovement())
 			{
-				GuiUtils.label("Crouch", Settings.CrouchKey);
+				GuiUtils.label(label_Crouch, Settings.CrouchKey);
 
 				if (KerbalIvaAddon.Instance.KerbalIva.IsOnLadder)
 				{
-					GuiUtils.label("Release Ladder", Settings.JumpKey);
+					GuiUtils.label(label_ReleaseLadder, Settings.JumpKey);
 				}
 				else
 				{
-					GuiUtils.label("Jump", Settings.JumpKey);
+					GuiUtils.label(label_Jump, Settings.JumpKey);
 				}
 			}
 			else
 			{
-				GuiUtils.label("Roll CCW", Settings.RollCCWKey);
-				GuiUtils.label("Roll CW", Settings.RollCWKey);
+				GuiUtils.label(label_RollCCW, Settings.RollCCWKey);
+				GuiUtils.label(label_RollCW, Settings.RollCWKey);
 			}
 
-			GuiUtils.label("Return to Seat", GameSettings.CAMERA_MODE.primary.code);
+			GuiUtils.label(label_ReturnSeat, GameSettings.CAMERA_MODE.primary.code);
 
 			if (KerbalIvaAddon.Instance.KerbalIva.UseRelativeMovement() || !KerbalIvaAddon.Instance.Gravity)
 			{
-				GuiUtils.label("Toggle Gravity", GameSettings.MODIFIER_KEY.primary.code + " + " + Settings.ToggleGravityKey);
+				GuiUtils.label(label_ToggleGravity, GameSettings.MODIFIER_KEY.primary.code + " + " + Settings.ToggleGravityKey);
 			}
 
 			GUILayout.BeginHorizontal();
-			if (GUILayout.Button("Close"))
+			if (GUILayout.Button(button_Close))
 			{
 				Active = false;
 			}
-			if (GUILayout.Button("Close Forever"))
+			if (GUILayout.Button(button_CloseForever))
 			{
 				Active = false;
 				Settings.ShowTutorial = false;
