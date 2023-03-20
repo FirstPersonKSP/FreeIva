@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FreeIva
 {
@@ -8,6 +9,8 @@ namespace FreeIva
 	/// </summary>
 	public class ModuleFreeIva : PartModule
 	{
+		private static string str_CanTraverse = Localizer.Format("#FreeIVA_PartInfo_CanTraverse");
+		private static string str_NotBlockHatch = Localizer.Format("#FreeIVA_PartInfo_NotBlockHatch");
 		[KSPField]
 		public string passThroughNodeA = string.Empty;
 		[KSPField]
@@ -51,11 +54,11 @@ namespace FreeIva
 		{
 			if (!allowsUnbuckling) return string.Empty;
 
-			string result = partInfo == string.Empty ? "This part can be traversed in IVA" : partInfo;
+			string result = partInfo == string.Empty ? str_CanTraverse : partInfo; 
 
 			if (doesNotBlockEVA)
 			{
-				string hatchInfo = "This part will not block EVA hatches";
+				string hatchInfo = str_NotBlockHatch;
 
 				if (passThroughNodeA == string.Empty)
 				{

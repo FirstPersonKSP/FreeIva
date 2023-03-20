@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FreeIva
 {
@@ -19,7 +20,22 @@ namespace FreeIva
 	[KSPAddon(KSPAddon.Startup.Flight, false)]
 	public class KerbalIvaAddon : MonoBehaviour
 	{
-		public KerbalIvaController KerbalIva;
+		// Localisation strings
+		private static string str_GravityEnabled = Localizer.Format("#FreeIVA_Message_GravityEnabled");
+		private static string str_GravityDisabled = Localizer.Format("#FreeIVA_Message_GravityDisabled");
+		private static string str_Unbuckle = Localizer.Format("#FreeIVA_Message_Unbuckle");
+		private static string str_Cameralocked = Localizer.Format("#FreeIVA_Message_Cameralocked");
+		private static string str_Cameraunlocked = Localizer.Format("#FreeIVA_Message_Cameraunlocked");
+		private static string str_Buckled = Localizer.Format("#FreeIVA_Message_Buckled");
+		private static string str_PartCannotUnbuckle = Localizer.Format("#FreeIVA_Message_PartCannotUnbuckle");
+		private static string str_Unbuckled = Localizer.Format("#FreeIVA_Message_Unbuckled");
+		private static string str_EnterSeat = Localizer.Format("#FreeIVA_Message_EnterSeat");
+		private static string str_HatchLocked = Localizer.Format("#FreeIVA_Message_HatchLocked");
+		private static string str_GoEVA = Localizer.Format("#FreeIVA_Message_GoEVA");
+		private static string str_HatchBlocked = Localizer.Format("#FreeIVA_Message_HatchBlocked");
+		private static string str_CloseHatch = Localizer.Format("#FreeIVA_Message_CloseHatch");
+		private static string str_OpenHatch = Localizer.Format("#FreeIVA_Message_OpenHatch");
+        public KerbalIvaController KerbalIva;
 #if Experimental
 		public GameObject KerbalWorldSpace;
 		public Collider KerbalWorldSpaceCollider;
@@ -91,7 +107,7 @@ namespace FreeIva
 			if (GameSettings.MODIFIER_KEY.GetKey() && Input.GetKeyDown(Settings.ToggleGravityKey))
 			{
 				Gravity = !Gravity && Settings.EnableCollisions;
-				ScreenMessages.PostScreenMessage("[FreeIva] Gravity " + (Gravity ? "Enabled" : "Disabled"), 1f, ScreenMessageStyle.LOWER_CENTER);
+				ScreenMessages.PostScreenMessage(Gravity ? str_GravityEnabled : str_GravityDisabled, 1f, ScreenMessageStyle.LOWER_CENTER);
 				KerbalIva.KerbalFeetCollider.enabled = KerbalIva.UseRelativeMovement();
 			}
 
@@ -119,7 +135,7 @@ namespace FreeIva
 					var freeIvaModule = FreeIva.CurrentPart.GetModule<ModuleFreeIva>();
 					if (freeIvaModule != null && freeIvaModule.allowsUnbuckling)
 					{
-						ScreenMessages.PostScreenMessage($"Unbuckle [{Settings.UnbuckleKey}]", 2f, ScreenMessageStyle.LOWER_CENTER);
+						ScreenMessages.PostScreenMessage($"{str_Unbuckle} [{Settings.UnbuckleKey}]", 2f, ScreenMessageStyle.LOWER_CENTER);
 					}
 				}
 
@@ -404,7 +420,7 @@ namespace FreeIva
 			if (input.ToggleCameraLock)
 			{
 				cameraPositionLocked = !cameraPositionLocked;
-				ScreenMessages.PostScreenMessage(cameraPositionLocked ? "Camera locked" : "Camera unlocked",
+				ScreenMessages.PostScreenMessage(cameraPositionLocked ? str_Cameralocked : str_Cameraunlocked,
 						1f, ScreenMessageStyle.LOWER_CENTER);
 			}
 
@@ -482,7 +498,7 @@ namespace FreeIva
 			DisablePartHighlighting(false);
 			InputLockManager.RemoveControlLock("FreeIVA");
 			//ActiveKerbal.flightLog.AddEntry("Buckled");
-			ScreenMessages.PostScreenMessage("Buckled", 1f, ScreenMessageStyle.LOWER_CENTER);
+			ScreenMessages.PostScreenMessage(str_Buckled, 1f, ScreenMessageStyle.LOWER_CENTER);
 
 			PlaySeatBuckleAudio(TargetedSeat);
 		}
@@ -513,7 +529,7 @@ namespace FreeIva
 
 			TargetedSeat = OriginalSeat;
 			BuckleInternal(resetCamera);
-			ScreenMessages.PostScreenMessage(ActiveKerbal.name + " returned to their seat.", 1f, ScreenMessageStyle.LOWER_CENTER);
+			ScreenMessages.PostScreenMessage(Localizer.Format("#FreeIVA_Message_KermanReturnedSeat", ActiveKerbal.name), 1f, ScreenMessageStyle.LOWER_CENTER);
 		}
 
 		void SwitchToKerbal()
@@ -621,7 +637,7 @@ namespace FreeIva
 			var freeIvaModule = FreeIva.CurrentPart.GetModule<ModuleFreeIva>();
 			if ((freeIvaModule && !freeIvaModule.allowsUnbuckling) || FreeIva.CurrentInternalModuleFreeIva == null)
 			{
-				ScreenMessages.PostScreenMessage("Cannot unbuckle in this part", 1f, ScreenMessageStyle.LOWER_CENTER);
+				ScreenMessages.PostScreenMessage(str_PartCannotUnbuckle, 1f, ScreenMessageStyle.LOWER_CENTER);
 				return;
 			}
 
@@ -635,7 +651,7 @@ namespace FreeIva
 
 			InputLockManager.SetControlLock(ControlTypes.ALL_SHIP_CONTROLS | ControlTypes.CAMERAMODES, "FreeIVA");
 			//ActiveKerbal.flightLog.AddEntry("Unbuckled");
-			ScreenMessages.PostScreenMessage("Unbuckled", 1f, ScreenMessageStyle.LOWER_CENTER);
+			ScreenMessages.PostScreenMessage(str_Unbuckled, 1f, ScreenMessageStyle.LOWER_CENTER);
 			KerbalIva.Activate(ActiveKerbal);
 			buckled = false;
 
@@ -790,11 +806,11 @@ namespace FreeIva
 				// is someone else here?
 				if (TargetedSeat.taken && TargetedSeat.crew != ActiveKerbal)
 				{
-					ScreenMessages.PostScreenMessage($"[{GameSettings.CAMERA_NEXT.primary}] Switch to {TargetedSeat.crew.name}", 0.1f, ScreenMessageStyle.LOWER_CENTER);
+					ScreenMessages.PostScreenMessage(Localizer.Format("#FreeIVA_Message_CamerSwitchtoKerbal", GameSettings.CAMERA_NEXT.primary, TargetedSeat.crew.name), 0.1f, ScreenMessageStyle.LOWER_CENTER);
 				}
 				else
 				{
-					ScreenMessages.PostScreenMessage("Enter seat [" + Settings.UnbuckleKey + "]", 0.1f, ScreenMessageStyle.LOWER_CENTER);
+					ScreenMessages.PostScreenMessage(str_EnterSeat + " [" + Settings.UnbuckleKey + "]", 0.1f, ScreenMessageStyle.LOWER_CENTER);
 				}
 			}
 		}
@@ -868,14 +884,14 @@ namespace FreeIva
 
 				if (targetedHatch.IsBlockedByAnimation())
 				{
-					ScreenMessages.PostScreenMessage("Hatch is locked",
+					ScreenMessages.PostScreenMessage(str_HatchLocked,
 							0.1f, ScreenMessageStyle.LOWER_CENTER);
 				}
 				else if (targetedHatch.ConnectedHatch == null)
 				{
 					if (targetedHatch.CanEVA)
 					{
-						ScreenMessages.PostScreenMessage("Go EVA [" + Settings.OpenHatchKey + "]", 0.1f, ScreenMessageStyle.LOWER_CENTER);
+						ScreenMessages.PostScreenMessage(str_GoEVA + " [" + Settings.OpenHatchKey + "]", 0.1f, ScreenMessageStyle.LOWER_CENTER);
 
 						if (openHatch)
 						{
@@ -884,7 +900,7 @@ namespace FreeIva
 					}
 					else if (targetedHatch.attachNodeId != string.Empty || targetedHatch.dockingPortNodeName != string.Empty)
 					{
-						ScreenMessages.PostScreenMessage("Hatch is blocked", 0.1f, ScreenMessageStyle.LOWER_CENTER);
+						ScreenMessages.PostScreenMessage(str_HatchBlocked, 0.1f, ScreenMessageStyle.LOWER_CENTER);
 					}
 					else
 					{
@@ -898,7 +914,7 @@ namespace FreeIva
 				
 				if (canOpenHatch)
 				{
-					ScreenMessages.PostScreenMessage((targetedHatch.IsOpen ? "Close" : "Open") + " hatch [" + Settings.OpenHatchKey + "]",
+					ScreenMessages.PostScreenMessage((targetedHatch.IsOpen ? str_CloseHatch : str_OpenHatch) + " [" + Settings.OpenHatchKey + "]",
 						0.1f, ScreenMessageStyle.LOWER_CENTER);
 
 					if (openHatch)
