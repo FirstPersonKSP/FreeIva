@@ -377,6 +377,9 @@ namespace FreeIva
 
 			if (!Instance.buckled && !FreeIva.Paused)
 			{
+				// TODO: add key controls for turning
+				input.RotationInputEuler.z = GetKeyInputAxis(Settings.RollCCWKey, Settings.RollCWKey);
+
 				// movement
 				{
 					input.MovementThrottle.z = GetKeyInputAxis(Settings.ForwardKey, Settings.BackwardKey);
