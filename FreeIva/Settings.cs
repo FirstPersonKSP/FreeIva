@@ -9,7 +9,6 @@ namespace FreeIva
 		public static KeyCode OpenHatchKey = KeyCode.F; // Open or close a hatch.
 														// ModifierKey + OpenHatchKey toggles the hatch of the part adjoining the one you're currently in when used with basic Hatches.
 														// This won't be needed with mesh hatches with interaction colliders.
-														// ModifierKey + UnbuckleKey locks camera movement to click on menus etc.
 		public static KeyCode ModifierKey = KeyCode.LeftAlt;
 
 		public static KeyCode ForwardKey = KeyCode.W;

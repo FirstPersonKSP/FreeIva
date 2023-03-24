@@ -24,8 +24,6 @@ namespace FreeIva
 		private static string str_GravityEnabled = Localizer.Format("#FreeIVA_Message_GravityEnabled");
 		private static string str_GravityDisabled = Localizer.Format("#FreeIVA_Message_GravityDisabled");
 		private static string str_Unbuckle = Localizer.Format("#FreeIVA_Message_Unbuckle");
-		private static string str_Cameralocked = Localizer.Format("#FreeIVA_Message_Cameralocked");
-		private static string str_Cameraunlocked = Localizer.Format("#FreeIVA_Message_Cameraunlocked");
 		private static string str_Buckled = Localizer.Format("#FreeIVA_Message_Buckled");
 		private static string str_PartCannotUnbuckle = Localizer.Format("#FreeIVA_Message_PartCannotUnbuckle");
 		private static string str_Unbuckled = Localizer.Format("#FreeIVA_Message_Unbuckled");
@@ -45,7 +43,6 @@ namespace FreeIva
 #endif
 
 		public bool buckled = true;
-		public bool cameraPositionLocked = false;
 		public ProtoCrewMember ActiveKerbal;
 		public InternalSeat OriginalSeat = null;
 		public InternalSeat TargetedSeat = null;
@@ -342,7 +339,6 @@ namespace FreeIva
 			public bool Unbuckle;
 			public bool Buckle;
 			public bool SwitchTo;
-			public bool ToggleCameraLock;
 			public bool ToggleHatch;
 			public bool ToggleFarHatch;
 			public bool Jump;
@@ -367,20 +363,13 @@ namespace FreeIva
 
 			if (Input.GetKeyDown(Settings.UnbuckleKey))
 			{
-				if (Input.GetKey(Settings.ModifierKey))
+				if (Instance.buckled)
 				{
-					input.ToggleCameraLock = true;
+					input.Unbuckle = true;
 				}
 				else
 				{
-					if (Instance.buckled)
-					{
-						input.Unbuckle = true;
-					}
-					else
-					{
-						input.Buckle = true;
-					}
+					input.Buckle = true;
 				}
 			}
 
@@ -388,11 +377,8 @@ namespace FreeIva
 
 			if (!Instance.buckled && !FreeIva.Paused)
 			{
-				if (!Instance.cameraPositionLocked)
-				{
-					// TODO: add key controls for turning
-					input.RotationInputEuler.z = GetKeyInputAxis(Settings.RollCCWKey, Settings.RollCWKey);
-				}
+				// TODO: add key controls for turning
+				input.RotationInputEuler.z = GetKeyInputAxis(Settings.RollCCWKey, Settings.RollCWKey);
 
 				// movement
 				{
@@ -417,13 +403,6 @@ namespace FreeIva
 
 		private void ApplyInput(IVAInput input)
 		{
-			if (input.ToggleCameraLock)
-			{
-				cameraPositionLocked = !cameraPositionLocked;
-				ScreenMessages.PostScreenMessage(cameraPositionLocked ? str_Cameralocked : str_Cameraunlocked,
-						1f, ScreenMessageStyle.LOWER_CENTER);
-			}
-
 			if (input.ToggleCrouch && !ToggleCrouchLatched)
 			{
 				KerbalIva.targetCrouchFraction = 1.0f - KerbalIva.targetCrouchFraction;
