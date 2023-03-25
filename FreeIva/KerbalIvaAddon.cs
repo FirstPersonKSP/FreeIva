@@ -469,7 +469,6 @@ namespace FreeIva
 				GameEvents.OnIVACameraKerbalChange.Fire(TargetedSeat.kerbalRef);
 
 				FreeIva.EnableInternals(); // SetCameraIVA also calls FlightGlobals.ActiveVessel.SetActiveInternalSpace(activeInternalPart); which will hide all other IVAs
-				FreeIva.SetRenderQueues(TargetedSeat.part);
 			}
 
 			KerbalIva.gameObject.SetActive(false);
@@ -523,6 +522,7 @@ namespace FreeIva
 
 			CameraManager.Instance.SetCameraIVA(targetKerbal, true);
 			targetKerbal.IVAEnable(true);
+			FreeIva.EnableInternals(); // SetCameraIVA also calls FlightGlobals.ActiveVessel.SetActiveInternalSpace(activeInternalPart); which will hide all other IVAs
 		}
 
 		public void MoveKerbalToSeat(ProtoCrewMember crewMember, InternalSeat newSeat)
