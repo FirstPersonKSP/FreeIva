@@ -190,9 +190,9 @@ namespace FreeIva
 
 		private void OnVesselWasModified(Vessel vessel)
 		{
-			if (vessel == FlightGlobals.ActiveVessel)
+			if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA)
 			{
-				EnableInternals();
+				m_internalVisibilityDirty = true;
 			}
 		}
 
@@ -219,6 +219,18 @@ namespace FreeIva
 		public void FixedUpdate()
 		{
 			UpdateCurrentPart();
+		}
+
+		bool m_internalVisibilityDirty = false;
+
+		void LateUpdate()
+		{
+			if (m_internalVisibilityDirty)
+			{
+				EnableInternals();
+				KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.StopCoroutine(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.refreshCoroutine);
+				m_internalVisibilityDirty = false;
+			}
 		}
 
 		public static int DepthMaskQueue = 999;
