@@ -43,7 +43,7 @@ namespace FreeIva
 #endif
 
 		public bool buckled = true;
-		public ProtoCrewMember ActiveKerbal;
+		public ProtoCrewMember ActiveKerbal => CameraManager.Instance.ivaCameraActiveKerbal?.protoCrewMember;
 		public InternalSeat OriginalSeat = null;
 		public InternalSeat TargetedSeat = null;
 		public bool Gravity = true;
@@ -66,6 +66,7 @@ namespace FreeIva
 			CreateCameraCollider();
 
 			GameEvents.OnCameraChange.Add(OnCameraChange);
+			GameEvents.OnIVACameraKerbalChange.Add(OnIVACameraKerbalChange);
 			_instance = this;
 		}
 
@@ -73,6 +74,7 @@ namespace FreeIva
 		{
 			GameObject.Destroy(KerbalIva);
 			GameEvents.OnCameraChange.Remove(OnCameraChange);
+			GameEvents.OnIVACameraKerbalChange.Remove(OnIVACameraKerbalChange);
 			_instance = null;
 			KerbalIva = null;
 		}
@@ -115,7 +117,6 @@ namespace FreeIva
 
 			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)
 			{
-				ActiveKerbal = null;
 				GuiTutorial.Active = false;
 			}
 			else
@@ -221,6 +222,11 @@ namespace FreeIva
 			}
 #endif
 			_previousCameraMode = cameraMode;
+		}
+
+		private void OnIVACameraKerbalChange(Kerbal data)
+		{
+			UpdateActiveKerbal();
 		}
 
 		// Returns (8.018946, 0.0083341, -5.557827) while clamped to the runway.
@@ -462,13 +468,7 @@ namespace FreeIva
 
 			if (resetCamera)
 			{
-				// SetCameraIVA will actually change to flight mode if called with the current kerbal and already in iva mode
-				// to prevent this, forcibly change the current camera mode (this will emit an extra mode changed event, but it should be fine)
-				CameraManager.Instance.currentCameraMode = CameraManager.CameraMode.Internal;
-				CameraManager.Instance.SetCameraIVA(ActiveKerbal.KerbalRef, false);
-				GameEvents.OnIVACameraKerbalChange.Fire(TargetedSeat.kerbalRef);
-
-				FreeIva.EnableInternals(); // SetCameraIVA also calls FlightGlobals.ActiveVessel.SetActiveInternalSpace(activeInternalPart); which will hide all other IVAs
+				SetCameraIVA(ActiveKerbal.KerbalRef);
 			}
 
 			KerbalIva.gameObject.SetActive(false);
@@ -493,6 +493,8 @@ namespace FreeIva
 
 		private void ReturnToSeatInternal(bool resetCamera)
 		{
+			if (buckled) return;
+
 			// some of this stuff should probably get moved to a common function
 			KerbalIva.gameObject.SetActive(false);
 			buckled = true;
@@ -510,9 +512,9 @@ namespace FreeIva
 			ScreenMessages.PostScreenMessage(Localizer.Format("#FreeIVA_Message_KermanReturnedSeat", ActiveKerbal.name), 1f, ScreenMessageStyle.LOWER_CENTER);
 		}
 
-		void SwitchToKerbal()
+		public void SwitchToKerbal()
 		{
-			if (buckled || TargetedSeat == null || TargetedSeat.crew == ActiveKerbal)
+			if (TargetedSeat == null || TargetedSeat.crew == ActiveKerbal)
 			{
 				return;
 			}
@@ -520,8 +522,22 @@ namespace FreeIva
 			var targetKerbal = TargetedSeat.kerbalRef;
 			ReturnToSeatInternal(false);
 
-			CameraManager.Instance.SetCameraIVA(targetKerbal, true);
-			targetKerbal.IVAEnable(true);
+			SetCameraIVA(targetKerbal);
+		}
+
+		void SetCameraIVA(Kerbal kerbal)
+		{
+			// SetCameraIVA will actually change to flight mode if called with the current kerbal and already in iva mode, so make sure that doesn't happen
+			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA ||
+				CameraManager.Instance.ivaCameraActiveKerbal != kerbal)
+			{
+				CameraManager.Instance.SetCameraIVA(kerbal, false);
+			}
+
+			GameEvents.OnIVACameraKerbalChange.Fire(kerbal);
+
+			kerbal.IVAEnable(true);
+
 			FreeIva.EnableInternals(); // SetCameraIVA also calls FlightGlobals.ActiveVessel.SetActiveInternalSpace(activeInternalPart); which will hide all other IVAs
 		}
 
@@ -644,7 +660,6 @@ namespace FreeIva
 
 		private void UpdateActiveKerbal()
 		{
-			ActiveKerbal = CameraManager.Instance.IVACameraActiveKerbal.protoCrewMember;
 			if (ActiveKerbal.KerbalRef != null && ActiveKerbal.KerbalRef.InPart != null)
 			{
 				FreeIva.SetCurrentPart(InternalModuleFreeIva.GetForModel(ActiveKerbal.seat.internalModel));
