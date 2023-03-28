@@ -268,10 +268,12 @@ namespace FreeIva
 			// Part colliders are larger than the parts themselves and overlap.
 			// Find which of the containing parts we're nearest to.
 			possibleModules.Clear();
+			bool currentModuleBoundsCamera = false;
 
 			if (CurrentPart != null) // e.g. on part destroyed.
 			{
-				if (InternalModuleBoundsCamera(CurrentInternalModuleFreeIva))
+				currentModuleBoundsCamera = InternalModuleBoundsCamera(CurrentInternalModuleFreeIva);
+				if (currentModuleBoundsCamera)
 				{
 					possibleModules.Add(CurrentInternalModuleFreeIva);
 				}
@@ -342,7 +344,11 @@ namespace FreeIva
 				}
 			}
 
-			SetCurrentPart(newModule);
+			if (newModule != null || !currentModuleBoundsCamera)
+			{
+				SetCurrentPart(newModule);
+			}
+
 			/*else
                 Debug.Log("# No closest part found.");*/
 			// Keep the last part we were inside as the current part: We could be transitioning between hatches.
