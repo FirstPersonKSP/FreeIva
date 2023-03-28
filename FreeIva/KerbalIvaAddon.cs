@@ -186,6 +186,7 @@ namespace FreeIva
 				{
 					ivaOverlay.onDismiss = null;
 				}
+				FreeIva.EnableInternals();
 			}
 			else if (cameraMode != CameraManager.CameraMode.IVA && _previousCameraMode == CameraManager.CameraMode.IVA)
 			{
