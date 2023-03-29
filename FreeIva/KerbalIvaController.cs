@@ -46,6 +46,9 @@ namespace FreeIva
 		// TODO: Vary this by kerbal stats and equipment carried: 45kg for a kerbal, 94kg with full jetpack and parachute.
 		public static float KerbalMass = 1000f * 0.03125f; // From persistent file for EVA kerbal. Use PhysicsGlobals.KerbalCrewMass instead?
 
+		public const float MIN_ACCEL_FOR_HORIZON_LANDED = 0.05f; // allow free movement on gilly, but not minmus
+		public const float MIN_ACCEL_FOR_HORIZON_AIRBORNE = 3f; // roughly 0.3g, slightly more than duna gravity but still less than the default acceleration
+
 		void Awake()
 		{
 			gameObject.layer = (int)Layers.Kerbals;
@@ -423,18 +426,14 @@ namespace FreeIva
 		Vector3 UpdateGravity()
 		{
 			Vector3 flightAccel = KerbalIvaAddon.GetInternalSubjectiveAcceleration(FreeIva.CurrentInternalModuleFreeIva, transform.position);
-			
-			usingRelativeMovement = flightAccel.magnitude > 0.05; // allow free movement on gilly
-			
-			if (usingRelativeMovement)
-			{
-				horizonDownVector = flightAccel.normalized;
-			}
-			else
-			{
-				horizonDownVector = Vector3.zero;
-			}
 
+			float minAccelForHorizon = FlightGlobals.ActiveVessel.LandedOrSplashed
+				? MIN_ACCEL_FOR_HORIZON_LANDED
+				: MIN_ACCEL_FOR_HORIZON_AIRBORNE;
+
+			usingRelativeMovement = flightAccel.magnitude >= minAccelForHorizon;
+			horizonDownVector = usingRelativeMovement ? flightAccel : Vector3.zero;
+			
 			return flightAccel;
 		}
 
@@ -484,7 +483,7 @@ namespace FreeIva
 			}
 
 			// try exiting a centrifuge
-			if (currentCentrifuge != null && GetCentrifugeAccel().magnitude < 0.05f)
+			if (currentCentrifuge != null && GetCentrifugeAccel().magnitude < MIN_ACCEL_FOR_HORIZON_LANDED)
 			{
 				ExitCentrifuge();
 			}

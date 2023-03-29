@@ -230,21 +230,31 @@ namespace FreeIva
 			UpdateActiveKerbal();
 		}
 
-		public static Vector3 GetFlightAccelerationInternalSpace()
+		static Vector3 WorldDirectionToInternal(Vector3 worldDirection)
+		{
+			Quaternion direction = Quaternion.LookRotation(worldDirection);
+			Quaternion internalDirection = InternalSpace.WorldToInternal(direction);
+			return internalDirection * Vector3.forward;
+		}
+
+		internal static Vector3 GetFlightAccelerationInternalSpace()
 		{
 			// TODO: need to subtract the centrifugal acceleration caused by the ship's movement
 			// ideally for an object in orbit, this function should return a zero vector
 			// wait, but something in a ballistic arc should also be weightless...
 
-			Vector3 accelWorldSpace = -FlightGlobals.ActiveVessel.perturbation; ;
+			Vector3 accelWorldSpace = FlightGlobals.ActiveVessel.LandedOrSplashed
+				? FlightGlobals.ActiveVessel.graviticAcceleration
+				: -FlightGlobals.ActiveVessel.perturbation;
 
 			float magnitude = accelWorldSpace.magnitude;
 
-			if (magnitude <= 0.01f) return Vector3.zero;
+			if (magnitude <= 0.01f)
+			{
+				return Vector3.zero;
+			}
 
-			Quaternion direction = Quaternion.LookRotation(accelWorldSpace);
-			Quaternion internalDirection = InternalSpace.WorldToInternal(direction);
-			return internalDirection * Vector3.forward * magnitude;
+			return WorldDirectionToInternal(accelWorldSpace) * magnitude;
 		}
 
 		public static Vector3 GetCentrifugeAccel(ICentrifuge centrifuge, Vector3 internalSpacePosition)
