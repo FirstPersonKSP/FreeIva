@@ -230,32 +230,17 @@ namespace FreeIva
 			UpdateActiveKerbal();
 		}
 
-		// Returns (8.018946, 0.0083341, -5.557827) while clamped to the runway.
-		public static Vector3 GetFlightAccelerationWorldSpace()
-		{
-			//Vector3 gravityAccel = FlightGlobals.getGeeForceAtPosition(KerbalIva.transform.position);
-			//Vector3 centrifugalAccel = FlightGlobals.getCentrifugalAcc(KerbalIva.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
-			//Vector3 coriolisAccel = FlightGlobals.getCoriolisAcc(FreeIva.CurrentPart.vessel.rb_velocity + Krakensbane.GetFrameVelocityV3f(), FreeIva.CurrentPart.orbit.referenceBody);
-
-			// this should be the linear acceleration of the vessel itself
-			// TODO: add centrifugal forces from the vessel rotating?
-			Vector3 result = -FlightGlobals.ActiveVessel.perturbation;
-			
-			return result.sqrMagnitude <= 1e-4f ? Vector3.zero : result;
-			//return gravityAccel + centrifugalAccel + coriolisAccel;
-		}
-
 		public static Vector3 GetFlightAccelerationInternalSpace()
 		{
 			// TODO: need to subtract the centrifugal acceleration caused by the ship's movement
 			// ideally for an object in orbit, this function should return a zero vector
 			// wait, but something in a ballistic arc should also be weightless...
 
-			Vector3 accelWorldSpace = GetFlightAccelerationWorldSpace();
+			Vector3 accelWorldSpace = -FlightGlobals.ActiveVessel.perturbation; ;
 
 			float magnitude = accelWorldSpace.magnitude;
 
-			if (magnitude == 0) return Vector3.zero;
+			if (magnitude <= 0.01f) return Vector3.zero;
 
 			Quaternion direction = Quaternion.LookRotation(accelWorldSpace);
 			Quaternion internalDirection = InternalSpace.WorldToInternal(direction);

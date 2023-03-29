@@ -78,12 +78,12 @@ namespace FreeIva
 			CameraAnchor.SetParent(transform, false);
 		}
 
-		public void OrientToGravity(Vector3 flightAccel)
+		public void OrientToGravity()
 		{
 			if (UseRelativeMovement())
 			{
 				// get the vector pointing straight down, and pitch it up by 90 degrees
-				transform.rotation = Quaternion.LookRotation(flightAccel, transform.rotation * Vector3.forward) * Quaternion.AngleAxis(90, Vector3.left);
+				transform.rotation = Quaternion.LookRotation(horizonDownVector, transform.rotation * Vector3.forward) * Quaternion.AngleAxis(90, Vector3.left);
 			}
 		}
 
@@ -136,7 +136,7 @@ namespace FreeIva
 
 			if (UseRelativeMovement())
 			{
-				OrientToGravity(flightAccel);
+				OrientToGravity();
 			}
 			else
 			{
@@ -152,6 +152,7 @@ namespace FreeIva
 		}
 
 		bool usingRelativeMovement;
+		Vector3 horizonDownVector = Vector3.zero;
 
 		public bool UseRelativeMovement()
 		{
@@ -425,6 +426,15 @@ namespace FreeIva
 			
 			usingRelativeMovement = flightAccel.magnitude > 0.05; // allow free movement on gilly
 			
+			if (usingRelativeMovement)
+			{
+				horizonDownVector = flightAccel.normalized;
+			}
+			else
+			{
+				horizonDownVector = Vector3.zero;
+			}
+
 			return flightAccel;
 		}
 
@@ -500,7 +510,7 @@ namespace FreeIva
 			//FallthroughCheck();
 			
 			// TODO: if we don't have ground contact, we prbably shouldn't reorient
-			OrientToGravity(flightAccel);
+			OrientToGravity();
 
 			if (aimCamera)
 			{
