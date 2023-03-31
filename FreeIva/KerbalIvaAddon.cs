@@ -420,7 +420,7 @@ namespace FreeIva
 			{
 				Buckle();
 			}
-			else if (input.SwitchTo)
+			else if (input.SwitchTo && !buckled)
 			{
 				SwitchToKerbal();
 			}
