@@ -190,9 +190,9 @@ namespace FreeIva
 
 		private void OnVesselWasModified(Vessel vessel)
 		{
-			if (vessel == FlightGlobals.ActiveVessel)
+			if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA)
 			{
-				EnableInternals();
+				m_internalVisibilityDirty = true;
 			}
 		}
 
@@ -219,6 +219,18 @@ namespace FreeIva
 		public void FixedUpdate()
 		{
 			UpdateCurrentPart();
+		}
+
+		bool m_internalVisibilityDirty = false;
+
+		void LateUpdate()
+		{
+			if (m_internalVisibilityDirty)
+			{
+				EnableInternals();
+				KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.StopCoroutine(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.refreshCoroutine);
+				m_internalVisibilityDirty = false;
+			}
 		}
 
 		public static int DepthMaskQueue = 999;
@@ -256,10 +268,12 @@ namespace FreeIva
 			// Part colliders are larger than the parts themselves and overlap.
 			// Find which of the containing parts we're nearest to.
 			possibleModules.Clear();
+			bool currentModuleBoundsCamera = false;
 
 			if (CurrentPart != null) // e.g. on part destroyed.
 			{
-				if (InternalModuleBoundsCamera(CurrentInternalModuleFreeIva))
+				currentModuleBoundsCamera = InternalModuleBoundsCamera(CurrentInternalModuleFreeIva);
+				if (currentModuleBoundsCamera)
 				{
 					possibleModules.Add(CurrentInternalModuleFreeIva);
 				}
@@ -330,7 +344,11 @@ namespace FreeIva
 				}
 			}
 
-			SetCurrentPart(newModule);
+			if (newModule != null || !currentModuleBoundsCamera)
+			{
+				SetCurrentPart(newModule);
+			}
+
 			/*else
                 Debug.Log("# No closest part found.");*/
 			// Keep the last part we were inside as the current part: We could be transitioning between hatches.

@@ -43,7 +43,7 @@ namespace FreeIva
 #endif
 
 		public bool buckled = true;
-		public ProtoCrewMember ActiveKerbal;
+		public ProtoCrewMember ActiveKerbal => CameraManager.Instance.ivaCameraActiveKerbal?.protoCrewMember;
 		public InternalSeat OriginalSeat = null;
 		public InternalSeat TargetedSeat = null;
 		public bool Gravity = true;
@@ -66,6 +66,7 @@ namespace FreeIva
 			CreateCameraCollider();
 
 			GameEvents.OnCameraChange.Add(OnCameraChange);
+			GameEvents.OnIVACameraKerbalChange.Add(OnIVACameraKerbalChange);
 			_instance = this;
 		}
 
@@ -73,6 +74,7 @@ namespace FreeIva
 		{
 			GameObject.Destroy(KerbalIva);
 			GameEvents.OnCameraChange.Remove(OnCameraChange);
+			GameEvents.OnIVACameraKerbalChange.Remove(OnIVACameraKerbalChange);
 			_instance = null;
 			KerbalIva = null;
 		}
@@ -115,7 +117,6 @@ namespace FreeIva
 
 			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)
 			{
-				ActiveKerbal = null;
 				GuiTutorial.Active = false;
 			}
 			else
@@ -185,6 +186,7 @@ namespace FreeIva
 				{
 					ivaOverlay.onDismiss = null;
 				}
+				FreeIva.EnableInternals();
 			}
 			else if (cameraMode != CameraManager.CameraMode.IVA && _previousCameraMode == CameraManager.CameraMode.IVA)
 			{
@@ -223,36 +225,36 @@ namespace FreeIva
 			_previousCameraMode = cameraMode;
 		}
 
-		// Returns (8.018946, 0.0083341, -5.557827) while clamped to the runway.
-		public static Vector3 GetFlightAccelerationWorldSpace()
+		private void OnIVACameraKerbalChange(Kerbal data)
 		{
-			//Vector3 gravityAccel = FlightGlobals.getGeeForceAtPosition(KerbalIva.transform.position);
-			//Vector3 centrifugalAccel = FlightGlobals.getCentrifugalAcc(KerbalIva.transform.position, FreeIva.CurrentPart.orbit.referenceBody);
-			//Vector3 coriolisAccel = FlightGlobals.getCoriolisAcc(FreeIva.CurrentPart.vessel.rb_velocity + Krakensbane.GetFrameVelocityV3f(), FreeIva.CurrentPart.orbit.referenceBody);
-
-			// this should be the linear acceleration of the vessel itself
-			// TODO: add centrifugal forces from the vessel rotating?
-			Vector3 result = -FlightGlobals.ActiveVessel.perturbation;
-			
-			return result.sqrMagnitude <= 1e-4f ? Vector3.zero : result;
-			//return gravityAccel + centrifugalAccel + coriolisAccel;
+			UpdateActiveKerbal();
 		}
 
-		public static Vector3 GetFlightAccelerationInternalSpace()
+		static Vector3 WorldDirectionToInternal(Vector3 worldDirection)
+		{
+			Quaternion direction = Quaternion.LookRotation(worldDirection);
+			Quaternion internalDirection = InternalSpace.WorldToInternal(direction);
+			return internalDirection * Vector3.forward;
+		}
+
+		internal static Vector3 GetFlightAccelerationInternalSpace()
 		{
 			// TODO: need to subtract the centrifugal acceleration caused by the ship's movement
 			// ideally for an object in orbit, this function should return a zero vector
 			// wait, but something in a ballistic arc should also be weightless...
 
-			Vector3 accelWorldSpace = GetFlightAccelerationWorldSpace();
+			Vector3 accelWorldSpace = FlightGlobals.ActiveVessel.LandedOrSplashed
+				? FlightGlobals.ActiveVessel.graviticAcceleration
+				: -FlightGlobals.ActiveVessel.perturbation;
 
 			float magnitude = accelWorldSpace.magnitude;
 
-			if (magnitude == 0) return Vector3.zero;
+			if (magnitude <= 0.01f)
+			{
+				return Vector3.zero;
+			}
 
-			Quaternion direction = Quaternion.LookRotation(accelWorldSpace);
-			Quaternion internalDirection = InternalSpace.WorldToInternal(direction);
-			return internalDirection * Vector3.forward * magnitude;
+			return WorldDirectionToInternal(accelWorldSpace) * magnitude;
 		}
 
 		public static Vector3 GetCentrifugeAccel(ICentrifuge centrifuge, Vector3 internalSpacePosition)
@@ -418,7 +420,7 @@ namespace FreeIva
 			{
 				Buckle();
 			}
-			else if (input.SwitchTo)
+			else if (input.SwitchTo && !buckled)
 			{
 				SwitchToKerbal();
 			}
@@ -462,14 +464,7 @@ namespace FreeIva
 
 			if (resetCamera)
 			{
-				// SetCameraIVA will actually change to flight mode if called with the current kerbal and already in iva mode
-				// to prevent this, forcibly change the current camera mode (this will emit an extra mode changed event, but it should be fine)
-				CameraManager.Instance.currentCameraMode = CameraManager.CameraMode.Internal;
-				CameraManager.Instance.SetCameraIVA(ActiveKerbal.KerbalRef, false);
-				GameEvents.OnIVACameraKerbalChange.Fire(TargetedSeat.kerbalRef);
-
-				FreeIva.EnableInternals(); // SetCameraIVA also calls FlightGlobals.ActiveVessel.SetActiveInternalSpace(activeInternalPart); which will hide all other IVAs
-				FreeIva.SetRenderQueues(TargetedSeat.part);
+				SetCameraIVA(ActiveKerbal.KerbalRef);
 			}
 
 			KerbalIva.gameObject.SetActive(false);
@@ -494,6 +489,8 @@ namespace FreeIva
 
 		private void ReturnToSeatInternal(bool resetCamera)
 		{
+			if (buckled) return;
+
 			// some of this stuff should probably get moved to a common function
 			KerbalIva.gameObject.SetActive(false);
 			buckled = true;
@@ -511,9 +508,9 @@ namespace FreeIva
 			ScreenMessages.PostScreenMessage(Localizer.Format("#FreeIVA_Message_KermanReturnedSeat", ActiveKerbal.name), 1f, ScreenMessageStyle.LOWER_CENTER);
 		}
 
-		void SwitchToKerbal()
+		public void SwitchToKerbal()
 		{
-			if (buckled || TargetedSeat == null || TargetedSeat.crew == ActiveKerbal)
+			if (TargetedSeat == null || TargetedSeat.crew == ActiveKerbal)
 			{
 				return;
 			}
@@ -521,8 +518,23 @@ namespace FreeIva
 			var targetKerbal = TargetedSeat.kerbalRef;
 			ReturnToSeatInternal(false);
 
-			CameraManager.Instance.SetCameraIVA(targetKerbal, true);
-			targetKerbal.IVAEnable(true);
+			SetCameraIVA(targetKerbal);
+		}
+
+		void SetCameraIVA(Kerbal kerbal)
+		{
+			// SetCameraIVA will actually change to flight mode if called with the current kerbal and already in iva mode, so make sure that doesn't happen
+			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA ||
+				CameraManager.Instance.ivaCameraActiveKerbal != kerbal)
+			{
+				CameraManager.Instance.SetCameraIVA(kerbal, false);
+			}
+
+			GameEvents.OnIVACameraKerbalChange.Fire(kerbal);
+
+			kerbal.IVAEnable(true);
+
+			FreeIva.EnableInternals(); // SetCameraIVA also calls FlightGlobals.ActiveVessel.SetActiveInternalSpace(activeInternalPart); which will hide all other IVAs
 		}
 
 		public void MoveKerbalToSeat(ProtoCrewMember crewMember, InternalSeat newSeat)
@@ -644,7 +656,6 @@ namespace FreeIva
 
 		private void UpdateActiveKerbal()
 		{
-			ActiveKerbal = CameraManager.Instance.IVACameraActiveKerbal.protoCrewMember;
 			if (ActiveKerbal.KerbalRef != null && ActiveKerbal.KerbalRef.InPart != null)
 			{
 				FreeIva.SetCurrentPart(InternalModuleFreeIva.GetForModel(ActiveKerbal.seat.internalModel));

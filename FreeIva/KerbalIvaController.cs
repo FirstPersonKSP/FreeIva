@@ -46,6 +46,9 @@ namespace FreeIva
 		// TODO: Vary this by kerbal stats and equipment carried: 45kg for a kerbal, 94kg with full jetpack and parachute.
 		public static float KerbalMass = 1000f * 0.03125f; // From persistent file for EVA kerbal. Use PhysicsGlobals.KerbalCrewMass instead?
 
+		public const float MIN_ACCEL_FOR_HORIZON_LANDED = 0.05f; // allow free movement on gilly, but not minmus
+		public const float MIN_ACCEL_FOR_HORIZON_AIRBORNE = 3f; // roughly 0.3g, slightly more than duna gravity but still less than the default acceleration
+
 		void Awake()
 		{
 			gameObject.layer = (int)Layers.Kerbals;
@@ -78,12 +81,12 @@ namespace FreeIva
 			CameraAnchor.SetParent(transform, false);
 		}
 
-		public void OrientToGravity(Vector3 flightAccel)
+		public void OrientToGravity()
 		{
 			if (UseRelativeMovement())
 			{
 				// get the vector pointing straight down, and pitch it up by 90 degrees
-				transform.rotation = Quaternion.LookRotation(flightAccel, transform.rotation * Vector3.forward) * Quaternion.AngleAxis(90, Vector3.left);
+				transform.rotation = Quaternion.LookRotation(horizonDownVector, transform.rotation * Vector3.forward) * Quaternion.AngleAxis(90, Vector3.left);
 			}
 		}
 
@@ -136,7 +139,7 @@ namespace FreeIva
 
 			if (UseRelativeMovement())
 			{
-				OrientToGravity(flightAccel);
+				OrientToGravity();
 			}
 			else
 			{
@@ -152,6 +155,7 @@ namespace FreeIva
 		}
 
 		bool usingRelativeMovement;
+		Vector3 horizonDownVector = Vector3.zero;
 
 		public bool UseRelativeMovement()
 		{
@@ -422,8 +426,13 @@ namespace FreeIva
 		Vector3 UpdateGravity()
 		{
 			Vector3 flightAccel = KerbalIvaAddon.GetInternalSubjectiveAcceleration(FreeIva.CurrentInternalModuleFreeIva, transform.position);
-			
-			usingRelativeMovement = flightAccel.magnitude > 0.05; // allow free movement on gilly
+
+			float minAccelForHorizon = FlightGlobals.ActiveVessel.LandedOrSplashed
+				? MIN_ACCEL_FOR_HORIZON_LANDED
+				: MIN_ACCEL_FOR_HORIZON_AIRBORNE;
+
+			usingRelativeMovement = flightAccel.magnitude >= minAccelForHorizon;
+			horizonDownVector = usingRelativeMovement ? flightAccel : Vector3.zero;
 			
 			return flightAccel;
 		}
@@ -474,7 +483,7 @@ namespace FreeIva
 			}
 
 			// try exiting a centrifuge
-			if (currentCentrifuge != null && GetCentrifugeAccel().magnitude < 0.05f)
+			if (currentCentrifuge != null && GetCentrifugeAccel().magnitude < MIN_ACCEL_FOR_HORIZON_LANDED)
 			{
 				ExitCentrifuge();
 			}
@@ -500,7 +509,7 @@ namespace FreeIva
 			//FallthroughCheck();
 			
 			// TODO: if we don't have ground contact, we prbably shouldn't reorient
-			OrientToGravity(flightAccel);
+			OrientToGravity();
 
 			if (aimCamera)
 			{
