@@ -41,6 +41,9 @@ namespace FreeIva
 		[SerializeField]
 		protected Collider m_collider;
 
+		[SerializeField]
+		ClickWatcher m_clickWatcher;
+
 		bool m_applyGravity = false;
 		public bool IsGrabbed { get; private set; }
 
@@ -78,6 +81,8 @@ namespace FreeIva
 
 					m_collisionTracker = m_collider.gameObject.AddComponent<CollisionTracker>();
 					m_collisionTracker.PhysicalProp = this;
+
+					m_clickWatcher = m_collider.gameObject.AddComponent<ClickWatcher>();
 				}
 				else
 				{
@@ -152,6 +157,33 @@ namespace FreeIva
 			}
 		}
 		#endregion
+
+		protected void Start()
+		{
+			if (!HighLogic.LoadedSceneIsFlight) return;
+
+			if (m_clickWatcher != null)
+			{
+				m_clickWatcher.AddMouseDownAction(OnPropMouseDown);
+			}
+		}
+
+		static Vector3 localHandPosition = new Vector3(0.1f, 0.4f, 0.2f);
+		static float throwSpeed = 1.0f;
+
+		private void OnPropMouseDown()
+		{
+			if (!IsGrabbed)
+			{
+				rigidBodyObject.transform.SetParent(KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.transform, true);
+				rigidBodyObject.transform.localPosition = localHandPosition;
+				Grab();
+			}
+			else
+			{
+				Release(InternalCamera.Instance._camera.transform.forward * throwSpeed, Vector3.zero);
+			}
+		}
 
 		protected AudioClip LoadAudioClip(ConfigNode node, string key)
 		{

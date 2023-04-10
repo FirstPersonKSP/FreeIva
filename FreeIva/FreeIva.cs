@@ -94,15 +94,6 @@ namespace FreeIva
 			ivaSun.ivaLight.shadowBias = 0;
 			ivaSun.ivaLight.shadowNormalBias = 0;
 			ivaSun.ivaLight.shadows = LightShadows.Hard;
-			
-
-			// prevent mouse clicks from hitting the kerbal collider or the internal shell
-			// Some of the shell colliders are a little too tight and block props
-			// This has a few downsides:
-			// -you're able to click on things through hatches (unless they have a second collider on layer 20)
-			// -any props that are on the wrong layer (16) will not be clickable
-			// eventually it might be prudent to undo this change, make the kerbal a single capsule collider, and fix the shell colliders instead
-			InternalCamera.Instance._camera.eventMask &= ~(1 << (int)Layers.Kerbals);
 		}
 
 		private void OnCrewOnEva(GameEvents.FromToAction<Part, Part> data)
@@ -219,6 +210,23 @@ namespace FreeIva
 		public void FixedUpdate()
 		{
 			UpdateCurrentPart();
+
+			// prevent mouse clicks from hitting the kerbal collider or the internal shell
+			// Some of the shell colliders are a little too tight and block props
+			// This has a few downsides:
+			// -you're able to click on things through hatches (unless they have a second collider on layer 20)
+			// -any props that are on the wrong layer (16) will not be clickable
+			// eventually it might be prudent to undo this change, make the kerbal a single capsule collider, and fix the shell colliders instead
+
+			// update for Physical Props: allow clicking on layer 16 when the modifier key is held
+			if (GameSettings.MODIFIER_KEY.GetKey())
+			{
+				InternalCamera.Instance._camera.eventMask |= (1 << (int)Layers.Kerbals);
+			}
+			else
+			{
+				InternalCamera.Instance._camera.eventMask &= ~(1 << (int)Layers.Kerbals);
+			}
 		}
 
 		bool m_internalVisibilityDirty = false;
