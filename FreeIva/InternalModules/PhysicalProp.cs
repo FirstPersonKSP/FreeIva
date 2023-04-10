@@ -20,6 +20,9 @@ namespace FreeIva
 		[KSPField]
 		public string transformName = string.Empty;
 
+		[KSPField]
+		public Vector3 grabbedScale = Vector3.one;
+
 		[SerializeField]
 		CollisionTracker m_collisionTracker;
 
@@ -44,6 +47,7 @@ namespace FreeIva
 		[SerializeField]
 		ClickWatcher m_clickWatcher;
 
+		Vector3 originalScale;
 		bool m_applyGravity = false;
 		public bool IsGrabbed { get; private set; }
 
@@ -178,7 +182,8 @@ namespace FreeIva
 			}
 		}
 
-		static Vector3 localHandPosition = new Vector3(0.1f, 0.2f, 0.3f);
+		static Vector3 localHandRotation = new Vector3(90, 225, 0);
+		static Vector3 localHandPosition = new Vector3(0.3f, -0.1f, 0.3f);
 		static float throwSpeed = 1.0f;
 
 		private void OnPropMouseDown()
@@ -188,10 +193,18 @@ namespace FreeIva
 				if (x_lastProp != null)
 				{
 					x_lastProp.Release(InternalCamera.Instance._camera.transform.forward * throwSpeed, Vector3.zero);
+					x_lastProp.transform.localScale = x_lastProp.originalScale;
+					x_lastProp = null;
 				}
 
-				rigidBodyObject.transform.SetParent(KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.transform, true);
+				x_lastProp = this;
+
+				originalScale = rigidBodyObject.transform.localScale;
+
+				rigidBodyObject.transform.SetParent(InternalCamera.Instance._camera.transform, true);
 				rigidBodyObject.transform.localPosition = localHandPosition;
+				rigidBodyObject.transform.localScale = grabbedScale;
+				rigidBodyObject.transform.localRotation = Quaternion.Euler(localHandRotation);
 				Grab();
 			}
 		}
@@ -312,10 +325,6 @@ namespace FreeIva
 			m_collider.enabled = true;
 			IsGrabbed = false;
 
-			if (x_lastProp == this)
-			{
-				x_lastProp = null;
-			}
 			// TODO: switch back to kinematic when it comes to rest (or not? it's fun to kick around)
 		}
 
@@ -344,8 +353,6 @@ namespace FreeIva
 
 			PlayAudioClip(m_grabAudioClip);
 			IsGrabbed = true;
-
-			x_lastProp = this;
 		}
 
 		void FixedUpdate()
