@@ -1,0 +1,380 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+using UnityEngine;
+
+namespace FreeIva
+{
+	public class PhysicalProp : InternalModule
+	{
+		[KSPField]
+		public bool isSticky = false; // when released, if this is overlapping another collider then it will attach to it
+
+		[KSPField]
+		public string placeSound = string.Empty;
+
+		[KSPField]
+		public string transformName = string.Empty;
+
+		[SerializeField]
+		CollisionTracker m_collisionTracker;
+
+		[SerializeField]
+		protected Interaction m_interaction;
+
+		Rigidbody m_rigidBody;
+		InternalModuleFreeIva m_freeIvaModule;
+
+		[SerializeField]
+		protected AudioSource m_audioSource;
+		[SerializeReference]
+		AudioClip m_grabAudioClip;
+		[SerializeReference]
+		AudioClip m_stickAudioClip;
+		[SerializeReference]
+		AudioClip m_impactAudioClip;
+
+		[SerializeField]
+		protected Collider m_collider;
+
+		bool m_applyGravity = false;
+		public bool IsGrabbed { get; private set; }
+
+		public override void OnLoad(ConfigNode node)
+		{
+			base.OnLoad(node);
+
+			if (HighLogic.LoadedScene == GameScenes.LOADING)
+			{
+				var colliderNode = node.GetNode("Collider");
+				if (colliderNode != null)
+				{
+					string dbgName = internalProp.hasModel ? internalProp.propName : internalModel.internalName;
+
+					m_collider = ColliderUtil.CreateCollider(internalProp.hasModel ? transform : internalModel.transform, colliderNode, dbgName);
+				}
+				else if (transformName != string.Empty)
+				{
+					var colliderTransform = TransformUtil.FindPropTransform(internalProp, transformName);
+					if (colliderTransform != null)
+					{
+						m_collider = colliderTransform.GetComponent<Collider>();
+					}
+				}
+				else
+				{
+					m_collider = GetComponentInChildren<Collider>();
+				}
+
+				if (m_collider != null)
+				{
+					m_collider.isTrigger = false;
+
+					m_collider.gameObject.layer = 16; // needs to be 16 to bounce off shell colliders, at least while moving.  Not sure if we want it interacting with the player.
+
+					m_collisionTracker = m_collider.gameObject.AddComponent<CollisionTracker>();
+					m_collisionTracker.PhysicalProp = this;
+				}
+				else
+				{
+					Debug.LogError($"PhysicalProp: prop {internalProp.propName} does not have a collider");
+				}
+
+				// setup audio
+				if (m_collider != null)
+				{
+					m_grabAudioClip = LoadAudioClip(node, "grabSound");
+					m_stickAudioClip = LoadAudioClip(node, "stickSound");
+					m_impactAudioClip = LoadAudioClip(node, "impactSound");
+
+					if (m_grabAudioClip != null || m_stickAudioClip != null || m_impactAudioClip != null)
+					{
+						m_audioSource = m_collider.gameObject.AddComponent<AudioSource>();
+						m_audioSource.volume = GameSettings.SHIP_VOLUME;
+						m_audioSource.minDistance = 2;
+						m_audioSource.maxDistance = 10;
+						m_audioSource.playOnAwake = false;
+						m_audioSource.spatialize = true;
+					}
+				}
+
+				// setup interactions
+				var interactionNode = node.GetNode("INTERACTION");
+				if (interactionNode != null)
+				{
+					CreateInteraction(interactionNode);
+				}
+			}
+		}
+
+		#region static stuff
+		static Dictionary<string, TypeInfo> x_interactionTypes;
+
+		static PhysicalProp()
+		{
+			x_interactionTypes = new Dictionary<string, TypeInfo>();
+			foreach (var assembly in AssemblyLoader.loadedAssemblies)
+			{
+				try
+				{
+					assembly.TypeOperation(type =>
+					{
+						if (type.IsSubclassOf(typeof(Interaction)))
+						{
+							x_interactionTypes.Add(type.Name, type.GetTypeInfo());
+						}
+					});
+				}
+				catch (Exception ex)
+				{
+					Debug.LogException(ex);
+				}
+			}
+		}
+
+		public void CreateInteraction(ConfigNode interactionNode)
+		{
+			var name = interactionNode.GetValue("name");
+
+			if (x_interactionTypes.TryGetValue(name, out var typeInfo))
+			{
+				m_interaction = (Interaction)gameObject.AddComponent(typeInfo.AsType());
+				m_interaction.PhysicalProp = this;
+				m_interaction.OnLoad(interactionNode);
+			}
+			else
+			{
+				Debug.LogError($"PROP {internalProp.propName}: No PhysicalProp.Interaction named {name} exists");
+			}
+		}
+		#endregion
+
+		protected AudioClip LoadAudioClip(ConfigNode node, string key)
+		{
+			string clipUrl = node.GetValue(key);
+			if (clipUrl == null) return null;
+
+			AudioClip result = GameDatabase.Instance.GetAudioClip(clipUrl);
+
+			if (result == null)
+			{
+				Debug.LogError($"Failed to find audio clip {clipUrl} for prop {internalProp.propName}");
+			}
+
+			return result;
+		}
+
+		public void PlayAudioClip(AudioClip clip, float volume, float pitch)
+		{
+			if (clip == null) return;
+			m_audioSource.PlayOneShot(clip);
+		}
+
+		public void PlayAudioClip(AudioClip clip)
+		{
+			PlayAudioClip(clip, GameSettings.SHIP_VOLUME, 1.0f);
+		}
+
+		public void StartAudioLoop(AudioClip clip)
+		{
+			if (clip == null) return;
+			m_audioSource.clip = clip;
+			m_audioSource.loop = true;
+			m_audioSource.volume = GameSettings.SHIP_VOLUME;
+			m_audioSource.pitch = 1.0f;
+			m_audioSource.Play();
+		}
+
+		public void StopAudioLoop()
+		{
+			m_audioSource.loop = false;
+			m_audioSource.Stop();
+		}
+
+		public void OnImpact(float magnitude)
+		{
+			if (m_interaction != null)
+			{
+				m_interaction.OnImpact(magnitude);
+			}
+
+			// TOD: maybe randomize a bit?
+			// m_audioSource.pitch = UnityEngine.Random.Range(-0.2f, 0.2f);
+			float volume = Mathf.InverseLerp(1.0f, 5.0f, magnitude);
+			if (volume == 0) return;
+
+			PlayAudioClip(m_impactAudioClip, volume, UnityEngine.Random.Range(0.8f, 1.2f));
+		}
+
+		protected GameObject rigidBodyObject => m_collider.gameObject;
+
+
+		protected void Release(Vector3 linearVelocity, Vector3 angularVelocity)
+		{
+			m_freeIvaModule = FreeIva.CurrentInternalModuleFreeIva;
+
+			rigidBodyObject.transform.SetParent(m_freeIvaModule.Centrifuge?.IVARotationRoot ?? m_freeIvaModule.internalModel.transform, true);
+
+			if (m_interaction)
+			{
+				m_interaction.OnRelease(); // this used to take the releasing hand; how do we handle (heh) this?
+			}
+
+			// are we sticking to something?
+			if (isSticky && m_collisionTracker.ContactCollider != null)
+			{
+				if (m_rigidBody != null)
+				{
+					Component.Destroy(m_rigidBody);
+					m_rigidBody = null;
+				}
+
+				m_applyGravity = false;
+			}
+			else
+			{
+				if (m_rigidBody == null)
+				{
+					m_rigidBody = rigidBodyObject.AddComponent<Rigidbody>();
+				}
+
+				m_collider.isTrigger = false;
+				m_collider.enabled = true;
+
+				m_rigidBody.isKinematic = true;
+				m_rigidBody.useGravity = false;
+
+
+				m_rigidBody.isKinematic = false;
+				m_rigidBody.WakeUp();
+
+				m_rigidBody.velocity = linearVelocity;
+				m_rigidBody.angularVelocity = angularVelocity;
+
+				// total hack? - apply reaction velocity in zero-g
+				if (!KerbalIvaAddon.Instance.buckled && !KerbalIvaAddon.Instance.KerbalIva.UseRelativeMovement())
+				{
+					// TODO: should probably have some idea of how much mass this thing is
+					KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.WakeUp();
+					KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.velocity += -linearVelocity * 0.7f;
+				}
+
+				m_applyGravity = true;
+			}
+
+			m_collider.enabled = true;
+			IsGrabbed = false;
+
+			// TODO: switch back to kinematic when it comes to rest (or not? it's fun to kick around)
+		}
+
+		protected void Grab()
+		{
+			// disable the collider so it doesn't push us around - or possibly we can just use Physics.IgnoreCollision
+			if (isSticky)
+			{
+				m_collider.isTrigger = true;
+			}
+			else
+			{
+				m_collider.enabled = false;
+			}
+
+			if (m_rigidBody != null)
+			{
+				m_rigidBody.isKinematic = true;
+				m_applyGravity = false;
+			}
+
+			if (m_interaction)
+			{
+				m_interaction.OnGrab(); // this used to take the releasing hand; how do we handle (heh) this?
+			}
+
+			PlayAudioClip(m_grabAudioClip);
+			IsGrabbed = true;
+		}
+
+		void FixedUpdate()
+		{
+			if (m_applyGravity)
+			{
+				var accel = KerbalIvaAddon.GetInternalSubjectiveAcceleration(m_freeIvaModule, rigidBodyObject.transform.position);
+				m_rigidBody.AddForce(accel, ForceMode.Acceleration);
+			}
+		}
+
+		internal class CollisionTracker : MonoBehaviour
+		{
+			public PhysicalProp PhysicalProp;
+			public Collider ContactCollider;
+
+			void FixedUpdate()
+			{
+				ContactCollider = null;
+				enabled = false;
+			}
+
+			void OnCollisionEnter(Collision other)
+			{
+				PhysicalProp.OnImpact(other.relativeVelocity.magnitude);
+			}
+
+			void OnTriggerExit(Collider other)
+			{
+				if (other == ContactCollider)
+				{
+					PhysicalProp.PlayStickyFeedback();
+				}
+			}
+
+			void OnTriggerEnter(Collider other)
+			{
+				if (other.gameObject.layer == 16 && !other.isTrigger && PhysicalProp.IsGrabbed && !ColliderIsKerbalIva(other))
+				{
+					PhysicalProp.PlayStickyFeedback();
+					ContactCollider = other;
+					enabled = true;
+				}
+			}
+
+			void OnTriggerStay(Collider other)
+			{
+				// how do we determine if this is a part of the iva shell?
+				if (other.gameObject.layer == 16 && !other.isTrigger && PhysicalProp.IsGrabbed && !ColliderIsKerbalIva(other))
+				{
+					ContactCollider = other;
+					enabled = true;
+				}
+			}
+
+			static bool ColliderIsKerbalIva(Collider collider)
+			{
+				return collider.attachedRigidbody == KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody;
+			}
+		}
+
+		protected virtual void PlayStickyFeedback()
+		{
+			if (isSticky)
+			{
+				PlayAudioClip(m_stickAudioClip);
+			}
+		}
+
+		public class Interaction : MonoBehaviour
+		{
+			public PhysicalProp PhysicalProp;
+
+			public virtual void OnLoad(ConfigNode interactionNode) { }
+
+			public virtual void OnGrab() { }
+			public virtual void OnRelease() { }
+			public virtual void OnImpact(float magnitude) { }
+		}
+	}
+}

@@ -115,6 +115,7 @@
     <Compile Include="Experimental\InteractionCollider.cs" />
     <Compile Include="Experimental\InteractiveIvaProp.cs" />
     <Compile Include="Experimental\ModuleInternalPressure.cs" />
+    <Compile Include="InternalModules\PhysicalProp.cs" />
     <Compile Include="ModuleFreeIvaPartInfo.cs" />
     <Compile Include="Shim\Kerbalism_Habitat.cs" />
     <Compile Include="InternalModules\PropBuckleButton.cs" />
