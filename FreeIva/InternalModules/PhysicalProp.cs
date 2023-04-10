@@ -47,6 +47,8 @@ namespace FreeIva
 		bool m_applyGravity = false;
 		public bool IsGrabbed { get; private set; }
 
+		static PhysicalProp x_lastProp;
+
 		public override void OnLoad(ConfigNode node)
 		{
 			base.OnLoad(node);
@@ -168,20 +170,29 @@ namespace FreeIva
 			}
 		}
 
-		static Vector3 localHandPosition = new Vector3(0.1f, 0.4f, 0.2f);
+		protected void OnDestroy()
+		{
+			if (x_lastProp == this)
+			{
+				x_lastProp = null;
+			}
+		}
+
+		static Vector3 localHandPosition = new Vector3(0.1f, 0.2f, 0.3f);
 		static float throwSpeed = 1.0f;
 
 		private void OnPropMouseDown()
 		{
 			if (!IsGrabbed)
 			{
+				if (x_lastProp != null)
+				{
+					x_lastProp.Release(InternalCamera.Instance._camera.transform.forward * throwSpeed, Vector3.zero);
+				}
+
 				rigidBodyObject.transform.SetParent(KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.transform, true);
 				rigidBodyObject.transform.localPosition = localHandPosition;
 				Grab();
-			}
-			else
-			{
-				Release(InternalCamera.Instance._camera.transform.forward * throwSpeed, Vector3.zero);
 			}
 		}
 
@@ -301,6 +312,10 @@ namespace FreeIva
 			m_collider.enabled = true;
 			IsGrabbed = false;
 
+			if (x_lastProp == this)
+			{
+				x_lastProp = null;
+			}
 			// TODO: switch back to kinematic when it comes to rest (or not? it's fun to kick around)
 		}
 
@@ -329,6 +344,8 @@ namespace FreeIva
 
 			PlayAudioClip(m_grabAudioClip);
 			IsGrabbed = true;
+
+			x_lastProp = this;
 		}
 
 		void FixedUpdate()
