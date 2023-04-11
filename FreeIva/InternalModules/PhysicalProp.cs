@@ -43,6 +43,7 @@ namespace FreeIva
 
 		[SerializeField]
 		protected Collider m_collider;
+		protected GameObject rigidBodyObject => m_collider.gameObject;
 
 		[SerializeField]
 		ClickWatcher m_clickWatcher;
@@ -186,6 +187,16 @@ namespace FreeIva
 		static Vector3 localHandPosition = new Vector3(0.3f, -0.1f, 0.3f);
 		static float throwSpeed = 1.0f;
 
+		public void StartInteraction()
+		{
+			if (m_interaction) m_interaction.StartInteraction();
+		}
+
+		public void StopInteraction()
+		{
+			if (m_interaction) m_interaction.StopInteraction();
+		}
+
 		public void ThrowProp()
 		{
 			if (HeldProp != null)
@@ -270,8 +281,6 @@ namespace FreeIva
 
 			PlayAudioClip(m_impactAudioClip, volume, UnityEngine.Random.Range(0.8f, 1.2f));
 		}
-
-		protected GameObject rigidBodyObject => m_collider.gameObject;
 
 
 		protected void Release(Vector3 linearVelocity, Vector3 angularVelocity)
@@ -430,12 +439,66 @@ namespace FreeIva
 		public class Interaction : MonoBehaviour
 		{
 			public PhysicalProp PhysicalProp;
+			public bool IsInteracting { get; protected set; }
 
 			public virtual void OnLoad(ConfigNode interactionNode) { }
 
 			public virtual void OnGrab() { }
 			public virtual void OnRelease() { }
 			public virtual void OnImpact(float magnitude) { }
+
+			public virtual void StartInteraction() {  IsInteracting = true; }
+			public virtual void StopInteraction() { IsInteracting = false; }
+		}
+
+		public class InteractionBreakable : Interaction
+		{
+			[SerializeReference] AudioClip breakSound;
+			[SerializeField] float breakSpeed = 4;
+			[SerializeField] ParticleSystem m_particleSystem;
+
+			public override void OnLoad(ConfigNode interactionNode)
+			{
+				breakSound = PhysicalProp.LoadAudioClip(interactionNode, nameof(breakSound));
+
+				interactionNode.TryGetValue(nameof(breakSpeed), ref breakSpeed);
+
+				string particleSystemName = interactionNode.GetValue(nameof(particleSystemName));
+				if (particleSystemName != null)
+				{
+					var particlePrefab = AssetLoader.Instance.GetGameObject(particleSystemName);
+					if (particlePrefab != null)
+					{
+						var particleObject = GameObject.Instantiate(particlePrefab);
+
+						particleObject.layer = 20;
+						particleObject.transform.SetParent(PhysicalProp.m_collider.transform, false);
+						particleObject.transform.localPosition = PhysicalProp.m_collider.bounds.center;
+
+						m_particleSystem = particleObject.GetComponent<ParticleSystem>();
+					}
+				}
+			}
+
+			public override void OnImpact(float magnitude)
+			{
+				if (magnitude > breakSpeed)
+				{
+					var freeIvaModule = FreeIva.CurrentInternalModuleFreeIva;
+
+					m_particleSystem.transform.SetParent(freeIvaModule.Centrifuge?.IVARotationRoot ?? freeIvaModule.internalModel.transform, true);
+					m_particleSystem.Play();
+
+					if (breakSound != null)
+					{
+						var audioSource = Utils.CloneComponent(PhysicalProp.m_audioSource, m_particleSystem.gameObject);
+
+						audioSource.PlayOneShot(breakSound);
+					}
+
+					GameObject.Destroy(PhysicalProp.rigidBodyObject);
+				}
+			}
 		}
 	}
 }

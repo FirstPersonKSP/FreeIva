@@ -240,10 +240,26 @@ namespace FreeIva
 				m_internalVisibilityDirty = false;
 			}
 
-			if (Input.GetMouseButtonDown(0) && GameSettings.MODIFIER_KEY.GetKey() && PhysicalProp.HeldProp != null)
+			if (PhysicalProp.HeldProp != null)
 			{
-				// TODO: if prop is sticky, raycast to see where it should go
-				PhysicalProp.HeldProp.ThrowProp();
+				if (Input.GetMouseButtonDown(0))
+				{
+					if (GameSettings.MODIFIER_KEY.GetKey())
+					{
+						// TODO: if prop is sticky, raycast to see where it should go
+						PhysicalProp.HeldProp.ThrowProp();
+					}
+					else
+					{
+						// TODO: it would be nice to somehow figure out if we were clicking on UI or another prop or something
+						PhysicalProp.HeldProp.StartInteraction();
+					}
+				}
+
+				if (Input.GetMouseButtonUp(0) && !GameSettings.MODIFIER_KEY.GetKey())
+				{
+					PhysicalProp.HeldProp.StopInteraction();
+				}
 			}
 		}
 
