@@ -116,9 +116,9 @@ namespace FreeIva
 					Debug.LogError($"PhysicalProp: prop {internalProp.propName} does not have a collider");
 				}
 
-				// setup audio
 				if (m_collider != null)
 				{
+					// setup audio
 					m_grabAudioClip = LoadAudioClip(node, "grabSound");
 					m_stickAudioClip = LoadAudioClip(node, "stickSound");
 					m_impactAudioClip = LoadAudioClip(node, "impactSound");
@@ -132,13 +132,13 @@ namespace FreeIva
 						m_audioSource.playOnAwake = false;
 						m_audioSource.spatialize = true;
 					}
-				}
 
-				// setup interactions
-				var interactionNode = node.GetNode("Interaction");
-				if (interactionNode != null)
-				{
-					CreateInteraction(interactionNode);
+					// setup interactions (requires a collider)
+					var interactionNode = node.GetNode("Interaction");
+					if (interactionNode != null)
+					{
+						CreateInteraction(interactionNode);
+					}
 				}
 			}
 		}
