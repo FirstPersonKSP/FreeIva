@@ -115,7 +115,7 @@ namespace FreeIva
 				}
 
 				// setup interactions
-				var interactionNode = node.GetNode("INTERACTION");
+				var interactionNode = node.GetNode("Interaction");
 				if (interactionNode != null)
 				{
 					CreateInteraction(interactionNode);
@@ -225,7 +225,7 @@ namespace FreeIva
 			}
 		}
 
-		protected AudioClip LoadAudioClip(ConfigNode node, string key)
+		public AudioClip LoadAudioClip(ConfigNode node, string key)
 		{
 			string clipUrl = node.GetValue(key);
 			if (clipUrl == null) return null;
