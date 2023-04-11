@@ -239,6 +239,12 @@ namespace FreeIva
 				KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.StopCoroutine(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.refreshCoroutine);
 				m_internalVisibilityDirty = false;
 			}
+
+			if (Input.GetMouseButtonDown(0) && GameSettings.MODIFIER_KEY.GetKey() && PhysicalProp.HeldProp != null)
+			{
+				// TODO: if prop is sticky, raycast to see where it should go
+				PhysicalProp.HeldProp.ThrowProp();
+			}
 		}
 
 		public static int DepthMaskQueue = 999;

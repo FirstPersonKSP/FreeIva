@@ -51,7 +51,7 @@ namespace FreeIva
 		bool m_applyGravity = false;
 		public bool IsGrabbed { get; private set; }
 
-		static PhysicalProp x_lastProp;
+		internal static PhysicalProp HeldProp { get; private set; }
 
 		public override void OnLoad(ConfigNode node)
 		{
@@ -170,15 +170,15 @@ namespace FreeIva
 
 			if (m_clickWatcher != null)
 			{
-				m_clickWatcher.AddMouseDownAction(OnPropMouseDown);
+				m_clickWatcher.AddMouseUpAction(OnPropMouseUp);
 			}
 		}
 
 		protected void OnDestroy()
 		{
-			if (x_lastProp == this)
+			if (HeldProp == this)
 			{
-				x_lastProp = null;
+				HeldProp = null;
 			}
 		}
 
@@ -186,18 +186,23 @@ namespace FreeIva
 		static Vector3 localHandPosition = new Vector3(0.3f, -0.1f, 0.3f);
 		static float throwSpeed = 1.0f;
 
-		private void OnPropMouseDown()
+		public void ThrowProp()
+		{
+			if (HeldProp != null)
+			{
+				HeldProp.Release(InternalCamera.Instance._camera.transform.forward * throwSpeed, Vector3.zero);
+				HeldProp.transform.localScale = HeldProp.originalScale;
+				HeldProp = null;
+			}
+		}
+
+		private void OnPropMouseUp()
 		{
 			if (!IsGrabbed)
 			{
-				if (x_lastProp != null)
-				{
-					x_lastProp.Release(InternalCamera.Instance._camera.transform.forward * throwSpeed, Vector3.zero);
-					x_lastProp.transform.localScale = x_lastProp.originalScale;
-					x_lastProp = null;
-				}
+				ThrowProp();
 
-				x_lastProp = this;
+				HeldProp = this;
 
 				originalScale = rigidBodyObject.transform.localScale;
 
