@@ -500,5 +500,26 @@ namespace FreeIva
 				}
 			}
 		}
+
+		public class InteractionSqueak : Interaction
+		{
+			[SerializeReference] AudioClip m_squeakSound;
+
+			public override void OnLoad(ConfigNode interactionNode)
+			{
+				base.OnLoad(interactionNode);
+				m_squeakSound = PhysicalProp.LoadAudioClip(interactionNode, "squeakSound");
+			}
+
+			public override void OnGrab()
+			{
+				PhysicalProp.PlayAudioClip(m_squeakSound);
+			}
+
+			public override void StartInteraction()
+			{
+				PhysicalProp.PlayAudioClip(m_squeakSound);
+			}
+		}
 	}
 }
