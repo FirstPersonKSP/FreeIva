@@ -90,6 +90,9 @@
     <Reference Include="$(ManagedPath)\UnityEngine.TextRenderingModule.dll">
       <Private>false</Private>
     </Reference>
+    <Reference Include="$(ManagedPath)\UnityEngine.ScreenCaptureModule.dll">
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Publicize Include="Assembly-CSharp" />

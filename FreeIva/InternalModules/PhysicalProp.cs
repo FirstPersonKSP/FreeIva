@@ -65,7 +65,21 @@ namespace FreeIva
 				{
 					string dbgName = internalProp.hasModel ? internalProp.propName : internalModel.internalName;
 
-					m_collider = ColliderUtil.CreateCollider(internalProp.hasModel ? transform : internalModel.transform, colliderNode, dbgName);
+					Transform colliderTransform;
+					var transformName = colliderNode.GetValue("parentTransformName");
+					if (transformName != null)
+					{
+						colliderTransform = TransformUtil.FindPropTransform(internalProp, transformName);
+					}
+					else
+					{
+						colliderTransform = internalProp.hasModel ? transform : internalModel.transform;
+					}
+
+					if (colliderTransform != null)
+					{
+						m_collider = ColliderUtil.CreateCollider(colliderTransform, colliderNode, dbgName);
+					}
 				}
 				else if (transformName != string.Empty)
 				{
@@ -519,6 +533,157 @@ namespace FreeIva
 			public override void StartInteraction()
 			{
 				PhysicalProp.PlayAudioClip(m_squeakSound);
+			}
+		}
+
+		public class InteractionExtinguisher : Interaction
+		{
+			[SerializeField] Vector3 thrustVector;
+			[SerializeField] Vector3 thrustPosition;
+			public Transform thrustTransform;
+			public AudioClip m_audioClip;
+			[SerializeField] ParticleSystem m_particleSystem;
+
+			bool m_playingSound;
+
+			public override void OnLoad(ConfigNode interactionNode)
+			{
+				base.OnLoad(interactionNode);
+
+				string transformName = interactionNode.GetValue("thrustTransformName");
+				thrustTransform = TransformUtil.FindPropTransform(PhysicalProp.internalProp, transformName);
+				enabled = false;
+
+				interactionNode.TryGetValue(nameof(thrustPosition), ref thrustPosition);
+
+				if (!interactionNode.TryGetValue(nameof(thrustVector), ref thrustVector))
+				{
+					Debug.LogError($"PROP {PhysicalProp.internalProp.propName} InteractionExtinguisher could not parse key {nameof(thrustVector)}");
+				}
+
+				m_audioClip = PhysicalProp.LoadAudioClip(interactionNode, "sound");
+
+				string particleSystemName = string.Empty;
+				if (interactionNode.TryGetValue(nameof(particleSystemName), ref particleSystemName))
+				{
+					var particlePrefab = AssetLoader.Instance.GetGameObject(particleSystemName);
+					if (particlePrefab != null)
+					{
+						var particleObject = GameObject.Instantiate(particlePrefab);
+
+						particleObject.layer = 20;
+						particleObject.transform.SetParent(thrustTransform, false);
+						particleObject.transform.localPosition = thrustPosition;
+						particleObject.transform.localRotation = Quaternion.FromToRotation(Vector3.forward, -thrustVector);
+
+						m_particleSystem = particleObject.GetComponent<ParticleSystem>();
+					}
+				}
+			}
+
+			public override void OnGrab()
+			{
+				enabled = true;
+				m_particleSystem.gameObject.SetActive(true);
+			}
+
+			public override void OnRelease()
+			{
+				enabled = false;
+			}
+
+			void FixedUpdate()
+			{
+				if (IsInteracting)
+				{
+					Vector3 accelerationVector = thrustTransform.TransformVector(thrustVector);
+
+					KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.WakeUp();
+					KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.AddForceAtPosition(accelerationVector, thrustTransform.position, ForceMode.Acceleration);
+
+					if (!m_playingSound)
+					{
+						PhysicalProp.StartAudioLoop(m_audioClip);
+						m_playingSound = true;
+						m_particleSystem.Play();
+					}
+				}
+				else
+				{
+					if (m_playingSound)
+					{
+						PhysicalProp.StopAudioLoop();
+						m_playingSound = false;
+						m_particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+					}
+				}
+			}
+		}
+
+		public class InteractionCamera : Interaction
+		{
+			[SerializeReference] AudioClip m_shutterSound;
+
+			public override void OnLoad(ConfigNode interactionNode)
+			{
+				base.OnLoad(interactionNode);
+
+				m_shutterSound = PhysicalProp.LoadAudioClip(interactionNode, "shutterSound");
+			}
+
+			public override void StartInteraction()
+			{
+				PhysicalProp.PlayAudioClip(m_shutterSound);
+
+				string screenshotDir = Application.platform == RuntimePlatform.OSXPlayer
+					? Path.Combine(Application.dataPath, "../../Screenshots")
+					: Path.Combine(Application.dataPath, "../Screenshots");
+				string screenshotFileName = Path.GetRandomFileName();
+				string screenshotPath = Path.ChangeExtension(Path.Combine(screenshotDir, screenshotFileName), ".png");
+
+				ScreenCapture.CaptureScreenshot(screenshotPath, ScreenCapture.StereoScreenCaptureMode.BothEyes);
+			}
+		}
+
+		public class InteractionFlashlight : Interaction
+		{
+			[SerializeReference] AudioClip m_buttonSound;
+			[SerializeField] Material m_lensMaterial;
+			[SerializeField] Light m_light;
+
+			static int EMISSIVE_COLOR_PROPERTY_ID = Shader.PropertyToID("_EmissiveColor");
+
+			public override void OnLoad(ConfigNode interactionNode)
+			{
+				base.OnLoad(interactionNode);
+
+				m_buttonSound = PhysicalProp.LoadAudioClip(interactionNode, "buttonSound");
+				m_lensMaterial = TransformUtil.FindPropTransform(PhysicalProp.internalProp, interactionNode.GetValue("lensObjectName"))?.GetComponent<MeshRenderer>()?.material;
+				m_light = TransformUtil.FindPropTransform(PhysicalProp.internalProp, interactionNode.GetValue("lightObjectName"))?.GetComponent<Light>();
+
+				if (m_light != null)
+				{
+					m_light.enabled = false;
+				}
+
+				if (m_lensMaterial != null)
+				{
+					m_lensMaterial.SetColor(EMISSIVE_COLOR_PROPERTY_ID, Color.black);
+				}
+			}
+			public override void StartInteraction()
+			{
+				PhysicalProp.PlayAudioClip(m_buttonSound);
+
+				if (m_light != null)
+				{
+					m_light.enabled = !m_light.enabled;
+
+					if (m_lensMaterial != null)
+					{
+						m_lensMaterial.SetColor(EMISSIVE_COLOR_PROPERTY_ID, m_light.enabled ? Color.white : Color.black);
+					}
+				}
 			}
 		}
 	}
