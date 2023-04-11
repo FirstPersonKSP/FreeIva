@@ -49,11 +49,7 @@ namespace FreeIva
 		{
 			if (_depthMaskCullingShader == null)
 			{
-				WWW www = new WWW($"file://{KSPUtil.ApplicationRootPath}GameData/FreeIva/FreeIva.assetbundle");
-
-				_depthMaskCullingShader = www.assetBundle.LoadAsset<Shader>("DepthMask_Culling");
-
-				www.assetBundle.Unload(false);
+				_depthMaskCullingShader = AssetLoader.Instance.GetShader("DepthMask_Culling");
 			}
 
 			return _depthMaskCullingShader;
@@ -99,6 +95,25 @@ namespace FreeIva
             forwardLine.SetPosition(0, InternalCamera.Instance.transform.position);
             forwardLine.SetPosition(1, InternalCamera.Instance.transform.position + InternalCamera.Instance.transform.forward); // Red
         }*/
+
+		public static T CloneComponent<T>(T oldComponent, GameObject to) where T : Component
+		{
+			if (oldComponent != null)
+			{
+				var newComponent = to.AddComponent<T>();
+
+				FieldInfo[] fields = typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+				foreach (var field in fields)
+				{
+					object value = field.GetValue(oldComponent);
+					field.SetValue(newComponent, value);
+				}
+
+				return newComponent;
+			}
+
+			return null;
+		}
 
 		public static void PrintInternals(Part p)
 		{
