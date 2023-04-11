@@ -21,7 +21,13 @@ namespace FreeIva
 		public string transformName = string.Empty;
 
 		[KSPField]
-		public Vector3 grabbedScale = Vector3.one;
+		public Vector3 heldScale = Vector3.one;
+		[KSPField]
+		public Vector3 heldRotation = new Vector3(90, 225, 0);
+		[KSPField]
+		public Vector3 heldPosition = new Vector3(0.3f, -0.1f, 0.3f);
+		[KSPField]
+		public float throwSpeed = 1.0f;
 
 		[SerializeField]
 		CollisionTracker m_collisionTracker;
@@ -197,10 +203,6 @@ namespace FreeIva
 			}
 		}
 
-		static Vector3 localHandRotation = new Vector3(90, 225, 0);
-		static Vector3 localHandPosition = new Vector3(0.3f, -0.1f, 0.3f);
-		static float throwSpeed = 1.0f;
-
 		public void StartInteraction()
 		{
 			if (m_interaction) m_interaction.StartInteraction();
@@ -232,9 +234,9 @@ namespace FreeIva
 				originalScale = rigidBodyObject.transform.localScale;
 
 				rigidBodyObject.transform.SetParent(InternalCamera.Instance._camera.transform, true);
-				rigidBodyObject.transform.localPosition = localHandPosition;
-				rigidBodyObject.transform.localScale = grabbedScale;
-				rigidBodyObject.transform.localRotation = Quaternion.Euler(localHandRotation);
+				rigidBodyObject.transform.localPosition = heldPosition;
+				rigidBodyObject.transform.localScale = heldScale;
+				rigidBodyObject.transform.localRotation = Quaternion.Euler(heldRotation);
 				Grab();
 			}
 		}
