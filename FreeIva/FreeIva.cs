@@ -246,8 +246,18 @@ namespace FreeIva
 				{
 					if (GameSettings.MODIFIER_KEY.GetKey())
 					{
-						// TODO: if prop is sticky, raycast to see where it should go
-						PhysicalProp.HeldProp.ThrowProp();
+						if (PhysicalProp.HeldProp.isSticky)
+						{
+							Ray ray = InternalCamera.Instance._camera.ScreenPointToRay(Input.mousePosition);
+							if (Physics.Raycast(ray, out RaycastHit hit, 2f, InternalCamera.Instance._camera.eventMask, QueryTriggerInteraction.Collide))
+							{
+								PhysicalProp.HeldProp.Stick(hit.point + hit.normal * 0.005f);
+							}
+						}
+						else
+						{
+							PhysicalProp.HeldProp.ThrowProp();
+						}
 					}
 					else
 					{

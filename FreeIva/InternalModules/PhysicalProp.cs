@@ -299,58 +299,79 @@ namespace FreeIva
 		}
 
 
+		public void Stick(Vector3 position)
+		{
+			m_freeIvaModule = FreeIva.CurrentInternalModuleFreeIva;
+
+			rigidBodyObject.transform.SetParent(m_freeIvaModule.Centrifuge?.IVARotationRoot ?? m_freeIvaModule.internalModel.transform, true);
+			rigidBodyObject.transform.position = position;
+
+			if (m_interaction)
+			{
+				m_interaction.OnRelease();
+			}
+
+			if (m_rigidBody != null)
+			{
+				Component.Destroy(m_rigidBody);
+				m_rigidBody = null;
+			}
+
+			m_applyGravity = false;
+
+			m_collider.enabled = true;
+			IsGrabbed = false;
+
+			HeldProp = null;
+
+			PlayStickyFeedback();
+		}
+
 		protected void Release(Vector3 linearVelocity, Vector3 angularVelocity)
 		{
+			// are we sticking to something?
+			if (isSticky && m_collisionTracker.ContactCollider != null)
+			{
+				Stick(transform.position);
+				return;
+			}
+
 			m_freeIvaModule = FreeIva.CurrentInternalModuleFreeIva;
 
 			rigidBodyObject.transform.SetParent(m_freeIvaModule.Centrifuge?.IVARotationRoot ?? m_freeIvaModule.internalModel.transform, true);
 
 			if (m_interaction)
 			{
-				m_interaction.OnRelease(); // this used to take the releasing hand; how do we handle (heh) this?
+				m_interaction.OnRelease();
 			}
 
-			// are we sticking to something?
-			if (isSticky && m_collisionTracker.ContactCollider != null)
+			if (m_rigidBody == null)
 			{
-				if (m_rigidBody != null)
-				{
-					Component.Destroy(m_rigidBody);
-					m_rigidBody = null;
-				}
-
-				m_applyGravity = false;
+				m_rigidBody = rigidBodyObject.AddComponent<Rigidbody>();
 			}
-			else
+
+			m_collider.isTrigger = false;
+			m_collider.enabled = true;
+
+			m_rigidBody.isKinematic = true;
+			m_rigidBody.useGravity = false;
+
+
+			m_rigidBody.isKinematic = false;
+			m_rigidBody.WakeUp();
+
+			m_rigidBody.velocity = linearVelocity;
+			m_rigidBody.angularVelocity = angularVelocity;
+
+			// total hack? - apply reaction velocity in zero-g
+			if (!KerbalIvaAddon.Instance.buckled && !KerbalIvaAddon.Instance.KerbalIva.UseRelativeMovement())
 			{
-				if (m_rigidBody == null)
-				{
-					m_rigidBody = rigidBodyObject.AddComponent<Rigidbody>();
-				}
-
-				m_collider.isTrigger = false;
-				m_collider.enabled = true;
-
-				m_rigidBody.isKinematic = true;
-				m_rigidBody.useGravity = false;
-
-
-				m_rigidBody.isKinematic = false;
-				m_rigidBody.WakeUp();
-
-				m_rigidBody.velocity = linearVelocity;
-				m_rigidBody.angularVelocity = angularVelocity;
-
-				// total hack? - apply reaction velocity in zero-g
-				if (!KerbalIvaAddon.Instance.buckled && !KerbalIvaAddon.Instance.KerbalIva.UseRelativeMovement())
-				{
-					// TODO: should probably have some idea of how much mass this thing is
-					KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.WakeUp();
-					KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.velocity += -linearVelocity * 0.7f;
-				}
-
-				m_applyGravity = true;
+				// TODO: should probably have some idea of how much mass this thing is
+				KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.WakeUp();
+				KerbalIvaAddon.Instance.KerbalIva.KerbalRigidbody.velocity += -linearVelocity * 0.7f;
 			}
+
+			m_applyGravity = true;
 
 			m_collider.enabled = true;
 			IsGrabbed = false;
@@ -378,7 +399,7 @@ namespace FreeIva
 
 			if (m_interaction)
 			{
-				m_interaction.OnGrab(); // this used to take the releasing hand; how do we handle (heh) this?
+				m_interaction.OnGrab();
 			}
 
 			PlayAudioClip(m_grabAudioClip);
