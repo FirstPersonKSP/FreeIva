@@ -25,10 +25,14 @@ namespace FreeIva
 		private static readonly string label_RollCW = Localizer.Format("#FreeIVA_Tutorial_RollCW");
 		private static readonly string label_ReturnSeat = Localizer.Format("#FreeIVA_Tutorial_ReturnSeat");
 		private static readonly string label_ToggleGravity = Localizer.Format("#FreeIVA_Tutorial_ToggleGravity");
+		private static readonly string label_GrabProp = Localizer.Format("#FreeIVA_Tutorial_GrabProp");
+		private static readonly string label_UseProp = Localizer.Format("#FreeIVA_Tutorial_UseProp");
+		private static readonly string label_ThrowProp = Localizer.Format("#FreeIVA_Tutorial_ThrowProp");
+		private static readonly string label_PlaceProp = Localizer.Format("#FreeIVA_Tutorial_PlaceProp");
 		private static readonly string button_Close = Localizer.Format("#FreeIVA_Tutorial_Close");
 		private static readonly string button_CloseForever = Localizer.Format("#FreeIVA_Tutorial_CloseForever");
 
-        private static Rect windowPos = new Rect(Screen.width * 0.75f, Screen.height * 0.5f, 10, 10);
+		private static Rect windowPos = new Rect(Screen.width * 0.75f, Screen.height * 0.5f, 10, 10);
 		public static bool Active = false;
 
 		public static void Gui(int instanceId)
@@ -79,6 +83,21 @@ namespace FreeIva
 			if (KerbalIvaAddon.Instance.KerbalIva.UseRelativeMovement() || !KerbalIvaAddon.Instance.Gravity)
 			{
 				GuiUtils.label(label_ToggleGravity, GameSettings.MODIFIER_KEY.primary.code + " + " + Settings.ToggleGravityKey);
+			}
+
+			if (PhysicalProp.HeldProp == null)
+			{
+				GuiUtils.label(label_GrabProp, $"{GameSettings.MODIFIER_KEY.primary.code} + {Mouse.Buttons.Left} Click");
+			}
+			else
+			{
+				if (PhysicalProp.HeldProp.HasInteraction)
+				{
+					GuiUtils.label(label_UseProp, $"{Mouse.Buttons.Left} Click");
+				}
+
+				var throwOrPlace = PhysicalProp.HeldProp.isSticky ? label_PlaceProp : label_ThrowProp;
+				GuiUtils.label(throwOrPlace, $"{GameSettings.MODIFIER_KEY.primary.code} + {Mouse.Buttons.Left} Click");
 			}
 
 			GUILayout.BeginHorizontal();

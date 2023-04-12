@@ -34,6 +34,7 @@ namespace FreeIva
 
 		[SerializeField]
 		protected Interaction m_interaction;
+		public bool HasInteraction => m_interaction != null;
 
 		Rigidbody m_rigidBody;
 		InternalModuleFreeIva m_freeIvaModule;
