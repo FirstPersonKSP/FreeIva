@@ -14,7 +14,7 @@
 					colliderTransform.gameObject.layer = (int)Layers.InternalSpace;
 				}
 			}
-			else
+			else if (colliderTransform != null)
 			{
 				// We also don't want to respond to double-click events while unbuckled, so override the stock event handler here
 				var internalButton = colliderTransform.GetComponent<InternalButton>();
