@@ -103,7 +103,7 @@ namespace FreeIva
 
 				if (m_collider != null)
 				{
-					m_collider.isTrigger = false;
+					m_collider.isTrigger = true;
 
 					m_collider.gameObject.layer = 16; // needs to be 16 to bounce off shell colliders, at least while moving.  Not sure if we want it interacting with the player.
 
@@ -320,6 +320,7 @@ namespace FreeIva
 
 			m_applyGravity = false;
 
+			m_collider.isTrigger = true;
 			m_collider.enabled = true;
 			IsGrabbed = false;
 
