@@ -469,6 +469,7 @@ namespace FreeIva
 			KerbalIva.gameObject.SetActive(false);
 			HideCurrentKerbal(false);
 			DisablePartHighlighting(false);
+			FreeIvaInternalCameraSwitch.SetCameraSwitchesEnabled(true);
 			InputLockManager.RemoveControlLock("FreeIVA");
 			//ActiveKerbal.flightLog.AddEntry("Buckled");
 			ScreenMessages.PostScreenMessage(str_Buckled, 1f, ScreenMessageStyle.LOWER_CENTER);
@@ -651,6 +652,7 @@ namespace FreeIva
 			PlaySeatBuckleAudio(OriginalSeat);
 
 			DisablePartHighlighting(true);
+			FreeIvaInternalCameraSwitch.SetCameraSwitchesEnabled(false);
 		}
 
 		private void UpdateActiveKerbal()

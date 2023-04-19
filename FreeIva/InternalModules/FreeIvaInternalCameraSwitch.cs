@@ -1,7 +1,22 @@
-﻿namespace FreeIva
+﻿using System.Collections.Generic;
+using UnityEngine;
+
+namespace FreeIva
 {
 	internal class FreeIvaInternalCameraSwitch : InternalCameraSwitch
 	{
+		static HashSet<Collider> allCameraSwitchColliders = new HashSet<Collider>();
+
+		public static void SetCameraSwitchesEnabled(bool enabled)
+		{
+			foreach (var collider in allCameraSwitchColliders)
+			{
+				collider.enabled = enabled;
+			}
+		}
+
+		Collider collider;
+
 		public override void OnAwake()
 		{
 			base.OnAwake();
@@ -16,20 +31,20 @@
 			}
 			else if (colliderTransform != null)
 			{
-				// We also don't want to respond to double-click events while unbuckled, so override the stock event handler here
-				var internalButton = colliderTransform.GetComponent<InternalButton>();
-				if (internalButton != null)
+				collider = colliderTransform.GetComponent<Collider>();
+
+				if (collider != null)
 				{
-					internalButton.onDoubleTap = Button_OnDoubleTap;
+					allCameraSwitchColliders.Add(collider);
 				}
 			}
 		}
 
-		new public void Button_OnDoubleTap()
+		void OnDestroy()
 		{
-			if (KerbalIvaAddon.Instance.buckled)
+			if (!object.ReferenceEquals(collider, null))
 			{
-				base.Button_OnDoubleTap();
+				allCameraSwitchColliders.Remove(collider);
 			}
 		}
 	}
