@@ -35,15 +35,29 @@ public class MeshCutter2
 		m_uvs2 = m_mesh.HasVertexAttribute(VertexAttribute.TexCoord1) ? new List<Vector2>(m_mesh.uv2) : null;
 		m_skipCuttingTriangle = new List<bool>();
 		m_skipCuttingTriangle.AddRange(Enumerable.Repeat(false, m_indices.Count / 3));
+
+		// transform vertices into worldspace because extreme scaling on the mesh will break the cutting thresholds
+		var localToWorld = m_meshTransform.localToWorldMatrix;
+		for (int i = 0; i < m_vertices.Count; i++)
+		{
+			m_vertices[i] = localToWorld * m_vertices[i];
+		}
 	}
 
 	public void FinalizeMesh()
 	{
-		m_mesh.vertices = m_vertices.ToArray();
-		m_mesh.triangles = m_indices.ToArray();
-		if (m_normals != null) m_mesh.normals = m_normals.ToArray();
-		if (m_uvs != null) m_mesh.uv = m_uvs.ToArray();
-		if (m_uvs2 != null) m_mesh.uv2 = m_uvs2.ToArray();
+		// convert vertices back to mesh space
+		var worldToLocal = m_meshTransform.worldToLocalMatrix;
+		for (int i = 0; i < m_vertices.Count; ++i)
+		{
+			m_vertices[i] = worldToLocal * m_vertices[i];
+		}
+
+		m_mesh.SetVertices(m_vertices);
+		m_mesh.SetTriangles(m_indices, 0);
+		if (m_normals != null) m_mesh.SetNormals(m_normals);
+		if (m_uvs != null) m_mesh.SetUVs(0, m_uvs);
+		if (m_uvs2 != null) m_mesh.SetUVs(1, m_uvs2.ToArray());
 		m_mesh.RecalculateTangents();
 		m_mesh.Optimize();
 	}
@@ -60,7 +74,7 @@ public class MeshCutter2
 
 		// make a copy of the planes cause we need to transform them
 		List<Plane> planes = cuttingPlanes.ToList();
-		TransformPlanesToMeshSpace(planes, cuttingToolTransform);
+		TransformPlanesToWorldSpace(planes, cuttingToolTransform);
 
 		SortPlanes(planes);
 
@@ -143,18 +157,12 @@ public class MeshCutter2
 		m_skipCuttingTriangle.Add(skipCutting);
 	}
 
-	void TransformPlanesToMeshSpace(List<Plane> planes, Transform cuttingToolTransform)
+	void TransformPlanesToWorldSpace(List<Plane> planes, Transform cuttingToolTransform)
 	{
+		var toolToWorld = cuttingToolTransform.localToWorldMatrix;
 		for (int i = 0; i < planes.Count; i++)
 		{
-			Plane plane = planes[i];
-			Vector3 worldNormal = cuttingToolTransform.TransformVector(plane.normal);
-			Vector3 worldPlanePoint = cuttingToolTransform.TransformPoint(plane.normal * -plane.distance);
-
-			Vector3 localNormal = m_meshTransform.InverseTransformVector(worldNormal);
-			Vector3 localPlanePoint = m_meshTransform.InverseTransformPoint(worldPlanePoint);
-
-			planes[i] = new Plane(localNormal, localPlanePoint);
+			planes[i] = toolToWorld.TransformPlane(planes[i]);
 		}
 	}
 
