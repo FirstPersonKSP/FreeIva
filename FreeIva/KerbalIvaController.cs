@@ -17,8 +17,7 @@ namespace FreeIva
 {
 	public class KerbalIvaController : MonoBehaviour
 	{
-		public SphereCollider KerbalCollider; // this may eventually change to a Capsule
-		public SphereCollider KerbalFeetCollider;
+		public CapsuleCollider KerbalCollider;
 		public Rigidbody KerbalRigidbody;
 		public Transform CameraAnchor;
 		public ProtoCrewMember ActiveKerbal;
@@ -39,7 +38,6 @@ namespace FreeIva
 			{
 				value = value && Settings.EnableCollisions;
 				KerbalCollider.enabled = value;
-				KerbalFeetCollider.enabled = value && UseRelativeMovement();
 			}
 		}
 
@@ -49,11 +47,14 @@ namespace FreeIva
 		public const float MIN_ACCEL_FOR_HORIZON_LANDED = 0.05f; // allow free movement on gilly, but not minmus
 		public const float MIN_ACCEL_FOR_HORIZON_AIRBORNE = 3f; // roughly 0.3g, slightly more than duna gravity but still less than the default acceleration
 
+		public float StandingHeight => Settings.NoHelmetSize * 3f;
+		public float CrouchingHeight => Settings.NoHelmetSize * 2f;
+
 		void Awake()
 		{
 			gameObject.layer = (int)Layers.Kerbals;
 
-			KerbalCollider = gameObject.AddComponent<SphereCollider>();
+			KerbalCollider = gameObject.AddComponent<CapsuleCollider>();
 			KerbalCollider.material.staticFriction = 0.0f;
 			KerbalCollider.material.dynamicFriction = 0.0f;
 			KerbalCollider.material.bounciness = 0.0f;
@@ -61,11 +62,7 @@ namespace FreeIva
 			KerbalCollider.material.bounceCombine = PhysicMaterialCombine.Minimum;
 			KerbalCollider.isTrigger = false;
 			KerbalCollider.radius = Settings.NoHelmetSize;
-
-			KerbalFeetCollider = gameObject.AddComponent<SphereCollider>();
-			KerbalFeetCollider.isTrigger = false;
-			KerbalFeetCollider.radius = Settings.NoHelmetSize * 0.9f;
-			KerbalFeetCollider.center = new Vector3(0, -Settings.NoHelmetSize, 0);
+			SetHeight(StandingHeight);
 
 			KerbalRigidbody = gameObject.AddComponent<Rigidbody>();
 			KerbalRigidbody.useGravity = false;
@@ -79,6 +76,12 @@ namespace FreeIva
 
 			CameraAnchor = new GameObject("CameraAnchor").transform;
 			CameraAnchor.SetParent(transform, false);
+		}
+
+		void SetHeight(float height)
+		{
+			KerbalCollider.height = height;
+			KerbalCollider.center = new Vector3(0, -height * 0.5f + KerbalCollider.radius, 0);
 		}
 
 		public void OrientToGravity()
@@ -375,11 +378,13 @@ namespace FreeIva
 
 		void UpdateCrouching()
 		{
-			if (targetCrouchFraction != crouchingFraction)
-			{
-				crouchingFraction = Mathf.MoveTowards(crouchingFraction, targetCrouchFraction, Time.fixedDeltaTime * 2);
+			float targetCrouch = UseRelativeMovement() ? targetCrouchFraction : 1.0f;
 
-				KerbalFeetCollider.center = Vector3.Lerp(new Vector3(0, -Settings.NoHelmetSize, 0), Vector3.zero, crouchingFraction);
+			if (targetCrouch != crouchingFraction)
+			{
+				crouchingFraction = Mathf.MoveTowards(crouchingFraction, targetCrouch, Time.fixedDeltaTime * 2);
+
+				SetHeight(Mathf.Lerp(StandingHeight, CrouchingHeight, crouchingFraction));
 			}
 		}
 
@@ -393,11 +398,11 @@ namespace FreeIva
 
 		public void UpdatePosition(Vector3 flightAccel, Vector3 movementThrottle, bool jump)
 		{
-			if (FreezeUpdates)
-			{
-				// nothing!
-			}
-			else if (UseRelativeMovement())
+			if (FreezeUpdates) return;
+
+			UpdateCrouching();
+
+			if (UseRelativeMovement())
 			{
 				UpdateLadderState(movementThrottle, jump);
 				if (IsOnLadder)
@@ -406,7 +411,6 @@ namespace FreeIva
 				}
 				else
 				{
-					UpdateCrouching();
 					UpdatePosition_InGravity(flightAccel, movementThrottle, jump);
 				}
 			}
@@ -503,8 +507,6 @@ namespace FreeIva
 
 			// determine whether we are in gravity
 			Vector3 flightAccel = UpdateGravity();
-
-			KerbalFeetCollider.enabled = UseRelativeMovement();
 
 			//FallthroughCheck();
 			

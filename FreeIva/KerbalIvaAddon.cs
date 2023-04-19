@@ -107,7 +107,6 @@ namespace FreeIva
 			{
 				Gravity = !Gravity && Settings.EnableCollisions;
 				ScreenMessages.PostScreenMessage(Gravity ? str_GravityEnabled : str_GravityDisabled, 1f, ScreenMessageStyle.LOWER_CENTER);
-				KerbalIva.KerbalFeetCollider.enabled = KerbalIva.UseRelativeMovement();
 			}
 
 			if (!buckled && GameSettings.CAMERA_MODE.GetKeyDown(true))

@@ -823,8 +823,6 @@ namespace FreeIva
 				GuiUtils.label("Coriolis force", coriolisForce);
 
 				GuiUtils.label("Main G Internal", InternalSpace.InternalToWorld(gForce));
-
-				KerbalIvaAddon.Instance.KerbalIva.KerbalFeetCollider.center = GuiUtils.editVector("KerbalFeet Center", KerbalIvaAddon.Instance.KerbalIva.KerbalFeetCollider.center);
 			}
 		}
 
