@@ -40,7 +40,7 @@ public class MeshCutter2
 		var localToWorld = m_meshTransform.localToWorldMatrix;
 		for (int i = 0; i < m_vertices.Count; i++)
 		{
-			m_vertices[i] = localToWorld * m_vertices[i];
+			m_vertices[i] = localToWorld.MultiplyPoint(m_vertices[i]);
 		}
 	}
 
@@ -50,7 +50,7 @@ public class MeshCutter2
 		var worldToLocal = m_meshTransform.worldToLocalMatrix;
 		for (int i = 0; i < m_vertices.Count; ++i)
 		{
-			m_vertices[i] = worldToLocal * m_vertices[i];
+			m_vertices[i] = worldToLocal.MultiplyPoint(m_vertices[i]);
 		}
 
 		m_mesh.SetVertices(m_vertices);
