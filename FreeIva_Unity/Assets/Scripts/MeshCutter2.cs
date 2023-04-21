@@ -162,7 +162,11 @@ public class MeshCutter2
 		var toolToWorld = cuttingToolTransform.localToWorldMatrix;
 		for (int i = 0; i < planes.Count; i++)
 		{
-			planes[i] = toolToWorld.TransformPlane(planes[i]);
+			Plane plane = planes[i];
+			Vector3 worldNormal = toolToWorld.MultiplyVector(plane.normal);
+			Vector3 worldPlanePoint = toolToWorld.MultiplyPoint(plane.normal * -plane.distance);
+
+			planes[i] = new Plane(worldNormal, worldPlanePoint);
 		}
 	}
 
