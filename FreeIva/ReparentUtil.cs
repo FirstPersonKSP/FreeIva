@@ -37,6 +37,28 @@ namespace FreeIva
 				if (childTransform != null && parentTransform != null)
 				{
 					childTransform.SetParent(parentTransform, true);
+
+					Vector3 v = Vector3.zero;
+					if (node.TryGetValue("localPosition", ref v))
+					{
+						childTransform.localPosition = v;
+					}
+
+					if (node.TryGetValue("localRotation", ref v))
+					{
+						childTransform.localRotation = Quaternion.Euler(v);
+					}
+
+					Quaternion localRotation = Quaternion.identity;
+					if (node.TryGetValue("localRotation", ref localRotation))
+					{
+						childTransform.localRotation = localRotation;
+					}
+
+					if (node.TryGetValue("localScale", ref v))
+					{
+						childTransform.localScale = v;
+					}
 				}
 			}
 			else
