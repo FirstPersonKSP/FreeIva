@@ -431,7 +431,7 @@ namespace FreeIva
 		{
 			Vector3 flightAccel = KerbalIvaAddon.GetInternalSubjectiveAcceleration(FreeIva.CurrentInternalModuleFreeIva, transform.position);
 
-			float minAccelForHorizon = FlightGlobals.ActiveVessel.LandedOrSplashed
+			float minAccelForHorizon = (FlightGlobals.ActiveVessel.LandedOrSplashed || currentCentrifuge != null)
 				? MIN_ACCEL_FOR_HORIZON_LANDED
 				: MIN_ACCEL_FOR_HORIZON_AIRBORNE;
 
