@@ -838,7 +838,7 @@ namespace FreeIva
 			FreeIvaHatch targetedHatch = null;
 			float closestDistance = Settings.MaxInteractDistance;
 
-			for (var internalModule = FreeIva.CurrentInternalModuleFreeIva; internalModule != null; internalModule = InternalModuleFreeIva.GetForModel(internalModule.SecondaryInternalModel))
+			for (var internalModule = InternalModuleFreeIva.GetForModel(FreeIva.CurrentPart?.internalModel); internalModule != null; internalModule = InternalModuleFreeIva.GetForModel(internalModule.SecondaryInternalModel))
 			{
 				if (internalModule.isActiveAndEnabled)
 				{
