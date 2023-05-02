@@ -357,6 +357,10 @@ namespace FreeIva
 			{
 				var animators = internalProp.FindModelAnimators(openAnimationName);
 				m_animationComponent = animators.FirstOrDefault();
+				if (m_animationComponent == null)
+				{
+					Debug.LogError($"[FreeIva] could not find animation named {openAnimationName} in prop {internalProp.propName}");
+				}
 			}
 		}
 		public override void OnAwake()
