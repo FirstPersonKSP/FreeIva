@@ -246,7 +246,7 @@ namespace FreeIva
 			bool openHatch = h.IsOpen;
 			openHatch = GUILayout.Toggle(openHatch, "Open");
 			if (h.IsOpen != openHatch)
-				h.Open(openHatch);
+				h.DesiredOpen = openHatch;
 			// PositionIvaObject(h.gameObject);
 			GUILayout.EndVertical();
 

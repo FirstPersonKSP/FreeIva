@@ -60,7 +60,7 @@ namespace FreeIva
 						var otherHatch = hatch.ConnectedHatch;
 						if (otherHatch == null || otherHatch.vessel != hatch.vessel)
 						{
-							hatch.Open(false, false);
+							hatch.SetOpened(false, false);
 						}
 						hatch.RefreshConnection();
 					}

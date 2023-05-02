@@ -42,6 +42,9 @@ namespace FreeIva
 		[KSPField]
 		public bool isEvaHatch = false;
 
+		[KSPField]
+		public string openAnimationName = string.Empty;
+
 		// if the hatch has a window, we need to make sure we can't see other parts' internals through it when it's not connected to anything
 		public MeshRenderer m_windowRenderer;
 
@@ -102,7 +105,147 @@ namespace FreeIva
 		public FXGroup HatchOpenSound = null;
 		public FXGroup HatchCloseSound = null;
 
-		public bool IsOpen { get; private set; }
+		public Animation m_animationComponent;
+		public bool HasAnimation => m_animationComponent != null;
+
+		public enum State
+		{
+			Closed,
+			Opening,
+			Open,
+			Closing
+		}
+
+		public State CurrentState { get; private set; }
+
+		void SetAnimationState(State newState)
+		{
+			var animState = m_animationComponent[openAnimationName];
+
+			switch (newState)
+			{
+				case State.Closed:
+					animState.normalizedTime = 0;
+					m_animationComponent.Stop();
+					m_animationCoroutine = null;
+					break;
+
+				case State.Opening:
+					animState.speed = 1.0f;
+					m_animationComponent.Play();
+					break;
+
+				case State.Closing:
+					animState.speed = -1.0f;
+					m_animationComponent.Play();
+					break;
+
+				case State.Open:
+					animState.normalizedTime = 1.0f;
+					m_animationComponent.Stop();
+					m_animationCoroutine = null;
+				break;
+			}
+
+			CurrentState = newState;
+		}
+
+		private bool _desiredOpen;
+		public bool DesiredOpen
+		{
+			get => _desiredOpen;
+			set
+			{
+				if (!InteractionAllowed(GetInteraction()))
+				{
+					value = false;
+				}
+
+				_desiredOpen = value;
+				if (HasAnimation)
+				{
+					if (m_animationCoroutine == null)
+					{
+						m_animationCoroutine = StartCoroutine(AnimationUpdate());
+					}
+				}
+				else
+				{
+					SetOpened(_desiredOpen, true);
+				}
+			}
+		}
+
+		Coroutine m_animationCoroutine;
+		IEnumerator AnimationUpdate()
+		{
+			var animState = m_animationComponent[openAnimationName];
+			m_animationComponent.wrapMode = WrapMode.ClampForever;
+
+			while (true)
+			{
+				switch (CurrentState)
+				{
+				case State.Closed:
+					if (DesiredOpen)
+					{
+						animState.normalizedTime = 0.0f;
+						SetAnimationState(State.Opening);
+						PlaySounds(DesiredOpen);
+					}
+					else
+					{
+						SetAnimationState(State.Closed);
+						yield break;
+					}
+					break;
+
+				case State.Opening:
+					if (!DesiredOpen)
+					{
+						SetAnimationState(State.Closing);
+					}
+					else if (animState.normalizedTime >= 1.0f)
+					{
+						SetAnimationState(State.Open);
+						SetOpened(true, false);
+						yield break;
+					}
+					break;
+
+				case State.Closing:
+					if (DesiredOpen)
+					{
+						SetAnimationState(State.Opening);
+					}
+					else if (animState.normalizedTime <= 0.0f)
+					{
+						SetAnimationState(State.Closed);
+						SetOpened(false, false);
+						yield break;
+					}
+					break;
+
+				case State.Open:
+					if (!DesiredOpen)
+					{
+						animState.normalizedTime = 1.0f;
+						SetAnimationState(State.Closing);
+						PlaySounds(DesiredOpen);
+					}
+					else
+					{
+						SetAnimationState(State.Open);
+						yield break;
+					}
+					break;
+				}
+
+				yield return null;
+			}
+		}
+
+		public bool IsOpen => CurrentState == State.Open;
 
 		public bool CanEVA { get; private set; }
 
@@ -208,6 +351,12 @@ namespace FreeIva
 				{
 					renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
 				}
+			}
+
+			if (openAnimationName != string.Empty)
+			{
+				var animators = internalProp.FindModelAnimators(openAnimationName);
+				m_animationComponent = animators.FirstOrDefault();
 			}
 		}
 		public override void OnAwake()
@@ -392,7 +541,7 @@ namespace FreeIva
 
 			if (useBlockedProp && m_blockedProp == null)
 			{
-				m_blockedProp = PropHatch.CreateProp(blockedPropName, internalProp);
+				m_blockedProp = CreateProp(blockedPropName, internalProp);
 				if (m_blockedProp == null)
 				{
 					blockedPropName = string.Empty; // clear this so that we'll get a message about the hatch being blocked
@@ -414,7 +563,7 @@ namespace FreeIva
 
 			if (_connectedHatch != null && hideDoorWhenConnected)
 			{
-				Open(true, false);
+				SetOpened(true, false);
 				HideOnOpen(true, true);
 				_connectedHatch.HideOnOpen(true, true);
 				if (m_doorTransform != null)
@@ -449,7 +598,15 @@ namespace FreeIva
 
 		private void OnHandleClick()
 		{
-			ToggleHatch();
+			var interaction = GetInteraction();
+			if (InteractionAllowed(interaction))
+			{
+				DesiredOpen = !DesiredOpen;
+			}
+			else
+			{
+				KerbalIvaAddon.PostHatchInteractionMessage(interaction);
+			}
 		}
 
 		private FreeIvaHatch FindConnectedHatch()
@@ -558,54 +715,111 @@ namespace FreeIva
 			return result;
 		}
 
-		public void ToggleHatch()
+		private void PlaySounds(bool open)
 		{
-			Open(!IsOpen);
+			var sound = open ? HatchOpenSound : HatchCloseSound;
+			if (sound != null && sound.audio != null)
+				sound.audio.Play();
 		}
 
-		public virtual void Open(bool open, bool allowSounds = true)
+		public enum Interaction
 		{
-			var connectedHatch = ConnectedHatch;
+			Open,
+			Close,
+			Blocked,
+			Locked,
+			EVA,
+		}
 
-			if (open && IsBlockedByAnimation())
+		public Interaction GetInteraction()
+		{
+			if (IsBlockedByAnimation())
 			{
-				// can't do anything.
+				return Interaction.Locked;
 			}
-			// if we're trying to open a door to space, just go EVA
-			else if (connectedHatch == null && open && CanEVA)
+			else if (this.CanEVA)
 			{
-				GoEVA();
+				return Interaction.EVA;
 			}
-			else if (connectedHatch == null && open && (attachNodeId != string.Empty || dockingPortNodeName != string.Empty))
+			else if (ConnectedHatch == null && (attachNodeId != string.Empty || dockingPortNodeName != string.Empty))
 			{
-				// this hatch must be connected to something
+				return Interaction.Blocked;
 			}
 			else
 			{
+				return DesiredOpen ? Interaction.Close : Interaction.Open;
+			}
+		}
+
+		public static bool InteractionAllowed(Interaction interaction)
+		{
+			switch (interaction)
+			{
+			case Interaction.Locked:
+			case Interaction.Blocked:
+				return false;
+			default:
+				return true;
+			}
+		}
+
+		public void SetOpened(bool open, bool allowSounds = true)
+		{
+			Open(open, allowSounds);
+		}
+
+		// leaving this here for the benefit of kerbalvr so it can be called directly (I think)
+		protected virtual void Open(bool open, bool allowSounds = true)
+		{
+			var connectedHatch = ConnectedHatch;
+			var interaction = GetInteraction();
+
+			if (!InteractionAllowed(interaction))
+			{
+				open = false;
+			}
+			
+			// if we're trying to open a door to space, just go EVA
+			if (open && interaction == Interaction.EVA)
+			{
+				GoEVA();
+			}
+			else if (open && interaction == Interaction.Close || !open && interaction == Interaction.Open)
+			{
 				if (m_doorTransform != null)
 				{
-					m_doorTransform.gameObject.SetActive(!open);
+					if (HasAnimation)
+					{
+						foreach (var collider in m_doorTransform.GetComponentsInChildren<Collider>())
+						{
+							if (collider.gameObject.layer == (int)Layers.Kerbals)
+							{
+								collider.enabled = !open;
+							}
+						}
+
+						SetAnimationState(open ? State.Open : State.Closed);
+					}
+					else
+					{
+						m_doorTransform.gameObject.SetActive(!open);
+					}
 				}
 
 				HideOnOpen(open, false);
 
-				if (open != IsOpen)
+				if (open != IsOpen && allowSounds && !HasAnimation)
 				{
-					if (allowSounds)
-					{
-						var sound = open ? HatchOpenSound : HatchCloseSound;
-						if (sound != null && sound.audio != null)
-							sound.audio.Play();
-					}
+					PlaySounds(open);
 				}
 
-				IsOpen = open;
+				_desiredOpen = open;
+				CurrentState = open ? State.Open : State.Closed;
 
 				// automatically toggle the far hatch too
-				if (connectedHatch != null && connectedHatch.IsOpen != open)
+				if (connectedHatch != null && connectedHatch.IsOpen != open && !connectedHatch.HasAnimation)
 				{
-					connectedHatch.Open(open, allowSounds);
-					FreeIva.SetRenderQueues(FreeIva.CurrentPart);
+					connectedHatch.SetOpened(open, allowSounds);
 				}
 			}
 		}
@@ -756,10 +970,41 @@ namespace FreeIva
 				{
 					foreach (var hatch in mfi.Hatches)
 					{
-						hatch.Open(false);
+						hatch.SetOpened(false);
 					}
 				}
 			}
+		}
+
+		static InternalProp CreateProp(string propName, InternalProp atProp)
+		{
+			return CreateProp(propName, atProp, Vector3.zero, Quaternion.identity, Vector3.one);
+		}
+
+		static InternalProp CreateProp(string propName, InternalProp atProp, Vector3 localPosition, Quaternion localRotation, Vector3 localScale)
+		{
+			InternalProp result = PartLoader.GetInternalProp(propName);
+			if (result == null)
+			{
+				Debug.LogError("[FreeIVA] Unable to load open prop hatch \"" + propName + "\" in internal " + atProp.internalModel.internalName);
+			}
+			else
+			{
+				result.propID = atProp.internalModel.props.Count;
+				result.internalModel = atProp.internalModel;
+
+				// position the prop relative to this one, then attach it to the internal model
+				result.transform.SetParent(atProp.transform, false);
+				result.transform.localRotation = localRotation;
+				result.transform.localPosition = localPosition;
+				result.transform.localScale = localScale;
+				result.transform.SetParent(atProp.internalModel.transform, true);
+
+				result.hasModel = true;
+				atProp.internalModel.props.Add(result);
+			}
+
+			return result;
 		}
 	}
 }

@@ -12,7 +12,7 @@ indent_style = tabs
 #Formatting - indentation options
 
 #do not indent switch case contents.
-csharp_indent_case_contents = false
+csharp_indent_case_contents = true
 #do not indent switch labels
 csharp_indent_switch_labels = false
 

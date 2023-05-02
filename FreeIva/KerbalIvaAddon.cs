@@ -871,50 +871,34 @@ namespace FreeIva
 
 			if (targetedHatch != null)
 			{
-				bool canOpenHatch = false;
+				var interaction = targetedHatch.GetInteraction();
 
-				if (targetedHatch.IsBlockedByAnimation())
-				{
-					ScreenMessages.PostScreenMessage(str_HatchLocked,
-							0.1f, ScreenMessageStyle.LOWER_CENTER);
-				}
-				else if (targetedHatch.ConnectedHatch == null)
-				{
-					if (targetedHatch.CanEVA)
-					{
-						ScreenMessages.PostScreenMessage(str_GoEVA + " [" + Settings.OpenHatchKey + "]", 0.1f, ScreenMessageStyle.LOWER_CENTER);
+				PostHatchInteractionMessage(interaction);
 
-						if (openHatch)
-						{
-							targetedHatch.GoEVA();
-						}
-					}
-					else if (targetedHatch.attachNodeId != string.Empty || targetedHatch.dockingPortNodeName != string.Empty)
-					{
-						ScreenMessages.PostScreenMessage(str_HatchBlocked, 0.1f, ScreenMessageStyle.LOWER_CENTER);
-					}
-					else
-					{
-						canOpenHatch = true;
-					}
-				}
-				else
+				if (FreeIvaHatch.InteractionAllowed(interaction) && openHatch)
 				{
-					canOpenHatch = true;
-				}
-				
-				if (canOpenHatch)
-				{
-					ScreenMessages.PostScreenMessage((targetedHatch.IsOpen ? str_CloseHatch : str_OpenHatch) + " [" + Settings.OpenHatchKey + "]",
-						0.1f, ScreenMessageStyle.LOWER_CENTER);
-
-					if (openHatch)
-						targetedHatch.ToggleHatch();
+					targetedHatch.DesiredOpen = !targetedHatch.DesiredOpen;
 				}
 			}
 		}
 
-		
+		public static void PostHatchInteractionMessage(FreeIvaHatch.Interaction interaction)
+		{
+			ScreenMessages.PostScreenMessage(GetInteractionString(interaction), 0.1f, ScreenMessageStyle.LOWER_CENTER);
+		}
+
+		private static string GetInteractionString(FreeIvaHatch.Interaction interaction)
+		{
+			switch (interaction)
+			{
+			case FreeIvaHatch.Interaction.Locked: return str_HatchLocked;
+			case FreeIvaHatch.Interaction.EVA: return str_GoEVA + " [" + Settings.OpenHatchKey + "]";
+			case FreeIvaHatch.Interaction.Blocked: return str_HatchBlocked;
+			case FreeIvaHatch.Interaction.Open: return str_OpenHatch + " [" + Settings.OpenHatchKey + "]";
+			case FreeIvaHatch.Interaction.Close: return str_CloseHatch + " [" + Settings.OpenHatchKey + "]";
+			default: return string.Empty;
+			}
+		}
 
 #if Experimental
 		private static Transform _oldParent = null;
