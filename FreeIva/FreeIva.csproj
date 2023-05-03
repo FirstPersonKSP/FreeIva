@@ -107,7 +107,6 @@
     <Compile Include="AssetLoader.cs" />
     <Compile Include="ColliderUtil.cs" />
     <Compile Include="CutParameter.cs" />
-    <Compile Include="Experimental\ColliderManipulator.cs" />
     <Compile Include="Gui\GuiTutorial.cs" />
     <Compile Include="InternalModules\B9PSConditionalProp.cs" />
     <Compile Include="InternalModules\ChangeObjectLayer.cs" />
@@ -122,14 +121,11 @@
     <Compile Include="InternalModules\InternalModuleFreeIva.cs" />
     <Compile Include="InternalModules\DepthMask.cs" />
     <Compile Include="InternalModules\Hatches\HatchConfig.cs" />
-    <Compile Include="Experimental\InteractionCollider.cs" />
-    <Compile Include="Experimental\InteractiveIvaProp.cs" />
     <Compile Include="Experimental\ModuleInternalPressure.cs" />
     <Compile Include="InternalModules\PhysicalProp.cs" />
     <Compile Include="ModuleFreeIvaPartInfo.cs" />
     <Compile Include="Shim\Kerbalism_Habitat.cs" />
     <Compile Include="InternalModules\PropBuckleButton.cs" />
-    <Compile Include="InternalModules\Hatches\PropHatchAnimated.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="KerbalIvaAddon.cs" />

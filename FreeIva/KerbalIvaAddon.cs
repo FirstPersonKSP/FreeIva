@@ -47,9 +47,6 @@ namespace FreeIva
 		public InternalSeat OriginalSeat = null;
 		public InternalSeat TargetedSeat = null;
 		public bool Gravity = true;
-#if Experimental
-		public static bool CanHoldItems = false;
-#endif
 		public static Vector3 flightForces;
 
 		private CameraManager.CameraMode _lastCameraMode = CameraManager.CameraMode.Flight;
@@ -899,30 +896,6 @@ namespace FreeIva
 			default: return string.Empty;
 			}
 		}
-
-#if Experimental
-		private static Transform _oldParent = null;
-		private static Transform HeldItem = null;
-		public static bool HoldingItem { get; private set; }
-		public static void HoldItem(Transform t)
-		{
-			if (!CanHoldItems) return;
-
-			if (HoldingItem)
-				HeldItem.transform.parent = _oldParent;
-
-			_oldParent = t.transform.parent;
-			HeldItem = t;
-			HeldItem.transform.parent = InternalCamera.Instance.transform;
-			HoldingItem = true;
-		}
-
-		public static void DropHeldItem()
-		{
-			if (HeldItem != null && HeldItem.transform != null)
-				HeldItem.transform.parent = _oldParent;
-		}
-#endif
 
 		public void OnCollisionEnter(Collision collision)
 		{
