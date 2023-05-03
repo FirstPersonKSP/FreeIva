@@ -209,6 +209,8 @@ namespace FreeIva
 
 		public void FixedUpdate()
 		{
+			if (InternalCamera.Instance == null) return;
+
 			UpdateCurrentPart();
 
 			// prevent mouse clicks from hitting the kerbal collider or the internal shell
