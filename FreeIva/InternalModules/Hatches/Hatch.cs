@@ -118,132 +118,7 @@ namespace FreeIva
 
 		public State CurrentState { get; private set; }
 
-		void SetAnimationState(State newState)
-		{
-			var animState = m_animationComponent[openAnimationName];
-
-			switch (newState)
-			{
-				case State.Closed:
-					animState.normalizedTime = 0;
-					m_animationComponent.Stop();
-					m_animationCoroutine = null;
-					break;
-
-				case State.Opening:
-					animState.speed = 1.0f;
-					m_animationComponent.Play();
-					break;
-
-				case State.Closing:
-					animState.speed = -1.0f;
-					m_animationComponent.Play();
-					break;
-
-				case State.Open:
-					animState.normalizedTime = 1.0f;
-					m_animationComponent.Stop();
-					m_animationCoroutine = null;
-				break;
-			}
-
-			CurrentState = newState;
-		}
-
-		private bool _desiredOpen;
-		public bool DesiredOpen
-		{
-			get => _desiredOpen;
-			set
-			{
-				if (!InteractionAllowed(GetInteraction()))
-				{
-					value = false;
-				}
-
-				_desiredOpen = value;
-				if (HasAnimation)
-				{
-					if (m_animationCoroutine == null)
-					{
-						m_animationCoroutine = StartCoroutine(AnimationUpdate());
-					}
-				}
-				else
-				{
-					SetOpened(_desiredOpen, true);
-				}
-			}
-		}
-
-		Coroutine m_animationCoroutine;
-		IEnumerator AnimationUpdate()
-		{
-			var animState = m_animationComponent[openAnimationName];
-			m_animationComponent.wrapMode = WrapMode.ClampForever;
-
-			while (true)
-			{
-				switch (CurrentState)
-				{
-				case State.Closed:
-					if (DesiredOpen)
-					{
-						animState.normalizedTime = 0.0f;
-						SetAnimationState(State.Opening);
-						PlaySounds(DesiredOpen);
-					}
-					else
-					{
-						SetAnimationState(State.Closed);
-						yield break;
-					}
-					break;
-
-				case State.Opening:
-					if (!DesiredOpen)
-					{
-						SetAnimationState(State.Closing);
-					}
-					else if (animState.normalizedTime >= 1.0f)
-					{
-						SetAnimationState(State.Open);
-						SetOpened(true, false);
-						yield break;
-					}
-					break;
-
-				case State.Closing:
-					if (DesiredOpen)
-					{
-						SetAnimationState(State.Opening);
-					}
-					else if (animState.normalizedTime <= 0.0f)
-					{
-						SetAnimationState(State.Closed);
-						SetOpened(false, false);
-						yield break;
-					}
-					break;
-
-				case State.Open:
-					if (!DesiredOpen)
-					{
-						animState.normalizedTime = 1.0f;
-						SetAnimationState(State.Closing);
-						PlaySounds(DesiredOpen);
-					}
-					else
-					{
-						SetAnimationState(State.Open);
-						yield break;
-					}
-					break;
-				}
-
-				yield return null;
-			}
-		}
+		public bool DesiredOpen { get; private set; }
 
 		public bool IsOpen => CurrentState == State.Open;
 
@@ -763,6 +638,140 @@ namespace FreeIva
 			}
 		}
 
+		public void SetDesiredOpen(bool open)
+		{
+			if (!InteractionAllowed(GetInteraction()))
+			{
+				open = false;
+			}
+
+			DesiredOpen = open;
+			if (HasAnimation)
+			{
+				if (m_animationCoroutine == null)
+				{
+					m_animationCoroutine = StartCoroutine(AnimationUpdate());
+				}
+			}
+			else
+			{
+				SetOpened(open, true);
+			}
+		}
+
+		void SetAnimationState(State newState)
+		{
+			var animState = m_animationComponent[openAnimationName];
+
+			switch (newState)
+			{
+			case State.Closed:
+				animState.normalizedTime = 0;
+				m_animationComponent.Stop();
+				m_animationCoroutine = null;
+				break;
+
+			case State.Opening:
+				animState.speed = 1.0f;
+				m_animationComponent.Play();
+				break;
+
+			case State.Closing:
+				animState.speed = -1.0f;
+				m_animationComponent.Play();
+				break;
+
+			case State.Open:
+				animState.normalizedTime = 1.0f;
+				m_animationComponent.Stop();
+				m_animationCoroutine = null;
+				break;
+			}
+
+			CurrentState = newState;
+		}
+
+		Coroutine m_animationCoroutine;
+		IEnumerator AnimationUpdate()
+		{
+			var animState = m_animationComponent[openAnimationName];
+			m_animationComponent.wrapMode = WrapMode.ClampForever;
+
+			while (true)
+			{
+				switch (CurrentState)
+				{
+				case State.Closed:
+					if (DesiredOpen)
+					{
+						animState.normalizedTime = 0.0f;
+						SetAnimationState(State.Opening);
+						PlaySounds(DesiredOpen);
+					}
+					else
+					{
+						SetAnimationState(State.Closed);
+						yield break;
+					}
+					break;
+
+				case State.Opening:
+					if (!DesiredOpen)
+					{
+						SetAnimationState(State.Closing);
+					}
+					else if (animState.normalizedTime >= 1.0f)
+					{
+						SetAnimationState(State.Open);
+						SetOpened(true, false);
+						yield break;
+					}
+					break;
+
+				case State.Closing:
+					if (DesiredOpen)
+					{
+						SetAnimationState(State.Opening);
+					}
+					else if (animState.normalizedTime <= 0.0f)
+					{
+						SetAnimationState(State.Closed);
+						SetOpened(false, false);
+						yield break;
+					}
+					break;
+
+				case State.Open:
+					if (!DesiredOpen)
+					{
+						animState.normalizedTime = 1.0f;
+						SetAnimationState(State.Closing);
+						PlaySounds(DesiredOpen);
+						SetDoorCollidersEnabled(true);
+					}
+					else
+					{
+						SetAnimationState(State.Open);
+						yield break;
+					}
+					break;
+				}
+
+				yield return null;
+			}
+		}
+
+		void SetDoorCollidersEnabled(bool enabled)
+		{
+			foreach (var collider in m_doorTransform.GetComponentsInChildren<Collider>())
+			{
+				if (collider.gameObject.layer == (int)Layers.Kerbals)
+				{
+					collider.enabled = enabled;
+				}
+			}
+		}
+
 		public void SetOpened(bool open, bool allowSounds = true)
 		{
 			Open(open, allowSounds);
@@ -806,7 +815,7 @@ namespace FreeIva
 					PlaySounds(open);
 				}
 
-				_desiredOpen = open;
+				DesiredOpen = open;
 				CurrentState = open ? State.Open : State.Closed;
 
 				// automatically toggle the far hatch too

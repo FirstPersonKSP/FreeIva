@@ -874,7 +874,7 @@ namespace FreeIva
 
 				if (FreeIvaHatch.InteractionAllowed(interaction) && openHatch)
 				{
-					targetedHatch.DesiredOpen = !targetedHatch.DesiredOpen;
+					targetedHatch.SetDesiredOpen(!targetedHatch.DesiredOpen);
 				}
 			}
 		}
