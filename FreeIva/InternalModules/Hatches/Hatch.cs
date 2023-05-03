@@ -569,19 +569,15 @@ namespace FreeIva
 			{
 				SetOpened(true, false);
 				HideOnOpen(true, true);
-				_connectedHatch.HideOnOpen(true, true);
-				if (m_doorTransform != null)
-				{
-					// right now this is redundant, but eventually doors will animate open instead of disappearing
-					m_doorTransform.gameObject.SetActive(false);
-				}
+
 				if (_connectedHatch.m_doorTransform != null)
 				{
-					_connectedHatch.m_doorTransform.gameObject.SetActive(false);
+					// Do we still want to do this? I think not...or at least turn it into a another config param
+					// _connectedHatch.m_doorTransform.gameObject.SetActive(false);
 				}
 
 				enabled = false;
-				_connectedHatch.enabled = false;
+				//_connectedHatch.enabled = false;
 			}
 
 			// if we have a connection, or this is just some internal hatch with no functionality, we want to be able to see internals beyond the window, so set the draw order later
@@ -783,25 +779,18 @@ namespace FreeIva
 				open = false;
 			}
 			
-			// if we're trying to open a door to space, just go EVA
+			// if we're trying to open a door to space, just go EVA (what in the world would it mean if open == false?)
 			if (open && interaction == Interaction.EVA)
 			{
 				GoEVA();
 			}
-			else if (open && interaction == Interaction.Close || !open && interaction == Interaction.Open)
+			else
 			{
 				if (m_doorTransform != null)
 				{
-					if (HasAnimation)
+					if (HasAnimation && !hideDoorWhenConnected)
 					{
-						foreach (var collider in m_doorTransform.GetComponentsInChildren<Collider>())
-						{
-							if (collider.gameObject.layer == (int)Layers.Kerbals)
-							{
-								collider.enabled = !open;
-							}
-						}
-
+						SetDoorCollidersEnabled(!open);
 						SetAnimationState(open ? State.Open : State.Closed);
 					}
 					else
