@@ -534,6 +534,31 @@ namespace FreeIva
 			FreeIva.EnableInternals(); // SetCameraIVA also calls FlightGlobals.ActiveVessel.SetActiveInternalSpace(activeInternalPart); which will hide all other IVAs
 		}
 
+		public static Part GetPartContainingCrew(ProtoCrewMember crewMember)
+		{
+			// Kerbalref.InPart is always the part where the kerbal was last *seated*
+			// most of the time, this is also the part that contains their protocrewmember.
+			// but sometimes when entering a seat we don't actually transfer the kerbal between parts - specifically when the seat is in a part that doesn't have enough crew capacity e.g. science lab or inline docking port
+			Part containingPart = crewMember.KerbalRef.InPart;
+
+			if (containingPart.protoModuleCrew.Contains(crewMember))
+			{
+				return containingPart;
+			}
+			else
+			{
+				foreach (var part in containingPart.vessel.parts)
+				{
+					if (part.protoModuleCrew.Contains(crewMember))
+					{
+						return part;
+					}
+				}
+			}
+
+			return null;
+		}
+
 		public void MoveKerbalToSeat(ProtoCrewMember crewMember, InternalSeat newSeat)
 		{
 			var oldSeat = crewMember.seat;
@@ -551,29 +576,12 @@ namespace FreeIva
 			}
 			else if (destModel.part.protoModuleCrew.Count < destModel.part.CrewCapacity)
 			{
-				bool removedCrewFromOldPart = false;
-
-				// fully move the kerbal
-				if (crewMember.KerbalRef.InPart.protoModuleCrew.Contains(crewMember))
+				Part oldPart = GetPartContainingCrew(crewMember);
+				if (oldPart != null)
 				{
-					crewMember.KerbalRef.InPart.RemoveCrewmember(crewMember);
-					removedCrewFromOldPart = true;
-				}
-				else
-				{
-					foreach (var part in sourceModel.vessel.parts)
-					{
-						if (part.protoModuleCrew.Contains(crewMember))
-						{
-							part.RemoveCrewmember(crewMember);
-							removedCrewFromOldPart = true;
-							break;
-						}
-					}
-				}
-
-				if (removedCrewFromOldPart)
-				{
+					// fully move the kerbal
+					oldPart.RemoveCrewmember(crewMember);
+					
 					destModel.part.AddCrewmemberAt(crewMember, destModel.seats.IndexOf(newSeat));
 
 					// suppress the portrait system's response to this message because it messes with internal model visibility
