@@ -707,6 +707,7 @@ namespace FreeIva
 						animState.normalizedTime = 0.0f;
 						SetAnimationState(State.Opening);
 						PlaySounds(DesiredOpen);
+						SetDoorCollidersEnabled(false);
 					}
 					else
 					{
@@ -747,7 +748,6 @@ namespace FreeIva
 						animState.normalizedTime = 1.0f;
 						SetAnimationState(State.Closing);
 						PlaySounds(DesiredOpen);
-						SetDoorCollidersEnabled(true);
 					}
 					else
 					{
