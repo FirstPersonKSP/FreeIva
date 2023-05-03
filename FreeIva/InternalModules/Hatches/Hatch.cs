@@ -24,9 +24,6 @@ namespace FreeIva
 		public string hatchCloseSoundFile = "FreeIva/Sounds/HatchClose";
 
 		[KSPField]
-		public string handleTransformName = string.Empty;
-
-		[KSPField]
 		public string doorTransformName = string.Empty;
 
 		[KSPField]
@@ -90,8 +87,8 @@ namespace FreeIva
 		}
 
 		[SerializeField]
-		Transform m_handleTransform;
-		public Transform HandleTransform => m_handleTransform;
+		Transform[] m_handleTransforms;
+		public Transform[] HandleTransforms => m_handleTransforms;
 
 		[SerializeField]
 		Transform m_doorTransform;
@@ -156,66 +153,85 @@ namespace FreeIva
 				ReparentUtil.Reparent(internalProp, reparentNode);
 			}
 
-			m_handleTransform = TransformUtil.FindPropTransform(internalProp, handleTransformName);
-			if (m_handleTransform != null)
+			// handle transforms
 			{
-				m_handleTransform.gameObject.layer = (int)Layers.InternalSpace;
-
-				foreach (var collidernode in node.GetNodes("HandleCollider"))
+				var handleTransformNames = node.GetValuesList("handleTransformName");
+				var handleTransformList = new List<Transform>(handleTransformNames.Count);
+				foreach (var handleTransformName in handleTransformNames)
 				{
-					ColliderUtil.CreateCollider(m_handleTransform, collidernode, internalProp.propName);
-				}
-			}
-
-			m_doorTransform = TransformUtil.FindPropTransform(internalProp, doorTransformName);
-
-			if (m_doorTransform != null)
-			{
-				m_doorTransform.gameObject.layer = (int)Layers.Kerbals;
-
-				foreach (var colliderNode in node.GetNodes("DoorCollider"))
-				{
-					ColliderUtil.CreateCollider(m_doorTransform, colliderNode, internalProp.propName);
-				}
-			}
-			else if (doorTransformName != string.Empty)
-			{
-				Debug.LogError($"[FreeIva] doorTransform {doorTransformName} not found in {internalProp.propName}");
-			}
-
-			string windowTransformName = node.GetValue(nameof(windowTransformName));
-			if (windowTransformName != null)
-			{
-				var windowTransform = TransformUtil.FindPropTransform(internalProp, windowTransformName);
-				m_windowRenderer = windowTransform?.GetComponentInChildren<MeshRenderer>();
-				if (m_windowRenderer != null)
-				{
-					m_windowRenderer.material.renderQueue = InternalModuleFreeIva.WINDOW_RENDER_QUEUE;
-				}
-			}
-
-			// try to find a window to manage
-			// note this is similar to what we do for internal modules except we consider depth masks to be windows
-			if (x_windowShaders == null)
-			{
-				x_windowShaders = new Shader[]
-				{
-					Shader.Find("KSP/Alpha/Translucent Specular"),
-					Shader.Find("KSP/Alpha/Translucent"),
-					Shader.Find("KSP/Alpha/Unlit Transparent"),
-					Shader.Find("DepthMask")
-				};
-			}
-
-			if (windowTransformName == null)
-			{
-				foreach (var renderer in internalProp.gameObject.GetComponentsInChildren<MeshRenderer>())
-				{
-					if (x_windowShaders.Contains(renderer.material.shader))
+					var handleTransform = TransformUtil.FindPropTransform(internalProp, handleTransformName);
+					if (handleTransform != null)
 					{
-						m_windowRenderer = renderer;
-						renderer.material.renderQueue = InternalModuleFreeIva.WINDOW_RENDER_QUEUE;
-						break;
+						handleTransformList.Add(handleTransform);
+						handleTransform.gameObject.layer = (int)Layers.InternalSpace; // make sure these can be clicked and don't block the player
+					}
+				}
+				m_handleTransforms = handleTransformList.ToArray();
+
+				if (m_handleTransforms.Length > 0)
+				{
+					foreach (var collidernode in node.GetNodes("HandleCollider"))
+					{
+						ColliderUtil.CreateCollider(m_handleTransforms[0], collidernode, internalProp.propName);
+					}
+				}
+			}
+
+			// door transform
+			{
+				m_doorTransform = TransformUtil.FindPropTransform(internalProp, doorTransformName);
+
+				if (m_doorTransform != null)
+				{
+					m_doorTransform.gameObject.layer = (int)Layers.Kerbals;
+
+					foreach (var colliderNode in node.GetNodes("DoorCollider"))
+					{
+						ColliderUtil.CreateCollider(m_doorTransform, colliderNode, internalProp.propName);
+					}
+				}
+				else if (doorTransformName != string.Empty)
+				{
+					Debug.LogError($"[FreeIva] doorTransform {doorTransformName} not found in {internalProp.propName}");
+				}
+			}
+
+			// window transforms
+			{
+				string windowTransformName = node.GetValue(nameof(windowTransformName));
+				if (windowTransformName != null)
+				{
+					var windowTransform = TransformUtil.FindPropTransform(internalProp, windowTransformName);
+					m_windowRenderer = windowTransform?.GetComponentInChildren<MeshRenderer>();
+					if (m_windowRenderer != null)
+					{
+						m_windowRenderer.material.renderQueue = InternalModuleFreeIva.WINDOW_RENDER_QUEUE;
+					}
+				}
+
+				// try to find a window to manage
+				// note this is similar to what we do for internal modules except we consider depth masks to be windows
+				if (x_windowShaders == null)
+				{
+					x_windowShaders = new Shader[]
+					{
+						Shader.Find("KSP/Alpha/Translucent Specular"),
+						Shader.Find("KSP/Alpha/Translucent"),
+						Shader.Find("KSP/Alpha/Unlit Transparent"),
+						Shader.Find("DepthMask")
+					};
+				}
+
+				if (windowTransformName == null)
+				{
+					foreach (var renderer in internalProp.gameObject.GetComponentsInChildren<MeshRenderer>())
+					{
+						if (x_windowShaders.Contains(renderer.material.shader))
+						{
+							m_windowRenderer = renderer;
+							renderer.material.renderQueue = InternalModuleFreeIva.WINDOW_RENDER_QUEUE;
+							break;
+						}
 					}
 				}
 			}
@@ -248,14 +264,10 @@ namespace FreeIva
 			HatchOpenSound = SetupAudio(hatchOpenSoundFile, "HatchOpen");
 			HatchCloseSound = SetupAudio(hatchCloseSoundFile, "HatchClose");
 
-			if (handleTransformName != string.Empty)
+			foreach (var handleTransform in m_handleTransforms)
 			{
-				var handleTransform = TransformUtil.FindPropTransform(internalProp, handleTransformName);
-				if (handleTransform != null)
-				{
-					var clickWatcher = handleTransform.gameObject.AddComponent<ClickWatcher>();
-					clickWatcher.AddMouseDownAction(OnHandleClick);
-				}
+				var clickWatcher = handleTransform.gameObject.AddComponent<ClickWatcher>();
+				clickWatcher.AddMouseDownAction(OnHandleClick);
 			}
 
 			// if the cutout didn't get removed at load time, do it now
@@ -477,7 +489,7 @@ namespace FreeIva
 			var interaction = GetInteraction();
 			if (InteractionAllowed(interaction))
 			{
-				DesiredOpen = !DesiredOpen;
+				SetDesiredOpen(!DesiredOpen);
 			}
 			else
 			{
