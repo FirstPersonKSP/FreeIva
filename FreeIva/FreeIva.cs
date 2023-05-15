@@ -209,7 +209,11 @@ namespace FreeIva
 
 		public void FixedUpdate()
 		{
-			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA && CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.Internal) return;
+			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA && CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.Internal)
+			{
+				InternalCamera.Instance._camera.eventMask &= ~(1 << (int)Layers.Kerbals);
+				return;
+			}
 
 			UpdateCurrentPart();
 
