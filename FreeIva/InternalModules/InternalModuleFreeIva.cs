@@ -126,14 +126,14 @@ namespace FreeIva
 				DisableCollider.DisableColliders(internalProp, disableColliderNode);
 			}
 
-			foreach (var deleteObjectsNode in node.GetNodes("DeleteInternalObject"))
-			{
-				DeleteInternalObject.DeleteObjects(internalProp, deleteObjectsNode);
-			}
-
 			foreach (var reparentNode in node.GetNodes("Reparent"))
 			{
 				ReparentUtil.Reparent(internalProp, reparentNode);
+			}
+
+			foreach (var deleteObjectsNode in node.GetNodes("DeleteInternalObject"))
+			{
+				DeleteInternalObject.DeleteObjects(internalProp, deleteObjectsNode);
 			}
 
 			OnLoad_Shadows(node);
