@@ -209,11 +209,7 @@ namespace FreeIva
 
 		public void FixedUpdate()
 		{
-			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA && CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.Internal)
-			{
-				InternalCamera.Instance._camera.eventMask &= ~(1 << (int)Layers.Kerbals);
-				return;
-			}
+			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA && CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.Internal) return;
 
 			UpdateCurrentPart();
 
@@ -262,7 +258,7 @@ namespace FreeIva
 						}
 						else
 						{
-							PhysicalProp.HeldProp.ThrowProp();
+							PhysicalProp.ThrowProp();
 						}
 					}
 					else

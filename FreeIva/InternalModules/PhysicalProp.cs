@@ -214,11 +214,11 @@ namespace FreeIva
 			if (m_interaction) m_interaction.StopInteraction();
 		}
 
-		public void ThrowProp()
+		public static void ThrowProp()
 		{
 			if (HeldProp != null)
 			{
-				HeldProp.Release(InternalCamera.Instance._camera.transform.forward * throwSpeed, Vector3.zero);
+				HeldProp.Release(InternalCamera.Instance._camera.transform.forward * HeldProp.throwSpeed, Vector3.zero);
 				HeldProp.transform.localScale = HeldProp.originalScale;
 				HeldProp = null;
 			}
@@ -226,7 +226,7 @@ namespace FreeIva
 
 		private void OnPropMouseUp()
 		{
-			if (!IsGrabbed)
+			if (!IsGrabbed && CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA)
 			{
 				ThrowProp();
 
