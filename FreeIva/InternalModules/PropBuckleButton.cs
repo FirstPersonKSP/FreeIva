@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeIva;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -106,11 +107,6 @@ namespace FreeIva
 				}
 			}
 
-			if (result.taken && result.crew != KerbalIvaAddon.Instance.ActiveKerbal)
-			{
-				result = null;
-			}
-
 			return result;
 		}
 
@@ -124,7 +120,16 @@ namespace FreeIva
 
 		public void OnClick()
 		{
-			if (KerbalIvaAddon.Instance.buckled)
+			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)
+			{
+				var seat = FindClosestSeat(internalModel, internalProp.transform.position);
+				if (seat != null && seat.kerbalRef != null)
+				{
+					CameraManager.Instance.SetCameraIVA(seat.kerbalRef, true);
+					KerbalIvaAddon.Instance.Unbuckle();
+				}
+			}
+			else if (KerbalIvaAddon.Instance.buckled)
 			{
 				// TODO: what if this buckle is on a different seat than the one you're in?
 				KerbalIvaAddon.Instance.Unbuckle();
@@ -132,7 +137,7 @@ namespace FreeIva
 			else
 			{
 				var seat = FindClosestSeat(internalModel, internalProp.transform.position);
-				if (seat != null)
+				if (seat != null && (!seat.taken || seat.crew == KerbalIvaAddon.Instance.ActiveKerbal))
 				{
 					Vector3 seatEyePosition = seat.seatTransform.position + seat.seatTransform.rotation * seat.kerbalEyeOffset;
 					float distanceFromKerbal = Vector3.Distance(InternalCamera.Instance.transform.position, seatEyePosition);
