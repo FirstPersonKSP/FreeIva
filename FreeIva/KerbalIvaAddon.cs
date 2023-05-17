@@ -815,7 +815,7 @@ namespace FreeIva
 		{
 			if (!newHatch.enabled) return;
 
-			if (newHatch.HandleTransforms == null)
+			if (newHatch.HandleTransforms == null || newHatch.HandleTransforms.Length == 0)
 			{
 				if (IsTargeted(newHatch.transform, Vector3.zero, ref closestDistance))
 				{
