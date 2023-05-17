@@ -189,6 +189,12 @@ namespace FreeIva
 					{
 						ColliderUtil.CreateCollider(m_doorTransform, colliderNode, internalProp.propName);
 					}
+
+					// if this module is placed directly in the internal (doesn't have its own model) and using transforms from the internal model itself, we need to attach it to this object so that line-of-sight checks work
+					if (!internalProp.hasModel)
+					{
+						m_doorTransform.SetParent(transform, true);
+					}
 				}
 				else if (doorTransformName != string.Empty)
 				{
