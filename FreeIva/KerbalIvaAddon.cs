@@ -747,10 +747,8 @@ namespace FreeIva
 			return true;
 		}
 
-		public bool IsTargeted(Transform targetTransform, Vector3 localPosition, ref float closestDistance)
+		public bool IsTargeted(Transform targetTransform, Vector3 targetPosition, ref float closestDistance)
 		{
-			Vector3 targetPosition = targetTransform.TransformPoint(localPosition);
-
 			Vector3 toTarget = targetPosition - InternalCamera.Instance.transform.position;
 			float distance = toTarget.magnitude;
 			float angle = Vector3.Angle(toTarget, InternalCamera.Instance.transform.forward);
@@ -790,8 +788,9 @@ namespace FreeIva
 				// target a position halfway between the origin of the seat and the kerbal eye position
 				// the seat origin is often close to or underneath the shell collider, and the eye position is well above the "center" of the seat
 				Vector3 localTargetPosition = KerbalIva.ActiveKerbal.KerbalRef.eyeInitialPos * 0.5f;
+				Vector3 targetPosition = seat.seatTransform.position + seat.seatTransform.TransformDirection(localTargetPosition); // can't use TransformPoint because the seat might have scale on it
 
-				if (IsTargeted(seat.seatTransform, localTargetPosition, ref closestDistance))
+				if (IsTargeted(seat.seatTransform, targetPosition, ref closestDistance))
 				{
 					TargetedSeat = seat;
 				}
@@ -817,7 +816,7 @@ namespace FreeIva
 
 			if (newHatch.HandleTransforms == null || newHatch.HandleTransforms.Length == 0)
 			{
-				if (IsTargeted(newHatch.transform, Vector3.zero, ref closestDistance))
+				if (IsTargeted(newHatch.transform, newHatch.transform.position, ref closestDistance))
 				{
 					targetedHatch = newHatch;
 				}
@@ -827,9 +826,7 @@ namespace FreeIva
 				// should each hatch specify its own offset point? This code is mostly for the benefit of the BDB LM, where the hatch origins are at the center of the IVA
 				foreach (var handleTransform in newHatch.HandleTransforms)
 				{
-					Vector3 localOffset = newHatch.transform.InverseTransformPoint(handleTransform.position);
-
-					if (IsTargeted(newHatch.transform, localOffset, ref closestDistance))
+					if (IsTargeted(newHatch.transform, handleTransform.position, ref closestDistance))
 					{
 						targetedHatch = newHatch;
 					}
