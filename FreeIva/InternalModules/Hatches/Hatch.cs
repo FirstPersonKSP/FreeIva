@@ -363,15 +363,13 @@ namespace FreeIva
 
 					// if the other transform doesn't have a tube, then we scale ours to reach the other prop's origin
 					// NOTE: we used to scale the tube to only reach the attachnode, which might avoid some edge cases but this is simpler and also handles docking ports and parts that were offset after attaching
-					if (otherTubeTransform == null)
-					{
-						tubeScale = Vector3.Distance(tubeTransform.position, _connectedHatch.transform.position);
-					}
-					else
-					{
-						// otherwise we find the midpoint
-						tubeScale = Vector3.Distance(tubeTransform.position, otherTubeTransform.position) * 0.5f;
-					}
+					Vector3 targetPosition = otherTubeTransform == null
+						? _connectedHatch.transform.position
+						: Vector3.Lerp(tubeTransform.position, otherTubeTransform.position, 0.5f);
+
+					Vector3 toTarget = targetPosition - tubeTransform.position;
+					Vector3 tubeAxis = tubeTransform.TransformDirection(Vector3.down);
+					tubeScale = Vector3.Dot(toTarget, tubeAxis);
 				}
 
 				tubeTransform.gameObject.SetActive(tubeScale > 0);
