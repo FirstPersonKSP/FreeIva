@@ -124,6 +124,7 @@
     <Compile Include="Experimental\ModuleInternalPressure.cs" />
     <Compile Include="InternalModules\PhysicalProp.cs" />
     <Compile Include="ModuleFreeIvaPartInfo.cs" />
+    <Compile Include="ShadowCascadeTweak.cs" />
     <Compile Include="Shim\Kerbalism_Habitat.cs" />
     <Compile Include="InternalModules\PropBuckleButton.cs" />
     <Compile Include="Enums.cs" />

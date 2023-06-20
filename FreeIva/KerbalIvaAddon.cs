@@ -58,9 +58,13 @@ namespace FreeIva
 		public delegate void GetInputDelegate(ref IVAInput input);
 		public static GetInputDelegate GetInput = GetKeyboardInput;
 
+		ShadowCascadeTweak cascadeTweak;
+
 		void Start()
 		{
 			CreateCameraCollider();
+
+			cascadeTweak = InternalCamera.Instance._camera.gameObject.GetOrAddComponent<ShadowCascadeTweak>();
 
 			GameEvents.OnCameraChange.Add(OnCameraChange);
 			GameEvents.OnIVACameraKerbalChange.Add(OnIVACameraKerbalChange);
