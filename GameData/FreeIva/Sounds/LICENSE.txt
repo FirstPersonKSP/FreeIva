@@ -67,3 +67,20 @@ carHorn.wav
 modified from original: trimmed
 https://freesound.org/people/mariadrrs/sounds/431396/
 https://creativecommons.org/licenses/by/4.0/
+
+thunk_can.wav
+https://freesound.org/people/ryanconway/sounds/240800/
+https://creativecommons.org/licenses/by/4.0/
+
+thunk_wood.wav
+https://freesound.org/people/tonant/sounds/341714/
+https://creativecommons.org/publicdomain/zero/1.0/
+
+guitar.wav
+https://freesound.org/people/mushroomjesus/sounds/141709/
+http://creativecommons.org/publicdomain/zero/1.0/
+
+synth.wav
+original recording by JonnyOThan
+http://creativecommons.org/publicdomain/zero/1.0/
+
