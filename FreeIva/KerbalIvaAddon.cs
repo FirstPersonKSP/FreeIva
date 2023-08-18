@@ -64,7 +64,7 @@ namespace FreeIva
 		{
 			CreateCameraCollider();
 
-			cascadeTweak = InternalCamera.Instance._camera.gameObject.GetOrAddComponent<ShadowCascadeTweak>();
+			// cascadeTweak = InternalCamera.Instance._camera.gameObject.GetOrAddComponent<ShadowCascadeTweak>();
 
 			GameEvents.OnCameraChange.Add(OnCameraChange);
 			GameEvents.OnIVACameraKerbalChange.Add(OnIVACameraKerbalChange);
