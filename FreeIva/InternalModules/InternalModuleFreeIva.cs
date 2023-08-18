@@ -206,7 +206,8 @@ namespace FreeIva
 			// Find the bounds of the shell colliders, so that we can tell when the player exits the bounds of a centrifuge
 			ShellColliderBounds.center = Vector3.zero;
 			ShellColliderBounds.size = -Vector3.one;
-			foreach (var shellColliderName in node.GetValues("shellColliderName"))
+			var shellColliderNodes = node.GetValues("shellColliderName");
+			foreach (var shellColliderName in shellColliderNodes)
 			{
 				var transform = TransformUtil.FindInternalModelTransform(internalModel, shellColliderName);
 				if (transform != null)
@@ -226,6 +227,18 @@ namespace FreeIva
 				else
 				{
 					Debug.LogError($"[FreeIva] shellCollider {shellColliderName} not found in internal {internalModel.internalName}");
+				}
+			}
+
+			// if there's no shell collider, try just finding any colliders on layer 16
+			if (shellColliderNodes.Length == 0)
+			{
+				foreach (var collider in internalModel.transform.GetComponentsInChildren<Collider>())
+				{
+					if (collider.gameObject.layer == (int)Layers.Kerbals)
+					{
+						ShellColliderBounds.Encapsulate(collider.bounds);
+					}
 				}
 			}
 		}
