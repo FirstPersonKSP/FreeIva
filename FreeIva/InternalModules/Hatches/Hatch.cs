@@ -15,6 +15,9 @@ namespace FreeIva
 	{
 		public static readonly string AIRLOCK_TAG = "Airlock";
 
+		private static string str_NoKerbal = Localizer.Format("#FreeIVA_Message_NoKerbal");
+		private static string str_NoAirlock = Localizer.Format("#FreeIVA_Message_NoAirlock");
+
 		// ----- fields set in prop config
 
 		[KSPField]
@@ -65,6 +68,7 @@ namespace FreeIva
 
 		[KSPField]
 		public string airlockName = string.Empty;
+		Transform airlockTransform = null;
 
 		public float tubeExtent = 0;
 
@@ -303,6 +307,11 @@ namespace FreeIva
 				}
 			}
 
+			if (airlockName != string.Empty)
+			{
+				airlockTransform = FindAirlock(part, airlockName);
+			}
+
 			var internalModule = InternalModuleFreeIva.GetForModel(internalModel);
 			if (internalModule == null)
 			{
@@ -428,7 +437,7 @@ namespace FreeIva
 				if (attachedPart != null)
 				{
 					var attachedIvaModule = attachedPart.GetModule<ModuleFreeIva>();
-					CanEVA = attachedIvaModule == null ? false : attachedIvaModule.doesNotBlockEVA;
+					CanEVA = attachedIvaModule != null && attachedIvaModule.doesNotBlockEVA;
 				}
 
 				// don't use blocked props for docking port hatches, because they could become unblocked
@@ -656,9 +665,41 @@ namespace FreeIva
 
 		public void SetDesiredOpen(bool open)
 		{
-			if (!InteractionAllowed(GetInteraction()))
+			var interaction = GetInteraction();
+			if (!InteractionAllowed(interaction))
 			{
 				open = false;
+			}
+
+			// do on-demand checks for EVA, since the obstruction test is probably expensive to run every frame when looking at a hatch
+			if (open && interaction == Interaction.EVA)
+			{
+				Kerbal kerbal = CameraManager.Instance.ivaCameraActiveKerbal;
+				string errorMessage = null;
+
+				if (kerbal == null)
+				{
+					errorMessage = Localizer.Format(str_NoKerbal);
+				}
+				else if (airlockTransform == null)
+				{
+					errorMessage = Localizer.Format(str_NoKerbal);
+				}
+				else if (!KerbalCanEVA(kerbal))
+				{
+					errorMessage = GameVariables.Instance.GetEVALockedReason(vessel, kerbal.protoCrewMember);
+					
+				}
+				else if (EVAIsObstructed())
+				{
+					errorMessage = Localizer.Format("#autoLOC_111978");
+				}
+
+				if (errorMessage != null)
+				{
+					ScreenMessages.PostScreenMessage(errorMessage, 5f, ScreenMessageStyle.UPPER_CENTER);
+					open = false;
+				}
 			}
 
 			DesiredOpen = open;
@@ -911,6 +952,7 @@ namespace FreeIva
 
 			Part crewPart = KerbalIvaAddon.GetPartContainingCrew(pCrew);
 
+			part.hatchObstructionCheckOutwardDistance = 0.5f;
 			if (FlightEVA.HatchIsObstructed(part, fromAirlock)) // NOTE: stock code also checks hatchInsideFairing
 			{
 				ScreenMessages.PostScreenMessage(Localizer.Format("#autoLOC_111978"), 5f, ScreenMessageStyle.UPPER_CENTER);
@@ -946,18 +988,34 @@ namespace FreeIva
 			StartCoroutine(GoEVA_Coroutine());
 		}
 
-		private IEnumerator GoEVA_Coroutine()
+		bool KerbalCanEVA(Kerbal kerbal)
 		{
 			float acLevel = ScenarioUpgradeableFacilities.GetFacilityLevel(SpaceCenterFacility.AstronautComplex);
 			bool evaUnlocked = GameVariables.Instance.UnlockedEVA(acLevel);
 			bool evaPossible = GameVariables.Instance.EVAIsPossible(evaUnlocked, vessel);
 
+			return evaPossible && kerbal.protoCrewMember.type != ProtoCrewMember.KerbalType.Tourist && HighLogic.CurrentGame.Parameters.Flight.CanEVA;
+		}
+
+		bool EVAIsObstructed()
+		{
+			part.hatchObstructionCheckOutwardDistance = 0.5f;
+
+			return airlockTransform == null || FlightEVA.HatchIsObstructed(part, airlockTransform) || FlightEVA.hatchInsideFairing(part);
+		}
+
+		private IEnumerator GoEVA_Coroutine()
+		{
 			Kerbal kerbal = CameraManager.Instance.IVACameraActiveKerbal;
 
-			if (kerbal != null && evaPossible && HighLogic.CurrentGame.Parameters.Flight.CanEVA)
+			if (kerbal == null)
 			{
-				part.hatchObstructionCheckOutwardDistance = 0.5f;
-				var kerbalEVA = SpawnEVA(kerbal.protoCrewMember, part, FindAirlock(part, airlockName));
+				yield break;
+			}
+
+			if (CanEVA && KerbalCanEVA(kerbal) && airlockTransform != null)
+			{
+				var kerbalEVA = SpawnEVA(kerbal.protoCrewMember, part, airlockTransform);
 
 				if (kerbalEVA != null)
 				{
