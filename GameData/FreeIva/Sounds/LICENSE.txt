@@ -87,3 +87,7 @@ http://creativecommons.org/publicdomain/zero/1.0/
 door_slide.wav
 https://freesound.org/people/squidge316/sounds/404921/
 http://creativecommons.org/publicdomain/zero/1.0/
+
+drill.wav
+https://freesound.org/people/AlaskaRobotics/sounds/551504/
+http://creativecommons.org/publicdomain/zero/1.0/

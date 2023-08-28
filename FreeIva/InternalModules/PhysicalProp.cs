@@ -576,7 +576,7 @@ namespace FreeIva
 				base.OnLoad(interactionNode);
 
 				string transformName = interactionNode.GetValue("thrustTransformName");
-				thrustTransform = TransformUtil.FindPropTransform(PhysicalProp.internalProp, transformName);
+				thrustTransform = transformName == null ? PhysicalProp.internalProp.transform : TransformUtil.FindPropTransform(PhysicalProp.internalProp, transformName);
 				enabled = false;
 
 				interactionNode.TryGetValue(nameof(thrustPosition), ref thrustPosition);
@@ -602,6 +602,15 @@ namespace FreeIva
 						particleObject.transform.localRotation = Quaternion.FromToRotation(Vector3.forward, -thrustVector);
 
 						m_particleSystem = particleObject.GetComponent<ParticleSystem>();
+
+						if (m_particleSystem == null)
+						{
+							Debug.LogError($"PROP {PhysicalProp.internalProp.propName} tried to reference a particle system named {particleSystemName} - the object was found but it does not have a ParticleSystem component.");
+						}
+					}
+					else
+					{
+						Debug.LogError($"PROP {PhysicalProp.internalProp.propName} could not find a particle system named {particleSystemName}");
 					}
 				}
 			}
