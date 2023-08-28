@@ -699,6 +699,11 @@ namespace FreeIva
 					Debug.LogError($"[FreeIva] Could not find a module to handle deployment in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
 				}
 			}
+
+			if (part.FindModuleImplementing<ModuleFreeIva>() == null)
+			{
+				Debug.LogError($"[FreeIva] INTERNAL '{internalModel.internalName}' used in PART '{part.partInfo.name}' but it does not have a ModuleFreeIva");
+			}
 		}
 
 		void Update()
