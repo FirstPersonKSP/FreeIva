@@ -139,14 +139,8 @@ namespace FreeIva
 			OnLoad_Shadows(node);
 
 			OnLoad_DepthMasks();
-			bool hasWindows = OnLoad_Windows(node);
+			OnLoad_Windows(node);
 			OnLoad_MeshCuts(node);
-
-			bool intentionallyLeftBlank = internalDepthMaskName == string.Empty && node.HasValue(nameof(internalDepthMaskName));
-			if (internalDepthMask == null && !hasWindows && !intentionallyLeftBlank)
-			{
-				Debug.LogWarning($"[FreeIva] INTERNAL '{internalModel.internalName}' has neither an internal depth mask nor detectable windows.  It may be possible to see the internals of other parts from here.");
-			}
 		}
 
 		private void OnLoad_CopyColliders()
@@ -400,7 +394,7 @@ namespace FreeIva
 		// we need something that will render before opaque geometry so that it writes to the z-buffer early and prevents other internals from drawing behind it
 		public static readonly int WINDOW_RENDER_QUEUE = 1999;
 
-		private bool OnLoad_Windows(ConfigNode node)
+		private void OnLoad_Windows(ConfigNode node)
 		{
 			bool hasWindows = false;
 
@@ -444,7 +438,8 @@ namespace FreeIva
 			}
 
 			// if there aren't any window names specified, try to find them by shader (unless we have an internal depth mask)
-			if (!windowNames.Any() && internalDepthMask == null)
+			bool intentionallyLeftBlank = internalDepthMaskName == string.Empty && node.HasValue(nameof(internalDepthMaskName));
+			if (!windowNames.Any() && internalDepthMask == null && !intentionallyLeftBlank)
 			{
 				var modelTransform = internalModel.transform.Find("model");
 				foreach (var meshRenderer in modelTransform.GetComponentsInChildren<MeshRenderer>())
@@ -459,7 +454,10 @@ namespace FreeIva
 				}
 			}
 
-			return hasWindows;
+			if (internalDepthMask == null && !hasWindows && !intentionallyLeftBlank)
+			{
+				Debug.LogWarning($"[FreeIva] INTERNAL '{internalModel.internalName}' has neither an internal depth mask nor detectable windows.  It may be possible to see the internals of other parts from here.");
+			}
 		}
 
 		static Quaternion x_partToInternalSpace = Quaternion.Euler(90, 0, 180);
