@@ -149,6 +149,7 @@
     <Compile Include="Shim\KOSPropMonitor.cs" />
     <Compile Include="Shim\KPBS_PlanetaryModule.cs" />
     <Compile Include="Shim\Squad_ModuleAnimateGeneric.cs" />
+    <Compile Include="Shim\Squad_RetractableLadder.cs" />
     <Compile Include="Shim\SSPX_ModuleDeployableCentrifuge.cs" />
     <Compile Include="Shim\SSPX_ModuleDeployableHabitat.cs" />
     <Compile Include="Shim\ThroughTheEyes.cs" />
