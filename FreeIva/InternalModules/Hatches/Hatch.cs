@@ -683,7 +683,7 @@ namespace FreeIva
 				}
 				else if (airlockTransform == null)
 				{
-					errorMessage = Localizer.Format(str_NoKerbal);
+					errorMessage = Localizer.Format(str_NoAirlock);
 				}
 				else if (!KerbalCanEVA(kerbal))
 				{
