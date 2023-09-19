@@ -87,6 +87,7 @@ namespace FreeIva
 			if (settings.HasValue("RollCWKey")) RollCWKey = (KeyCode)Enum.Parse(typeof(KeyCode), settings.GetValue("RollCWKey"));
 			if (settings.HasValue("UpKey")) UpKey = (KeyCode)Enum.Parse(typeof(KeyCode), settings.GetValue("UpKey"));
 			if (settings.HasValue("DownKey")) DownKey = (KeyCode)Enum.Parse(typeof(KeyCode), settings.GetValue("DownKey"));
+			settings.TryGetEnum(nameof(JumpKey), ref JumpKey, JumpKey);
 			settings.TryGetEnum(nameof(ToggleGravityKey), ref ToggleGravityKey, ToggleGravityKey);
 			settings.TryGetEnum(nameof(CrouchKey), ref CrouchKey, CrouchKey);
 
