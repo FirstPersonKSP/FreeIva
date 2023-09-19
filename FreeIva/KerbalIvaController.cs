@@ -166,16 +166,19 @@ namespace FreeIva
 		}
 
 		public Vector3 currentRelativeOrientation;
+		float currentRollVelocity = 0;
 		float crouchingFraction = 0;
 		public float targetCrouchFraction = 0;
 
 		// Note this gets called from Update, not FixedUpdate
 		public void UpdateOrientation(Vector3 rotationInput)
 		{
+			currentRollVelocity = Mathf.MoveTowards(currentRollVelocity, rotationInput.z * Settings.RollSpeed, Settings.RollAcceleration * Time.deltaTime);
+
 			Vector3 angularSpeed = Time.deltaTime * new Vector3(
 				rotationInput.x * Settings.PitchSpeed,
 				rotationInput.y * Settings.YawSpeed,
-				rotationInput.z * Settings.RollSpeed);
+				currentRollVelocity);
 
 			float cameraAnchorTargetHeight;
 

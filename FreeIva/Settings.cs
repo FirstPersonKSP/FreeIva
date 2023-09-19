@@ -38,6 +38,7 @@ namespace FreeIva
 		public static float YawSpeed = 360f; // deg/s at 1.0 input
 		public static float PitchSpeed = 360f;
 		public static float RollSpeed = 90f;
+		public static float RollAcceleration = 360f;
 		// TODO: Gravity look
 		public static float YawSensitivity = 1.0f;
 		public static float PitchSensitivity = 1.0f;
@@ -103,6 +104,7 @@ namespace FreeIva
 			if (settings.HasValue("YawSpeed")) YawSpeed = float.Parse(settings.GetValue("YawSpeed"));
 			if (settings.HasValue("PitchSpeed")) PitchSpeed = float.Parse(settings.GetValue("PitchSpeed"));
 			if (settings.HasValue("RollSpeed")) RollSpeed = float.Parse(settings.GetValue("RollSpeed"));
+			settings.TryGetValue(nameof(RollAcceleration), ref RollAcceleration);
 			if (settings.HasValue("YawSensitivity")) YawSpeed = float.Parse(settings.GetValue("YawSensitivity"));
 			if (settings.HasValue("PitchSensitivity")) PitchSpeed = float.Parse(settings.GetValue("PitchSensitivity"));
 
