@@ -307,7 +307,7 @@ namespace FreeIva
 				}
 			}
 
-			if (airlockName != string.Empty)
+			if (airlockName != string.Empty || isEvaHatch)
 			{
 				airlockTransform = FindAirlock(part, airlockName);
 			}
