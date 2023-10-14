@@ -42,7 +42,7 @@ namespace FreeIva
 						}
 						else
 						{
-							Debug.LogError($"[FreeIVA] PropBuckleButton on {dbgName} does not have a collider on transform {transformName} and no procedural colliders");
+							Debug.LogError($"[FreeIVA] HandRail on {dbgName} does not have a collider on transform {transformName} and no procedural colliders");
 						}
 					}
 					else
@@ -54,7 +54,7 @@ namespace FreeIva
 				}
 				else
 				{
-					Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.name} could not find a transform named {transformName}");
+					Debug.LogError($"[FreeIVA] HandRail on {internalProp.name} could not find a transform named {transformName}");
 				}
 			}
 		}
