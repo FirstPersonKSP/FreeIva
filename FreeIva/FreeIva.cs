@@ -433,7 +433,10 @@ namespace FreeIva
 
 		public static bool PartIsProbeCore(Part part)
 		{
-			return part.CrewCapacity == 0 && part.HasModuleImplementing<ModuleCommand>();
+			// the ArcReactor from Pathfinder has 0 crew capacity and a ModuleCommand, so technically it is a probe core.  but we definitely want to create the IVA like all other parts
+			// Using the presence of an airlock (which freeiva adds....) as the decider here.  This feels like a pretty big hack, hopefuly it doesn't come back to bite me.
+			// Another possible test here could be whether there are any hatches that are connected to attachnodes (because presumably that means the IVA was meant for use on the actual ship, not PCR)
+			return part.CrewCapacity == 0 && part.airlock == null && part.HasModuleImplementing<ModuleCommand>();
 		}
 
 		public static void EnableInternals()
