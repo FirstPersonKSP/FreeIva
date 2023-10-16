@@ -361,6 +361,7 @@ namespace FreeIva
 				{
 					Profiler.BeginSample("Testing possible part");
 					Part pp = possibleModule.part;
+					if (pp.collider == null) continue;
 					// Raycast from the camera to the centre of the collider.
 					// TODO: Figure out how to deal with multi-collider parts.
 					Vector3 c = pp.collider.bounds.center;
