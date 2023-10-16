@@ -388,7 +388,7 @@ namespace FreeIva
 
 			if (newModule != null || !currentModuleBoundsCamera)
 			{
-				SetCurrentPart(newModule);
+				SetCurrentPart(newModule.internalModel);
 			}
 
 			/*else
@@ -422,8 +422,15 @@ namespace FreeIva
 			Profiler.EndSample();
 		}
 
-		public static void SetCurrentPart(InternalModuleFreeIva newModule)
+		public static void SetCurrentPart(InternalModel newModel)
 		{
+			var newModule = InternalModuleFreeIva.GetForModel(newModel);
+
+			if (newModule == null && CurrentInternalModuleFreeIva != null)
+			{
+				Debug.LogWarningFormat("[FreeIva] setting current module to null (was {0}) for INTERNAL {1}", CurrentInternalModuleFreeIva.internalModel.internalName, newModel == null ? "null" : newModel.internalName);
+			}
+
 			if (FreeIva.CurrentInternalModuleFreeIva != newModule)
 			{
 				CurrentInternalModuleFreeIva = newModule;

@@ -449,7 +449,7 @@ namespace FreeIva
 			// try to return to the stationary section
 			if (currentCentrifuge != null && currentCentrifuge == FreeIva.CurrentInternalModuleFreeIva.Centrifuge && FreeIva.CurrentInternalModuleFreeIva.SecondaryInternalModel != null)
 			{
-				FreeIva.SetCurrentPart(InternalModuleFreeIva.GetForModel(FreeIva.CurrentInternalModuleFreeIva.SecondaryInternalModel));
+				FreeIva.SetCurrentPart(FreeIva.CurrentInternalModuleFreeIva.SecondaryInternalModel);
 			}
 			currentCentrifuge = null;
 			transform.SetParent(null, true);

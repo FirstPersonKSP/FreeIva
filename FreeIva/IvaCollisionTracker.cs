@@ -94,7 +94,7 @@ namespace FreeIva
 			{
 				if (rail.internalModel != FreeIva.CurrentInternalModuleFreeIva.internalModel)
 				{
-					FreeIva.SetCurrentPart(InternalModuleFreeIva.GetForModel(rail.internalModel));
+					FreeIva.SetCurrentPart(rail.internalModel);
 				}
 
 				++RailColliderCount;

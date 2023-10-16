@@ -279,11 +279,11 @@ namespace FreeIva
 			{
 				return Vector3.zero;
 			}
-			else if (ivaModule.Centrifuge != null && ivaModule.Centrifuge.CurrentSpinRate != 0)
+			else if (ivaModule?.Centrifuge != null && ivaModule.Centrifuge.CurrentSpinRate != 0)
 			{
 				return GetCentrifugeAccel(ivaModule.Centrifuge, internalSpacePosition);
 			}
-			else if (ivaModule.customGravity != Vector3.zero)
+			else if (ivaModule != null && ivaModule.customGravity != Vector3.zero)
 			{
 				return ivaModule.transform.TransformDirection(ivaModule.customGravity);
 			}
@@ -668,7 +668,7 @@ namespace FreeIva
 		{
 			if (ActiveKerbal.KerbalRef != null && ActiveKerbal.KerbalRef.InPart != null)
 			{
-				FreeIva.SetCurrentPart(InternalModuleFreeIva.GetForModel(ActiveKerbal.seat.internalModel));
+				FreeIva.SetCurrentPart(ActiveKerbal.seat.internalModel);
 			}
 		}
 
@@ -854,10 +854,12 @@ namespace FreeIva
 
 		public void TargetHatches(bool openHatch, bool openFarHatch)
 		{
+			if (FreeIva.CurrentPart == null) return;
+
 			FreeIvaHatch targetedHatch = null;
 			float closestDistance = Settings.MaxInteractDistance;
 
-			for (var internalModule = InternalModuleFreeIva.GetForModel(FreeIva.CurrentPart?.internalModel); internalModule != null; internalModule = InternalModuleFreeIva.GetForModel(internalModule.SecondaryInternalModel))
+			for (var internalModule = InternalModuleFreeIva.GetForModel(FreeIva.CurrentPart.internalModel); internalModule != null; internalModule = InternalModuleFreeIva.GetForModel(internalModule.SecondaryInternalModel))
 			{
 				if (internalModule.isActiveAndEnabled)
 				{
