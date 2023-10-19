@@ -238,7 +238,10 @@ namespace FreeIva
 			if (m_internalVisibilityDirty)
 			{
 				EnableInternals();
-				KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.StopCoroutine(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.refreshCoroutine);
+				if (KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.refreshCoroutine != null)
+				{
+					KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.StopCoroutine(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.refreshCoroutine);
+				}
 				m_internalVisibilityDirty = false;
 			}
 
