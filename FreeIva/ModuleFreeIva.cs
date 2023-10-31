@@ -25,6 +25,9 @@ namespace FreeIva
 		[KSPField]
 		public string partInfo = string.Empty;
 
+		[KSPField]
+		public bool forceInternalCreation = false;
+
 		public override void OnLoad(ConfigNode node)
 		{
 			base.OnLoad(node);
