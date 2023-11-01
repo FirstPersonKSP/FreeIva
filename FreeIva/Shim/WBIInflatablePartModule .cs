@@ -30,7 +30,7 @@ namespace FreeIva.Shim
 			PartModule module = null;
 			foreach (var m in part.modules.modules)
 			{
-				if (m.GetType() == x_WBIInflatablePartModule_TypeInfo)
+				if (x_WBIInflatablePartModule_TypeInfo.IsAssignableFrom(m.GetType()))
 				{
 					module = m;
 					break;

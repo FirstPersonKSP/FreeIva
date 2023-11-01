@@ -31,7 +31,7 @@ namespace FreeIva
 			PartModule module = null;
 			foreach (var m in part.modules.modules)
 			{
-				if (m.GetType() == x_ModuleDeployableHabitatTypeInfo.AsType() || m.GetType().IsSubclassOf(x_ModuleDeployableHabitatTypeInfo.AsType()))
+				if (x_ModuleDeployableHabitatTypeInfo.IsAssignableFrom(m.GetType()))
 				{
 					module = m;
 					break;
