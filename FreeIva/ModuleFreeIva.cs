@@ -107,6 +107,11 @@ namespace FreeIva
 			{
 				Deployable = DeployableFactory.Create(part, deployAnimationName);
 			}
+
+			if ((requireDeploy || deployAnimationName != string.Empty) && Deployable == null)
+			{
+				Debug.LogError($"[FreeIva] no deployable module found on part {part.partInfo.name}");
+			}
 		}
 	}
 }
