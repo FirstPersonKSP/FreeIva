@@ -92,7 +92,7 @@ namespace FreeIva
 			HandRail rail = ColliderGetHandRail(other);
 			if (rail != null)
 			{
-				if (rail.internalModel != FreeIva.CurrentInternalModuleFreeIva.internalModel)
+				if (rail.internalModel != FreeIva.CurrentInternalModuleFreeIva?.internalModel)
 				{
 					FreeIva.SetCurrentPart(rail.internalModel);
 				}
