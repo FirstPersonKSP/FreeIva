@@ -460,6 +460,23 @@ namespace FreeIva
 			return false;
 		}
 
+		static bool ShouldCreateInternals(Part part)
+		{
+			if (PartIsProbeCore(part))
+			{
+				return false;
+			}
+
+			var freeIvaModule = part.FindModuleImplementing<ModuleFreeIva>();
+
+			if (freeIvaModule != null && freeIvaModule.requireDeploy && freeIvaModule.Deployable != null && !freeIvaModule.Deployable.IsDeployed)
+			{
+				return false;
+			}
+
+			return true;
+		}
+
 		public static void EnableInternals()
 		{
 			try
@@ -484,7 +501,7 @@ namespace FreeIva
 				{
 					foreach (Part p in FlightGlobals.ActiveVessel.parts)
 					{
-						if (!PartIsProbeCore(p))
+						if (ShouldCreateInternals(p))
 						{
 							if (p.internalModel == null)
 							{

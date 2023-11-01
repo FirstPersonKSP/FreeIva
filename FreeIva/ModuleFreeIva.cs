@@ -27,6 +27,26 @@ namespace FreeIva
 
 		[KSPField]
 		public bool forceInternalCreation = false;
+		[KSPField]
+		public bool requireDeploy = false;
+
+		[KSPField]
+		public string deployAnimationName = string.Empty;
+
+		[KSPField]
+		public string centrifugeTransformName = string.Empty;
+		[KSPField]
+		public Vector3 centrifugeAlignmentRotation = new Vector3(180, 0, 180);
+
+		public IDeployable Deployable
+		{
+			get; private set;
+		}
+
+		public ICentrifuge Centrifuge
+		{
+			get; private set;
+		}
 
 		public override void OnLoad(ConfigNode node)
 		{
@@ -74,6 +94,19 @@ namespace FreeIva
 			}
 
 			return result;
+		}
+
+		public override void OnStart(StartState state)
+		{
+			if (!HighLogic.LoadedSceneIsFlight) return;
+
+			Centrifuge = CentrifugeFactory.Create(part, centrifugeTransformName, centrifugeAlignmentRotation);
+			Deployable = Centrifuge as IDeployable; // some centrifuges may also be deployables
+
+			if (Deployable == null)
+			{
+				Deployable = DeployableFactory.Create(part, deployAnimationName);
+			}
 		}
 	}
 }

@@ -81,17 +81,10 @@ namespace FreeIva
 		public string secondaryInternalName = string.Empty;
 		public InternalModel SecondaryInternalModel { get; private set; }
 
-		[KSPField]
-		public string centrifugeTransformName = string.Empty;
-		[KSPField]
-		public Vector3 centrifugeAlignmentRotation = new Vector3(180, 0, 180);
-
 		public ICentrifuge Centrifuge { get; private set; }
 		public IDeployable Deployable { get; private set; }
 
 		public bool NeedsDeployable;
-		[KSPField]
-		public string deployAnimationName = string.Empty;
 
 		[KSPField]
 		public string externalDepthMaskFile = string.Empty;
@@ -680,27 +673,32 @@ namespace FreeIva
 				SecondaryInternalModel = CreateInternalModel(secondaryInternalName);
 			}
 
-			// the rotating part of the centrifuge has a secondary internal (which is the stationary part)
-			// for now we'll only set up the centrifuge module on the rotating part
-			if (SecondaryInternalModel != null || centrifugeTransformName != string.Empty)
+			var partModule = part.FindModuleImplementing<ModuleFreeIva>();
+
+			if (partModule == null)
 			{
-				Centrifuge = CentrifugeFactory.Create(part, centrifugeTransformName, centrifugeAlignmentRotation);
-				Deployable = Centrifuge as IDeployable; // some centrifuges may also be deployables
+				Debug.LogError($"[FreeIva] INTERNAL '{internalModel.internalName}' used in PART '{part.partInfo.name}' but it does not have a ModuleFreeIva");
 			}
-
-			if (NeedsDeployable && Deployable == null)
+			else
 			{
-				Deployable = DeployableFactory.Create(part, deployAnimationName);
+				// the rotating part of the centrifuge has a secondary internal (which is the stationary part)
+				// for now we'll only set up the centrifuge module on the rotating part
+				if (SecondaryInternalModel != null || partModule.Centrifuge != null)
+				{
+					Centrifuge = partModule.Centrifuge;
+				}
 
-				if (Deployable == null)
+				if (SecondaryInternalModel != null && Centrifuge == null)
+				{
+					Debug.LogError($"[FreeIva] Could not find a centrifuge module in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
+				}
+
+				Deployable = partModule.Deployable;
+
+				if (NeedsDeployable && Deployable == null)
 				{
 					Debug.LogError($"[FreeIva] Could not find a module to handle deployment in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
 				}
-			}
-
-			if (part.FindModuleImplementing<ModuleFreeIva>() == null)
-			{
-				Debug.LogError($"[FreeIva] INTERNAL '{internalModel.internalName}' used in PART '{part.partInfo.name}' but it does not have a ModuleFreeIva");
 			}
 		}
 
