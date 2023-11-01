@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeIva.Shim;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,7 +23,8 @@ namespace FreeIva
 				(IDeployable)Squad_RetractableLadder.Create(part, requiredAnimationName) ??
 				(IDeployable)SSPX_ModuleDeployableHabitat.Create(part) ?? 
 				(IDeployable)KPBS_PlanetaryModule.Create(part) ??
-				(IDeployable)Kerbalism_Habitat.Create(part);
+				(IDeployable)Kerbalism_Habitat.Create(part) ??
+				(IDeployable)WBIInflatablePartModule.Create(part);
 		}
 	}
 }
