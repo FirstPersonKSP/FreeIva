@@ -471,13 +471,18 @@ namespace FreeIva
 				SetOpened(true, false);
 				HideOnOpen(true, true);
 
-				if (_connectedHatch.m_doorTransform != null)
+				// if the other hatch doesn't have animation, also force it open
+				if (!_connectedHatch.HasAnimation || _connectedHatch.hideDoorWhenConnected)
 				{
-					_connectedHatch.m_doorTransform.gameObject.SetActive(false);
+					if (_connectedHatch.m_doorTransform != null)
+					{
+						_connectedHatch.m_doorTransform.gameObject.SetActive(false);
+					}
+
+					_connectedHatch.enabled = false;
 				}
 
 				enabled = false;
-				_connectedHatch.enabled = false;
 			}
 
 			// if we have a connection, or this is just some internal hatch with no functionality, we want to be able to see internals beyond the window, so set the draw order later
@@ -875,7 +880,7 @@ namespace FreeIva
 				DesiredOpen = open;
 				CurrentState = open ? State.Open : State.Closed;
 
-				// automatically toggle the far hatch too
+				// automatically toggle the far hatch too, if it doesn't have animation
 				if (connectedHatch != null && connectedHatch.IsOpen != open && !connectedHatch.HasAnimation)
 				{
 					connectedHatch.SetOpened(open, allowSounds);
