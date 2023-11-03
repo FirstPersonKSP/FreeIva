@@ -237,15 +237,34 @@ namespace FreeIva
 			return internalDirection * Vector3.forward;
 		}
 
-		internal static Vector3 GetFlightAccelerationInternalSpace()
+		internal static Vector3 GetFlightAccelerationInternalSpace(Vector3 internalSpacePosition)
 		{
-			// TODO: need to subtract the centrifugal acceleration caused by the ship's movement
-			// ideally for an object in orbit, this function should return a zero vector
-			// wait, but something in a ballistic arc should also be weightless...
+			Vector3 accelWorldSpace;
 
-			Vector3 accelWorldSpace = FlightGlobals.ActiveVessel.LandedOrSplashed
-				? FlightGlobals.ActiveVessel.graviticAcceleration
-				: -FlightGlobals.ActiveVessel.perturbation;
+			if (FlightGlobals.ActiveVessel.LandedOrSplashed)
+			{
+				accelWorldSpace = FlightGlobals.ActiveVessel.graviticAcceleration;
+			}
+			else
+			{
+				// linear acceleration
+				accelWorldSpace = -FlightGlobals.ActiveVessel.perturbation;
+
+				// angular (centrifugal) acceleration => omega^2 * r
+				// this is super fake, it will apply to things that aren't in contact with the rotating part and doesn't account for coriolis, etc.
+				Vector3 worldSpacePosition = InternalSpace.InternalToWorld(internalSpacePosition);
+				Vector3 fromCoM = worldSpacePosition - FlightGlobals.ActiveVessel.CoM;
+
+				float r = fromCoM.magnitude;
+				float omegaSquared = FlightGlobals.ActiveVessel.angularVelocity.sqrMagnitude;
+
+				float centrifugalAccelMag = omegaSquared * r;
+
+				if (centrifugalAccelMag > 0.01f)
+				{
+					accelWorldSpace += fromCoM / r * centrifugalAccelMag;
+				}
+			}
 
 			float magnitude = accelWorldSpace.magnitude;
 
@@ -289,7 +308,7 @@ namespace FreeIva
 			}
 			else
 			{
-				return GetFlightAccelerationInternalSpace();
+				return GetFlightAccelerationInternalSpace(internalSpacePosition);
 			}
 		}
 
