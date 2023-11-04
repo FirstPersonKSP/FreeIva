@@ -134,11 +134,7 @@ namespace FreeIva
 			KerbalCollisionTracker.RailColliderCount = 0;
 			currentCentrifuge = InternalModuleFreeIva.GetForModel(kerbal.seat.internalModel)?.Centrifuge;
 
-			transform.SetParent(currentCentrifuge?.IVARotationRoot, true);
 			Vector3 flightAccel = UpdateGravity();
-
-			// interpolation doesn't seem to work with centrifuges
-			KerbalRigidbody.interpolation = currentCentrifuge == null ? RigidbodyInterpolation.Interpolate : RigidbodyInterpolation.None;
 
 			if (UseRelativeMovement())
 			{
@@ -440,7 +436,24 @@ namespace FreeIva
 
 			usingRelativeMovement = flightAccel.magnitude >= minAccelForHorizon;
 			horizonDownVector = usingRelativeMovement ? flightAccel : Vector3.zero;
-			
+
+			// update attaching/detaching to things (note that detaching from a centrifuge is handled in ExitCentrifuge)
+			if (usingRelativeMovement)
+			{
+				Transform desiredParentTransform = currentCentrifuge != null ? currentCentrifuge.IVARotationRoot : FreeIva.CurrentInternalModuleFreeIva.internalModel.transform;
+				
+				if (transform.parent != desiredParentTransform)
+				{
+					transform.SetParent(desiredParentTransform, true);
+					KerbalRigidbody.interpolation = RigidbodyInterpolation.None;
+				}
+			}
+			else if (transform.parent != null)
+			{
+				transform.SetParent(null, true);
+				KerbalRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+			}
+
 			return flightAccel;
 		}
 
@@ -453,6 +466,7 @@ namespace FreeIva
 			}
 			currentCentrifuge = null;
 			transform.SetParent(null, true);
+			KerbalRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
 		}
 
 		public void DoFixedUpdate(KerbalIvaAddon.IVAInput input)
@@ -476,7 +490,6 @@ namespace FreeIva
 
 						if (currentCentrifuge != null)
 						{
-							transform.SetParent(currentCentrifuge.IVARotationRoot, true);
 							KerbalIvaAddon.Instance.JumpLatched = true;
 							input.Jump = false;
 

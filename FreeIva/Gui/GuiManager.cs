@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KSP.UI.Screens;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -767,7 +768,7 @@ namespace FreeIva
 				GuiUtils.label("camera forward surface", cameraForwardSurface);
 
 
-				var flightForces = KerbalIvaAddon.GetFlightAccelerationInternalSpace(InternalCamera.Instance.transform.position);
+				var flightForces = KerbalIvaAddon.GetFlightAccelerationInternalSpace(CameraManager.Instance.activeInternalPart, InternalCamera.Instance.transform.position);
 				GuiUtils.label("Absolute X", flightForces.x);
 				GuiUtils.label("Absolute Y", flightForces.y);
 				GuiUtils.label("Absolute Z", flightForces.z);

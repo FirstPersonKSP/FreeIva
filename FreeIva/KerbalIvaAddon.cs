@@ -237,7 +237,31 @@ namespace FreeIva
 			return internalDirection * Vector3.forward;
 		}
 
-		internal static Vector3 GetFlightAccelerationInternalSpace(Vector3 internalSpacePosition)
+		static void GetAngularVelocity(Part part, out Vector3 centerOfRotationWorld, out Vector3 angularVelocityWorld)
+		{
+			if (part)
+			{
+				Rigidbody rb = part.Rigidbody;
+				Vector3 localVelocity = rb.velocity - part.vessel.rb_velocity;
+				float omegaSquared = rb.angularVelocity.sqrMagnitude;
+
+				centerOfRotationWorld = rb.position;
+
+				if (omegaSquared > 0.0001f)
+				{
+					centerOfRotationWorld += Vector3.Cross(rb.angularVelocity, localVelocity) / omegaSquared;
+				}
+
+				angularVelocityWorld = rb.angularVelocity;
+			}
+			else
+			{
+				centerOfRotationWorld = FlightGlobals.ActiveVessel.CoM;
+				angularVelocityWorld = FlightGlobals.ActiveVessel.angularVelocity;
+			}
+		}
+
+		internal static Vector3 GetFlightAccelerationInternalSpace(Part part, Vector3 internalSpacePosition)
 		{
 			Vector3 accelWorldSpace;
 
@@ -252,11 +276,13 @@ namespace FreeIva
 
 				// angular (centrifugal) acceleration => omega^2 * r
 				// this is super fake, it will apply to things that aren't in contact with the rotating part and doesn't account for coriolis, etc.
+				GetAngularVelocity(part, out Vector3 centerOfRotationWorld, out Vector3 angularVelocityWorld);
+
 				Vector3 worldSpacePosition = InternalSpace.InternalToWorld(internalSpacePosition);
-				Vector3 fromCoM = worldSpacePosition - FlightGlobals.ActiveVessel.CoM;
+				Vector3 fromCoM = worldSpacePosition - centerOfRotationWorld;
 
 				float r = fromCoM.magnitude;
-				float omegaSquared = FlightGlobals.ActiveVessel.angularVelocity.sqrMagnitude;
+				float omegaSquared = angularVelocityWorld.sqrMagnitude;
 
 				float centrifugalAccelMag = omegaSquared * r;
 
@@ -308,7 +334,7 @@ namespace FreeIva
 			}
 			else
 			{
-				return GetFlightAccelerationInternalSpace(internalSpacePosition);
+				return GetFlightAccelerationInternalSpace(ivaModule?.part, internalSpacePosition);
 			}
 		}
 
