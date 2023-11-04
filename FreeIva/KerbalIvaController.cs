@@ -438,7 +438,7 @@ namespace FreeIva
 			horizonDownVector = usingRelativeMovement ? flightAccel : Vector3.zero;
 
 			// update attaching/detaching to things (note that detaching from a centrifuge is handled in ExitCentrifuge)
-			if (usingRelativeMovement)
+			if (usingRelativeMovement  && !FlightGlobals.ActiveVessel.LandedOrSplashed)
 			{
 				Transform desiredParentTransform = currentCentrifuge != null ? currentCentrifuge.IVARotationRoot : FreeIva.CurrentInternalModuleFreeIva.internalModel.transform;
 				

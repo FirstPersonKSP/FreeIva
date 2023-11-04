@@ -180,6 +180,12 @@ namespace FreeIva
 		{
 			if (cameraMode == CameraManager.CameraMode.IVA)
 			{
+				// this can sometimes get destroyed if it was attached to the internal (like in a centrifuge).  just handle recreating it here.
+				if (KerbalIva == null)
+				{
+					CreateCameraCollider();
+				}
+
 				// STOP HIDING INTERNALS DAMMIT
 				var ivaOverlay = KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance?.ivaOverlay;
 				if (ivaOverlay != null)
