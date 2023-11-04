@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KSP.Localization;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -149,6 +150,48 @@ namespace FreeIva
 			return sourcePart;
 		}
 
+		static IEnumerator PostBoardCoroutine(ProtoCrewMember protoCrewMember, Collider airlockCollider, Part airlockPart)
+		{
+			yield return null; // we have to wait a frame so the kerbal gets set up
+
+			CameraManager.Instance.SetCameraIVA(protoCrewMember.KerbalRef, false);
+
+			// TODO: unbuckle and place near the hatch
+		}
+
+		public static void BoardPartFromAirlock(KerbalEVA kerbalEva, bool checkInventoryAndScience)
+		{
+			kerbalEva.On_boardPart.GoToStateOnEvent = kerbalEva.fsm.CurrentState;
+
+			var airlockCollider = kerbalEva.currentAirlockTrigger;
+			var airlockPart = kerbalEva.currentAirlockPart;
+			var targetPart = FindPartWithEmptySeat(kerbalEva.currentAirlockPart);
+
+			var pcm = kerbalEva.part.protoModuleCrew[0];
+
+			if (!HighLogic.CurrentGame.Parameters.Flight.CanBoard)
+			{
+				ScreenMessages.PostScreenMessage(Localizer.Format("#autoLOC_115948"), 5f, ScreenMessageStyle.UPPER_CENTER);
+			}
+			else if (checkInventoryAndScience)
+			{
+				kerbalEva.BoardPart(targetPart);
+			}
+			else
+			{
+				// this is a subset of BoardPart, but it won't fail if the inventory or science can't be stored (to be used by kerbalvr)
+				kerbalEva.checkExperiments(airlockPart); // do we want this one?  or the part that we'll eventually be seated in?
+				PopupDialog.ClearPopUps();
+				kerbalEva.proceedAndBoard(targetPart);
+			}
+
+			if (pcm.seat != null)
+			{
+				// using the KerbalIvaAddon as the coroutine host here is pretty arbitrary; but this is a static method so we need to pick *something* and there's no static instance of this addon available
+				KerbalIvaAddon.Instance.StartCoroutine(PostBoardCoroutine(pcm, airlockCollider, airlockPart));
+			}
+		}
+
 		private IEnumerator ModifyEvaFsm(Part kerbalPart)
 		{
 			var kerbalEva = kerbalPart.GetModule<KerbalEVA>();
@@ -160,11 +203,7 @@ namespace FreeIva
 
 			kerbalEva.On_boardPart.OnEvent = delegate
 			{
-				kerbalEva.On_boardPart.GoToStateOnEvent = kerbalEva.fsm.CurrentState;
-
-				var targetPart = FindPartWithEmptySeat(kerbalEva.currentAirlockPart);
-
-				kerbalEva.BoardPart(targetPart);
+				BoardPartFromAirlock(kerbalEva, true);
 			};
 		}
 
