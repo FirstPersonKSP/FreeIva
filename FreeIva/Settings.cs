@@ -3,6 +3,13 @@ using UnityEngine;
 
 namespace FreeIva
 {
+	public enum BoardingMode
+	{
+		Always,             // every time
+		FromThroughTheEyes, // if you were in first person EVA (ThroughTheEyes)
+		Never
+	}
+
 	public static class Settings
 	{
 		public static KeyCode UnbuckleKey = KeyCode.Y; // Get out of/into seat.
@@ -64,6 +71,8 @@ namespace FreeIva
 		public static bool ShowTutorial = true;
 		public static bool EnableCollisions = true;
 
+		public static BoardingMode BoardingMode = BoardingMode.Always;
+
 		public static void LoadSettings()
 		{
 			Debug.Log("[FreeIVA] Loading settings...");
@@ -114,6 +123,7 @@ namespace FreeIva
 
 			settings.TryGetValue(nameof(ShowTutorial), ref ShowTutorial);
 			settings.TryGetValue(nameof(EnableCollisions), ref EnableCollisions);
+			settings.TryGetEnum(nameof(BoardingMode), ref BoardingMode, BoardingMode.Always);
 		}
 	}
 }

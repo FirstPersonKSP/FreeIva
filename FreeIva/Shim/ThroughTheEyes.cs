@@ -42,5 +42,16 @@ namespace FreeIva
 			x_FirstPersonCameraManager_isFirstPerson_FieldInfo.SetValue(fpCameraManager, false);
 			x_FirstPersonCameraManager_CheckAndSetFirstPerson_MethodInfo.Invoke(fpCameraManager, new object[] { FlightGlobals.ActiveVessel });
 		}
+
+		public static bool IsInFirstPerson()
+		{
+			if (x_FirstPersonCameraManager_CheckAndSetFirstPerson_MethodInfo == null) return false;
+
+			var fpInstance = x_FirstPersonEVA_instance_FieldInfo.GetValue(null);
+			var fpCameraManager = x_FirstPersonEVA_fpCameraManager_FieldInfo.GetValue(fpInstance);
+
+			object valueObj = x_FirstPersonCameraManager_isFirstPerson_FieldInfo.GetValue(fpCameraManager);
+			return (bool)Convert.ToBoolean(valueObj);
+		}
 	}
 }

@@ -155,6 +155,12 @@ namespace FreeIva
 			yield return null; // we have to wait a frame so the kerbal gets set up
 
 			CameraManager.Instance.SetCameraIVA(protoCrewMember.KerbalRef, false);
+			if (KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.resetCoroutine != null)
+			{
+				KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.StopCoroutine(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.resetCoroutine);
+				KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.SetActivePortraitsForVessel(airlockPart.vessel);
+				EnableInternals();
+			}
 
 			FreeIvaHatch matchingHatch = null;
 
@@ -190,6 +196,7 @@ namespace FreeIva
 			var airlockCollider = kerbalEva.currentAirlockTrigger;
 			var airlockPart = kerbalEva.currentAirlockPart;
 			var targetPart = FindPartWithEmptySeat(kerbalEva.currentAirlockPart);
+			bool runPostBoarding = Settings.BoardingMode == BoardingMode.Always || Settings.BoardingMode == BoardingMode.FromThroughTheEyes && ThroughTheEyes.IsInFirstPerson();
 
 			var pcm = kerbalEva.part.protoModuleCrew[0];
 
@@ -209,7 +216,7 @@ namespace FreeIva
 				kerbalEva.proceedAndBoard(targetPart);
 			}
 
-			if (pcm.seat != null)
+			if (runPostBoarding && pcm.seat != null)
 			{
 				// using the KerbalIvaAddon as the coroutine host here is pretty arbitrary; but this is a static method so we need to pick *something* and there's no static instance of this addon available
 				KerbalIvaAddon.Instance.StartCoroutine(PostBoardCoroutine(pcm, airlockCollider, airlockPart));
