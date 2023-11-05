@@ -156,7 +156,31 @@ namespace FreeIva
 
 			CameraManager.Instance.SetCameraIVA(protoCrewMember.KerbalRef, false);
 
-			// TODO: unbuckle and place near the hatch
+			FreeIvaHatch matchingHatch = null;
+
+			for (var freeIvaModule = InternalModuleFreeIva.GetForModel(airlockPart.internalModel); freeIvaModule != null && matchingHatch == null; freeIvaModule = InternalModuleFreeIva.GetForModel(freeIvaModule.SecondaryInternalModel))
+			{
+				foreach (var hatch in freeIvaModule.Hatches)
+				{
+					if (hatch.AirlockTransform == airlockCollider.transform)
+					{
+						matchingHatch = hatch;
+						break;
+					}
+				}
+			}
+
+			if (matchingHatch != null)
+			{
+				KerbalIvaAddon.Instance.Unbuckle(false);
+				if (!KerbalIvaAddon.Instance.buckled)
+				{
+					Vector3 position = matchingHatch.transform.TransformPoint(matchingHatch.inwardsDirection * 0.3f);
+					Vector3 hatchInwards = matchingHatch.transform.TransformVector(matchingHatch.inwardsDirection);
+					Quaternion rotation = Quaternion.LookRotation(hatchInwards, matchingHatch.internalModel.transform.up);
+					KerbalIvaAddon.Instance.KerbalIva.transform.SetPositionAndRotation(position, rotation);
+				}
+			}
 		}
 
 		public static void BoardPartFromAirlock(KerbalEVA kerbalEva, bool checkInventoryAndScience)

@@ -69,6 +69,10 @@ namespace FreeIva
 		[KSPField]
 		public string airlockName = string.Empty;
 		Transform airlockTransform = null;
+		public Transform AirlockTransform => airlockTransform;
+
+		[KSPField]
+		public Vector3 inwardsDirection = Vector3.up;
 
 		public float tubeExtent = 0;
 
@@ -253,6 +257,12 @@ namespace FreeIva
 				{
 					renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
 				}
+			}
+
+			// if this isn't specified, try to figure it out from the tube
+			if (!node.HasValue(nameof(inwardsDirection)) && tubeTransform != null)
+			{
+				inwardsDirection = tubeTransform.TransformVector(Vector3.up);
 			}
 
 			if (openAnimationName != string.Empty)

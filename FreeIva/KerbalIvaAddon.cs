@@ -133,7 +133,14 @@ namespace FreeIva
 					var freeIvaModule = FreeIva.CurrentPart.GetModule<ModuleFreeIva>();
 					if (freeIvaModule != null && freeIvaModule.allowsUnbuckling)
 					{
-						ScreenMessages.PostScreenMessage($"{str_Unbuckle} [{Settings.UnbuckleKey}]", 2f, ScreenMessageStyle.LOWER_CENTER);
+						if (buckled)
+						{
+							ScreenMessages.PostScreenMessage($"{str_Unbuckle} [{Settings.UnbuckleKey}]", 2f, ScreenMessageStyle.LOWER_CENTER);
+						}
+						else
+						{
+							ScreenMessages.PostScreenMessage($"{str_EnterSeat} [{GameSettings.CAMERA_MODE.primary}]", 2f, ScreenMessageStyle.LOWER_CENTER);
+						}
 					}
 				}
 
@@ -679,7 +686,7 @@ namespace FreeIva
 			}
 		}
 
-		public void Unbuckle()
+		public void Unbuckle(bool feedbackEnabled = true)
 		{
 			if (!buckled) return;
 
@@ -688,7 +695,10 @@ namespace FreeIva
 			var freeIvaModule = FreeIva.CurrentPart.GetModule<ModuleFreeIva>();
 			if ((freeIvaModule && !freeIvaModule.allowsUnbuckling) || FreeIva.CurrentInternalModuleFreeIva == null)
 			{
-				ScreenMessages.PostScreenMessage(str_PartCannotUnbuckle, 1f, ScreenMessageStyle.LOWER_CENTER);
+				if (feedbackEnabled)
+				{
+					ScreenMessages.PostScreenMessage(str_PartCannotUnbuckle, 1f, ScreenMessageStyle.LOWER_CENTER);
+				}
 				return;
 			}
 
@@ -702,14 +712,17 @@ namespace FreeIva
 
 			InputLockManager.SetControlLock(ControlTypes.ALL_SHIP_CONTROLS | ControlTypes.CAMERAMODES, "FreeIVA");
 			//ActiveKerbal.flightLog.AddEntry("Unbuckled");
-			ScreenMessages.PostScreenMessage(str_Unbuckled, 1f, ScreenMessageStyle.LOWER_CENTER);
 			KerbalIva.Activate(ActiveKerbal);
 			buckled = false;
 
 			// eventually might want to attach this kerbal to the rigid body (or combine their gameobjects etc) but for now this is important to signal to ProbeControlRoom that the kerbal is unbuckled
 			ActiveKerbal.KerbalRef.transform.SetParent(null, true);
 
-			PlaySeatBuckleAudio(OriginalSeat);
+			if (feedbackEnabled)
+			{
+				PlaySeatBuckleAudio(OriginalSeat);
+				ScreenMessages.PostScreenMessage(str_Unbuckled, 1f, ScreenMessageStyle.LOWER_CENTER);
+			}
 
 			DisablePartHighlighting(true);
 			FreeIvaInternalCameraSwitch.SetCameraSwitchesEnabled(false);
