@@ -93,7 +93,7 @@ namespace FreeIva
 			}
 		}
 
-		void SetCameraOrientation(Quaternion rotation)
+		public void SetCameraOrientation(Quaternion rotation)
 		{
 			if (UseRelativeMovement())
 			{

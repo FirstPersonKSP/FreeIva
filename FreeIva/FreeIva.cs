@@ -182,9 +182,10 @@ namespace FreeIva
 				if (!KerbalIvaAddon.Instance.buckled)
 				{
 					Vector3 position = matchingHatch.transform.TransformPoint(matchingHatch.inwardsDirection * 0.3f);
-					Vector3 hatchInwards = matchingHatch.transform.TransformVector(matchingHatch.inwardsDirection);
+					Vector3 hatchInwards = matchingHatch.transform.TransformDirection(matchingHatch.inwardsDirection);
 					Quaternion rotation = Quaternion.LookRotation(hatchInwards, matchingHatch.internalModel.transform.up);
-					KerbalIvaAddon.Instance.KerbalIva.transform.SetPositionAndRotation(position, rotation);
+					KerbalIvaAddon.Instance.KerbalIva.transform.position = position;
+					KerbalIvaAddon.Instance.KerbalIva.SetCameraOrientation(rotation);
 				}
 			}
 		}
