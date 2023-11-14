@@ -681,6 +681,8 @@ namespace FreeIva
 			}
 			else
 			{
+				partModule.OnInternalCreated(this);
+				
 				// the rotating part of the centrifuge has a secondary internal (which is the stationary part)
 				// for now we'll only set up the centrifuge module on the rotating part
 				if (SecondaryInternalModel != null || partModule.Centrifuge != null)

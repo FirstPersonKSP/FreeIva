@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace FreeIva
 {
-	public class SSPX_ModuleDeployableCentrifuge : ICentrifuge
+	public class SSPX_ModuleDeployableCentrifuge : SSPX_ModuleDeployableHabitat, ICentrifuge
 	{
 		#region static
 
@@ -34,7 +34,7 @@ namespace FreeIva
 			x_DoIVASetupMethodInfo = x_ModuleDeployableCentrifugeTypeInfo.GetMethod("DoIVASetup", BindingFlags.Instance | BindingFlags.NonPublic);
 		}
 
-		public static SSPX_ModuleDeployableCentrifuge Create(Part part)
+		public static new SSPX_ModuleDeployableCentrifuge Create(Part part)
 		{
 			if (x_ModuleDeployableCentrifugeTypeInfo == null) return null;
 
@@ -55,10 +55,8 @@ namespace FreeIva
 
 		#endregion
 
-		SSPX_ModuleDeployableCentrifuge(PartModule module)
+		SSPX_ModuleDeployableCentrifuge(PartModule module) : base(module)
 		{
-			m_moduleDeployableCentrifuge = module;
-
 			// replace IVARotationRoot with the internal model transform
 			var ivaRotationRoot = (Transform)x_IVARotationRootFieldInfo.GetValue(module);
 
@@ -68,9 +66,14 @@ namespace FreeIva
 				ivaRotationRoot = (Transform)x_IVARotationRootFieldInfo.GetValue(module);
 			}
 
-			GameObject.Destroy(ivaRotationRoot.gameObject);
 			m_rotationRoot = module.part.internalModel.FindModelTransform("model");
-			x_IVARotationRootFieldInfo.SetValue(m_moduleDeployableCentrifuge, m_rotationRoot);
+
+			if (m_rotationRoot != ivaRotationRoot)
+			{
+				GameObject.Destroy(ivaRotationRoot.gameObject);
+			}
+			
+			x_IVARotationRootFieldInfo.SetValue(m_partModule, m_rotationRoot);
 
 			// attach all the props to the rotation root
 			foreach (var prop in module.part.internalModel.props)
@@ -91,14 +94,13 @@ namespace FreeIva
 			GameEvents.onCrewTransferred.Remove(resetIVATransformDelegate);
 		}
 
-		PartModule m_moduleDeployableCentrifuge;
 		Transform m_rotationRoot;
 
 		public void Update() { }
 
 		public float CurrentSpinRate
 		{
-			get { return (float)x_CurrentSpinRateFieldInfo.GetValue(m_moduleDeployableCentrifuge); }
+			get { return (float)x_CurrentSpinRateFieldInfo.GetValue(m_partModule); }
 		}
 
 		public Transform IVARotationRoot

@@ -40,20 +40,23 @@ namespace FreeIva
 
 			if (module == null) return null;
 
-			var result = new SSPX_ModuleDeployableHabitat();
-			result.m_moduleDeployableHabitat = module;
-			return result;
+			return new SSPX_ModuleDeployableHabitat(module);
 		}
 
 		#endregion
 
-		PartModule m_moduleDeployableHabitat;
+		protected SSPX_ModuleDeployableHabitat(PartModule module)
+		{
+			m_partModule = module;
+		}
+
+		protected PartModule m_partModule;
 
 		public bool IsDeployed
 		{
 			get
 			{
-				object valueObj = x_deployStateFieldInfo.GetValue(m_moduleDeployableHabitat);
+				object valueObj = x_deployStateFieldInfo.GetValue(m_partModule);
 				int value = (int)Convert.ChangeType(valueObj, typeof(int));
 				return value == 2;
 			}
