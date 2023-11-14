@@ -161,7 +161,11 @@ namespace FreeIva
 				yield break;
 			}
 
-			CameraManager.Instance.SetCameraIVA(protoCrewMember.KerbalRef, false);
+			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA || CameraManager.Instance.IVACameraActiveKerbal != protoCrewMember.KerbalRef)
+			{
+				CameraManager.Instance.SetCameraIVA(protoCrewMember.KerbalRef, false);
+			}
+
 			if (KerbalPortraitGallery.Instance?.resetCoroutine != null)
 			{
 				KerbalPortraitGallery.Instance.StopCoroutine(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.resetCoroutine);
