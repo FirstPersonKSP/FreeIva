@@ -62,7 +62,7 @@ namespace FreeIva
 	[KSPAddon(KSPAddon.Startup.Flight, false)]
 	public class FreeIva : MonoBehaviour
 	{
-		public static Part CurrentPart => CurrentInternalModuleFreeIva?.part;
+		public static Part CurrentPart => CurrentInternalModuleFreeIva == null ? null : CurrentInternalModuleFreeIva.part;
 		public static GameObject SelectedObject = null;
 		public static InternalModuleFreeIva CurrentInternalModuleFreeIva
 		{
@@ -161,10 +161,7 @@ namespace FreeIva
 				yield break;
 			}
 
-			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA || CameraManager.Instance.IVACameraActiveKerbal != protoCrewMember.KerbalRef)
-			{
-				CameraManager.Instance.SetCameraIVA(protoCrewMember.KerbalRef, false);
-			}
+			KerbalIvaAddon.SetCameraIVA(protoCrewMember.KerbalRef);
 
 			if (KerbalPortraitGallery.Instance?.resetCoroutine != null)
 			{
@@ -397,7 +394,7 @@ namespace FreeIva
 			possibleModules.Clear();
 			bool currentModuleBoundsCamera = false;
 
-			if (CurrentPart != null) // e.g. on part destroyed.
+			if (CurrentInternalModuleFreeIva != null && CurrentInternalModuleFreeIva.part.vessel == FlightGlobals.ActiveVessel) // e.g. on part destroyed.
 			{
 				currentModuleBoundsCamera = InternalModuleBoundsCamera(CurrentInternalModuleFreeIva);
 				if (currentModuleBoundsCamera)

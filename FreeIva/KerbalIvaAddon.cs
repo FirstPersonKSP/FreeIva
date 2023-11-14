@@ -580,7 +580,7 @@ namespace FreeIva
 			SetCameraIVA(targetKerbal);
 		}
 
-		void SetCameraIVA(Kerbal kerbal)
+		internal static void SetCameraIVA(Kerbal kerbal)
 		{
 			// SetCameraIVA will actually change to flight mode if called with the current kerbal and already in iva mode, so make sure that doesn't happen
 			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA ||
