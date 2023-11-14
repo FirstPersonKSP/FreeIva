@@ -1,4 +1,5 @@
 ﻿using KSP.Localization;
+using KSP.UI.Screens.Flight;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -154,11 +155,17 @@ namespace FreeIva
 		{
 			yield return null; // we have to wait a frame so the kerbal gets set up
 
-			CameraManager.Instance.SetCameraIVA(protoCrewMember.KerbalRef, false);
-			if (KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.resetCoroutine != null)
+			if (protoCrewMember.KerbalRef == null)
 			{
-				KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.StopCoroutine(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.resetCoroutine);
-				KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.SetActivePortraitsForVessel(airlockPart.vessel);
+				Debug.LogErrorFormat("[FreeIva] PostBoardCoroutine: KerbalRef is null in internal {0}", protoCrewMember.seat.internalModel.internalName);
+				yield break;
+			}
+
+			CameraManager.Instance.SetCameraIVA(protoCrewMember.KerbalRef, false);
+			if (KerbalPortraitGallery.Instance?.resetCoroutine != null)
+			{
+				KerbalPortraitGallery.Instance.StopCoroutine(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.resetCoroutine);
+				KerbalPortraitGallery.Instance.SetActivePortraitsForVessel(airlockPart.vessel);
 				EnableInternals();
 			}
 
