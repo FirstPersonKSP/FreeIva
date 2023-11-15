@@ -68,6 +68,7 @@ namespace FreeIva
 
 			GameEvents.OnCameraChange.Add(OnCameraChange);
 			GameEvents.OnIVACameraKerbalChange.Add(OnIVACameraKerbalChange);
+			GameEvents.onVesselChange.Add(OnVesselChange);
 			_instance = this;
 		}
 
@@ -76,6 +77,8 @@ namespace FreeIva
 			GameObject.Destroy(KerbalIva);
 			GameEvents.OnCameraChange.Remove(OnCameraChange);
 			GameEvents.OnIVACameraKerbalChange.Remove(OnIVACameraKerbalChange);
+			GameEvents.onVesselChange.Remove(OnVesselChange);
+
 			_instance = null;
 			KerbalIva = null;
 		}
@@ -241,6 +244,14 @@ namespace FreeIva
 		private void OnIVACameraKerbalChange(Kerbal data)
 		{
 			UpdateActiveKerbal();
+		}
+
+		private void OnVesselChange(Vessel data)
+		{
+			if (!buckled)
+			{
+				ReturnToSeatInternal(false);
+			}
 		}
 
 		static Vector3 WorldDirectionToInternal(Vector3 worldDirection)
@@ -515,13 +526,12 @@ namespace FreeIva
 
 			Debug.Log(ActiveKerbal.name + " is entering seat " + TargetedSeat.transform.name + " in part " + FreeIva.CurrentPart);
 
-			InternalCamera.Instance.transform.parent = ActiveKerbal.KerbalRef.eyeTransform;
-
 			buckled = true;
 			MoveKerbalToSeat(ActiveKerbal, TargetedSeat);
 
 			if (resetCamera)
 			{
+				InternalCamera.Instance.transform.parent = ActiveKerbal.KerbalRef.eyeTransform;
 				SetCameraIVA(ActiveKerbal.KerbalRef);
 			}
 
