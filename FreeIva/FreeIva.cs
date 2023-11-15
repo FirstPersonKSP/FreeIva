@@ -300,7 +300,12 @@ namespace FreeIva
 			// eventually it might be prudent to undo this change, make the kerbal a single capsule collider, and fix the shell colliders instead
 
 			// update for Physical Props: allow clicking on layer 16 when the modifier key is held
-			if (GameSettings.MODIFIER_KEY.GetKey())
+			if (InternalCamera.Instance == null)
+			{
+				// certain bugs can destroy the internal camera; if that happens we shouldn't spew exceptions.
+				// for example: https://github.com/KSP-KOS/KOS/issues/3095
+			}
+			else if (GameSettings.MODIFIER_KEY.GetKey())
 			{
 				InternalCamera.Instance._camera.eventMask |= (1 << (int)Layers.Kerbals);
 			}
