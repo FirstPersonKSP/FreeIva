@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace FreeIva
 {
@@ -24,9 +26,15 @@ namespace FreeIva
 			x_moduleIDFieldInfo = x_ModuleB9PPartSwitchTypeInfo.GetField("moduleID", BindingFlags.Instance | BindingFlags.Public);
 		}
 
-		public static B9PS_ModuleB9PartSwitch Create(Part part, string moduleID)
+		public static B9PS_ModuleB9PartSwitch Create(InternalProp prop, string moduleID)
 		{
-			if (x_ModuleB9PPartSwitchTypeInfo == null) return null;
+			if (x_ModuleB9PPartSwitchTypeInfo == null)
+			{
+				Debug.LogError($"[FreeIva]: PROP {prop.propName} in INTERNAL {prop.internalModel.internalName} for PART {prop.part.partInfo.name} asked for a ModuleB9PartSwitch but it doesn't seem to be installed");
+				return null;
+			}
+
+			Part part = prop.part;
 
 			PartModule module = null;
 			foreach (var m in part.modules.modules)
@@ -38,7 +46,11 @@ namespace FreeIva
 				}
 			}
 
-			if (module == null) return null;
+			if (module == null)
+			{
+				Debug.LogError($"[FreeIva]: PROP {prop.propName} in INTERNAL {prop.internalModel.internalName} for PART {part.partInfo.name} asked for a ModuleB9PartSwitch with moduleID '{moduleID}' but it could not be found");
+				return null;
+			}
 
 			return new B9PS_ModuleB9PartSwitch(module);
 		}
