@@ -537,7 +537,7 @@ namespace FreeIva
 
 				if (freeIvaModule == null || !freeIvaModule.forceInternalCreation)
 				{
-					return true;
+					return part.modules.GetModule("ProbeControlRoomPart") != null;
 				}
 			}
 
