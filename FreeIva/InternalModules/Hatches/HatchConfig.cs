@@ -35,6 +35,8 @@ namespace FreeIva
 			node.TryGetValue(nameof(FreeIvaHatch.cutoutTargetTransformName), ref propHatch.cutoutTargetTransformName);
 			node.TryGetValue(nameof(FreeIvaHatch.requireDeploy), ref propHatch.requireDeploy);
 			node.TryGetValue(nameof(FreeIvaHatch.isEvaHatch), ref propHatch.isEvaHatch);
+			node.TryGetValue(nameof(FreeIvaHatch.openAnimationLimit), ref propHatch.openAnimationLimit);
+			node.TryGetValue(nameof(FreeIvaHatch.openAnimationLimitEVA), ref propHatch.openAnimationLimitEVA);
 
 			ConfigNode[] hideNodes = node.GetNodes("HideWhenOpen");
 			if (hideNodes != null && hideNodes.Length > 0)

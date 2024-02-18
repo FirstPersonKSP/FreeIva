@@ -78,6 +78,12 @@ namespace FreeIva
 
 		public bool hideDoorWhenConnected = false;
 
+		[KSPField]
+		public float openAnimationLimit = 1.0f;
+		[KSPField]
+		public float openAnimationLimitEVA = 0.5f;
+		float CurrentOpenAnimationLimit => CanEVA ? openAnimationLimitEVA : openAnimationLimit;
+
 		// -----
 
 		[Serializable]
@@ -128,7 +134,6 @@ namespace FreeIva
 		public bool IsOpen => CurrentState == State.Open;
 
 		public bool CanEVA { get; private set; }
-		float openAnimationLimit => CanEVA ? 0.5f : 1.0f;
 
 		static Shader[] x_windowShaders = null;
 
@@ -754,7 +759,7 @@ namespace FreeIva
 				break;
 
 			case State.Open:
-				animState.normalizedTime = openAnimationLimit;
+				animState.normalizedTime = CurrentOpenAnimationLimit;
 				m_animationComponent.Stop();
 				m_animationCoroutine = null;
 				break;
@@ -793,7 +798,7 @@ namespace FreeIva
 					{
 						SetAnimationState(State.Closing);
 					}
-					else if (animState.normalizedTime >= openAnimationLimit)
+					else if (animState.normalizedTime >= CurrentOpenAnimationLimit)
 					{
 						SetAnimationState(State.Open);
 						SetOpened(true, false);
@@ -817,7 +822,7 @@ namespace FreeIva
 				case State.Open:
 					if (!DesiredOpen)
 					{
-						animState.normalizedTime = openAnimationLimit;
+						animState.normalizedTime = CurrentOpenAnimationLimit;
 						SetAnimationState(State.Closing);
 						PlaySounds(DesiredOpen);
 					}
