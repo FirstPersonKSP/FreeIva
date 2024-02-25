@@ -9,6 +9,8 @@ namespace FreeIva
 {
 	public interface ICentrifuge
 	{
+		void OnInternalCreated();
+
 		void Update();
 
 		float CurrentSpinRate { get; }

@@ -51,6 +51,8 @@ namespace FreeIva.Shim
 			m_module = module;
 		}
 
+		public void OnInternalCreated() { }
+
 		public bool IsDeployed
 		{
 			get

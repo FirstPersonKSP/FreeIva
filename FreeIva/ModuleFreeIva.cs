@@ -96,24 +96,36 @@ namespace FreeIva
 			return result;
 		}
 
-		public void OnInternalCreated(InternalModuleFreeIva internalModule)
+		public override void OnStart(StartState state)
 		{
 			if (!HighLogic.LoadedSceneIsFlight) return;
 
+			Centrifuge = CentrifugeFactory.Create(part, centrifugeTransformName, centrifugeAlignmentRotation);
+			Deployable = Centrifuge as IDeployable; // some centrifuges may also be deployables
+
+			if (Deployable == null)
+			{
+				Deployable = DeployableFactory.Create(part, deployAnimationName);
+			}
+
+			if ((requireDeploy || deployAnimationName != string.Empty) && Deployable == null)
+			{
+				Debug.LogError($"[FreeIva] no deployable module found on part {part.partInfo.name}");
+			}
+		}
+
+		public void OnInternalCreated(InternalModuleFreeIva internalModule)
+		{
 			// try to find a centrifuge and deployable modules for the *primary* iva only so this doesn't happen twice for centrifuges
 			if (internalModule.internalModel == part.internalModel)
 			{
-				Centrifuge = CentrifugeFactory.Create(part, centrifugeTransformName, centrifugeAlignmentRotation);
-				Deployable = Centrifuge as IDeployable; // some centrifuges may also be deployables
-
-				if (Deployable == null)
+				if (Centrifuge != null)
 				{
-					Deployable = DeployableFactory.Create(part, deployAnimationName);
+					Centrifuge.OnInternalCreated();
 				}
-
-				if ((requireDeploy || deployAnimationName != string.Empty) && Deployable == null)
+				if (Deployable != null && Deployable != Centrifuge)
 				{
-					Debug.LogError($"[FreeIva] no deployable module found on part {part.partInfo.name}");
+					Deployable.OnInternalCreated();
 				}
 			}
 		}

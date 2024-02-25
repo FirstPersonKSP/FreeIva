@@ -10,6 +10,8 @@ namespace FreeIva
 {
 	public interface IDeployable
 	{
+		void OnInternalCreated();
+
 		bool IsDeployed { get; }
 	}
 

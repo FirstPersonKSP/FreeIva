@@ -51,6 +51,8 @@ namespace FreeIva
 			m_planetaryModule = module;
 		}
 
+		public void OnInternalCreated() { }
+
 		public bool IsDeployed
 		{
 			get

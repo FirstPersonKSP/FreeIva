@@ -28,6 +28,8 @@ namespace FreeIva
 
 		RetractableLadder m_ladderModule;
 
+		public void OnInternalCreated() { }
+
 		public bool IsDeployed
 		{
 			get

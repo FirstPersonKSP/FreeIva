@@ -57,32 +57,36 @@ namespace FreeIva
 
 		SSPX_ModuleDeployableCentrifuge(PartModule module) : base(module)
 		{
+		}
+
+		new public void OnInternalCreated()
+		{
 			// replace IVARotationRoot with the internal model transform
-			var ivaRotationRoot = (Transform)x_IVARotationRootFieldInfo.GetValue(module);
+			var ivaRotationRoot = (Transform)x_IVARotationRootFieldInfo.GetValue(m_partModule);
 
 			if (ivaRotationRoot == null)
 			{
-				x_DoIVASetupMethodInfo.Invoke(module, null);
-				ivaRotationRoot = (Transform)x_IVARotationRootFieldInfo.GetValue(module);
+				x_DoIVASetupMethodInfo.Invoke(m_partModule, null);
+				ivaRotationRoot = (Transform)x_IVARotationRootFieldInfo.GetValue(m_partModule);
 			}
 
-			m_rotationRoot = module.part.internalModel.FindModelTransform("model");
+			m_rotationRoot = m_partModule.part.internalModel.FindModelTransform("model");
 
 			if (m_rotationRoot != ivaRotationRoot)
 			{
 				GameObject.Destroy(ivaRotationRoot.gameObject);
 			}
-			
+
 			x_IVARotationRootFieldInfo.SetValue(m_partModule, m_rotationRoot);
 
 			// attach all the props to the rotation root
-			foreach (var prop in module.part.internalModel.props)
+			foreach (var prop in m_partModule.part.internalModel.props)
 			{
 				prop.transform.SetParent(m_rotationRoot, true);
 			}
 
 			// clear the propDict so that the SSPX module doesn't mess with the prop transforms
-			var propDict = (Dictionary<Transform, Transform>)x_propDictFieldInfo.GetValue(module);
+			var propDict = (Dictionary<Transform, Transform>)x_propDictFieldInfo.GetValue(m_partModule);
 			foreach (var proxy in propDict.Keys)
 			{
 				GameObject.Destroy(proxy.gameObject);
@@ -90,7 +94,7 @@ namespace FreeIva
 			propDict.Clear();
 
 			// unhook the event handler so SSPX doesn't redo the IVA setup every time crew is transferred
-			var resetIVATransformDelegate = (EventData<GameEvents.HostedFromToAction<ProtoCrewMember, Part>>.OnEvent)x_ResetIVATransformMethodInfo.CreateDelegate(typeof(EventData<GameEvents.HostedFromToAction<ProtoCrewMember, Part>>.OnEvent), module);
+			var resetIVATransformDelegate = (EventData<GameEvents.HostedFromToAction<ProtoCrewMember, Part>>.OnEvent)x_ResetIVATransformMethodInfo.CreateDelegate(typeof(EventData<GameEvents.HostedFromToAction<ProtoCrewMember, Part>>.OnEvent), m_partModule);
 			GameEvents.onCrewTransferred.Remove(resetIVATransformDelegate);
 		}
 

@@ -28,6 +28,8 @@ namespace FreeIva
 
 		ModuleAnimateGeneric m_animationModule;
 
+		public void OnInternalCreated() { }
+
 		public bool IsDeployed
 		{
 			get

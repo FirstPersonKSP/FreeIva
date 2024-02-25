@@ -52,6 +52,8 @@ namespace FreeIva
 
 		protected PartModule m_partModule;
 
+		public void OnInternalCreated() { }
+
 		public bool IsDeployed
 		{
 			get

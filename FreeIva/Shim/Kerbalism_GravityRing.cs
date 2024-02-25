@@ -85,6 +85,8 @@ namespace FreeIva
 			if (animator != null) m_deploy_anim = new Kerbalism_Animator(animator);
 		}
 
+		public void OnInternalCreated() { }
+
 		public void Update()
 		{
 			if (m_centrifugeTransform != null)
