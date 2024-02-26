@@ -547,8 +547,10 @@ namespace FreeIva
 						if (hatch.airlockName != string.Empty) continue;
 
 						Vector3 hatchInPartSpace = x_internalToPartSpace * hatch.transform.position;
-
-						Vector3 hatchInAirlockSpace = airlock.transform.InverseTransformPoint(hatchInPartSpace);
+						
+						// NOTE: some airlocks have non-identity scale (e.g. mk2LanderCan from restock) so InverseTransformPoint doesn't work
+						Vector3 airlockToHatch = hatchInPartSpace - airlock.transform.position;
+						Vector3 hatchInAirlockSpace = airlock.transform.InverseTransformDirection(airlockToHatch);
 
 						// airlock's +Z is toward the part (the way the kerbal faces)
 						if (hatchInAirlockSpace.z >= 0 && hatchInAirlockSpace.z <= 1)
