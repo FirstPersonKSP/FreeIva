@@ -54,8 +54,18 @@ namespace FreeIva
 
 				Debug.Log($"[FreeIVA/MeshCutter] Cutting on target '{targetName}' on internal '{model.internalName}'");
 				Transform targetTransform = TransformUtil.FindInternalModelTransform(model, targetName);
-				
-				ApplyCut(targetTransform, targetCuts);
+
+				if (targetTransform == null) continue;
+
+				MeshFilter target = targetTransform.gameObject.GetComponent<MeshFilter>();
+
+				if (target == null)
+				{
+					Debug.LogError($"[FreeIva/MeshCutter] transform {targetName} in internal '{model.internalName}' does not have a MeshFilter component");
+					continue;
+				}
+
+				ApplyCut(target, targetCuts);
 			}
 
 			Profiler.EndSample();
@@ -67,10 +77,8 @@ namespace FreeIva
 		}
 
 		// applies a set of cuts to a single target.  The target field of the cutParameters is ignored
-		public static void ApplyCut(Transform targetTransform, IEnumerable<CutParameter> cutParameters)
+		public static void ApplyCut(MeshFilter target, IEnumerable<CutParameter> cutParameters)
 		{
-			MeshFilter target = targetTransform?.gameObject?.GetComponent<MeshFilter>();
-
 			// majik!
 			try
 			{
