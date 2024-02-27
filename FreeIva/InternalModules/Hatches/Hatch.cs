@@ -133,7 +133,15 @@ namespace FreeIva
 
 		public bool IsOpen => CurrentState == State.Open;
 
-		public bool CanEVA { get; private set; }
+		public bool CanEVA
+		{
+			get => _canEVA && (airlockTransform == null || airlockTransform.gameObject.activeInHierarchy);
+			set
+			{
+				_canEVA = value;
+			}
+		}
+		bool _canEVA = false;
 
 		static Shader[] x_windowShaders = null;
 
