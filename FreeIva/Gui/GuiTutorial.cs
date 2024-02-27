@@ -37,7 +37,7 @@ namespace FreeIva
 
 		public static void Gui(int instanceId)
 		{
-			if (Active && Settings.ShowTutorial && !KerbalIvaAddon.Instance.buckled)
+			if (Active && Settings.ShowTutorial && !Settings.TutorialWasClosedForever && !KerbalIvaAddon.Instance.buckled)
 			{
 				windowPos = GUILayout.Window(instanceId, windowPos, WindowGui, "FreeIva", GUILayout.Width(250), GUILayout.Height(200));
 			}
@@ -109,6 +109,7 @@ namespace FreeIva
 			{
 				Active = false;
 				Settings.ShowTutorial = false;
+				Settings.TutorialWasClosedForever = true;
 			}
 			GUILayout.EndHorizontal();
 

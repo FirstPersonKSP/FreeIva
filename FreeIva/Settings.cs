@@ -73,6 +73,10 @@ namespace FreeIva
 
 		public static BoardingMode BoardingMode = BoardingMode.Always;
 
+		// Unfortunately the settings are loaded on each scene change, and we never write them back to disk.
+		// So ShowTutorial keeps getting set back to true even after clicking "close forever"
+		public static bool TutorialWasClosedForever = false;
+
 		public static void LoadSettings()
 		{
 			Debug.Log("[FreeIVA] Loading settings...");
