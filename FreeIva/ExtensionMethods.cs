@@ -1,25 +1,40 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace FreeIva
 {
 	public static class ExtensionMethods
 	{
-		//public static ModuleFreeIva GetModuleFreeIva<PartModule>(this Part p)
-		//{
-		//    if (p == null || p.Modules == null) return null;
-		//    List<ModuleFreeIva> mfil = p.Modules.GetModules<ModuleFreeIva>();
-		//    if (mfil == null || mfil.Count == 0)
-		//        return null;
-		//    return mfil[0];
-		//}
-
-		public static T GetModule<T>(this Part p) where T : PartModule
+		// this is similar to Part.FindModuleImplementing, except that it can take an arbitrary type and will populate the cache on failure
+		public static PartModule GetModule(this Part part, Type moduleType)
 		{
-			if (p == null || p.Modules == null) return default(T);
-			List<T> mfil = p.Modules.GetModules<T>();
-			if (mfil == null || mfil.Count == 0)
-				return default(T);
-			return mfil[0];
+			if (moduleType == null) return null;
+			if (part.cachedModules == null)
+			{
+				part.cachedModules = new Dictionary<Type, PartModule>();
+			}
+
+			if (part.cachedModules.TryGetValue(moduleType, out var partModule))
+			{
+				return partModule;
+			}
+
+			foreach (var module in part.modules.modules)
+			{
+				if (moduleType.IsAssignableFrom(module.GetType()))
+				{
+					part.cachedModules.Add(moduleType, module);
+					return module;
+				}
+			}
+
+			part.cachedModules.Add(moduleType, null);
+			return null;
+		}
+
+		public static T GetModule<T>(this Part part) where T : PartModule
+		{
+			return (T)GetModule(part, typeof(T));
 		}
 	}
 }

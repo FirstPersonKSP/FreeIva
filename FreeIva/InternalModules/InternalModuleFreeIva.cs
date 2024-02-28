@@ -1,5 +1,4 @@
-﻿using Expansions.Missions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -460,7 +459,7 @@ namespace FreeIva
 		{
 			// try to find the part associated with this model (note there might be more than one...)
 			// should we only do this if there are no HatchConfigs in any of the props?  I'm concerned about loading times, but probably should measure first
-			var part = PartLoader.Instance.loadedParts.FirstOrDefault(p => p.internalConfig.GetValue("name") == internalModel.internalName);
+			Part part = ModuleFreeIva.GetPartPrefabForInternal(internalModel.internalName);
 
 			List<FreeIvaHatch> hatches = new List<FreeIvaHatch>();
 
@@ -490,7 +489,7 @@ namespace FreeIva
 						// for attachnodes...
 						if (part != null && hatch.tubeTransform != null && hatch.attachNodeId == string.Empty)
 						{
-							foreach (var attachNode in part.partPrefab.attachNodes)
+							foreach (var attachNode in part.attachNodes)
 							{
 								Vector3 attachNodeInternalSpace = x_partToInternalSpace * attachNode.position;
 								Vector3 localPosition = hatch.tubeTransform.InverseTransformPoint(attachNodeInternalSpace);
@@ -513,7 +512,7 @@ namespace FreeIva
 
 			// auto-configure airlocks
 			// since hatches do not have a defined "out" direction (different hatches are authored in different orientations), we do this in part space (because the airlocks DO have a defined "in" direction)
-			Transform[] airlocks = part?.partPrefab.airlock == null ? null : part.partPrefab.FindModelTransformsWithTag(FreeIvaHatch.AIRLOCK_TAG);
+			Transform[] airlocks = part?.airlock == null ? null : part.FindModelTransformsWithTag(FreeIvaHatch.AIRLOCK_TAG);
 			string[] airlockNames = airlocks == null ? null : new string[airlocks.Length];
 
 			if (airlocks != null)
