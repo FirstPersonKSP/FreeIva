@@ -8,6 +8,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4D82D2DE-C252-46FC-852E-3CFB355CA3A6}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		CHANGELOG.md = CHANGELOG.md
 		GameData\FreeIva\FreeIva.version = GameData\FreeIva\FreeIva.version
 		README.md = README.md
 	EndProjectSection
