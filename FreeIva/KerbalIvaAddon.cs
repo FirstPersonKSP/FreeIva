@@ -302,17 +302,19 @@ namespace FreeIva
 				// this is super fake, it will apply to things that aren't in contact with the rotating part and doesn't account for coriolis, etc.
 				GetAngularVelocity(part, out Vector3 centerOfRotationWorld, out Vector3 angularVelocityWorld);
 
+				Vector3 rotationAxis = angularVelocityWorld.normalized;
 				Vector3 worldSpacePosition = InternalSpace.InternalToWorld(internalSpacePosition);
-				Vector3 fromCoM = worldSpacePosition - centerOfRotationWorld;
+				Vector3 fromAxis = Vector3.ProjectOnPlane(worldSpacePosition - centerOfRotationWorld, rotationAxis);
+				
 
-				float r = fromCoM.magnitude;
+				float r = fromAxis.magnitude;
 				float omegaSquared = angularVelocityWorld.sqrMagnitude;
 
 				float centrifugalAccelMag = omegaSquared * r;
 
 				if (centrifugalAccelMag > 0.01f)
 				{
-					accelWorldSpace += fromCoM / r * centrifugalAccelMag;
+					accelWorldSpace += fromAxis / r * centrifugalAccelMag;
 				}
 			}
 
