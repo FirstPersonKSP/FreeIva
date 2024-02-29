@@ -598,7 +598,7 @@ namespace FreeIva
 			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA ||
 				CameraManager.Instance.ivaCameraActiveKerbal != kerbal)
 			{
-				CameraManager.Instance.SetCameraIVA(kerbal, false);
+				CameraManager.Instance.SetCameraIVA(kerbal, true);
 			}
 
 			GameEvents.OnIVACameraKerbalChange.Fire(kerbal);
