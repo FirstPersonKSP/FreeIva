@@ -96,7 +96,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Publicize Include="Assembly-CSharp"/>
+    <Publicize Include="Assembly-CSharp" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\FreeIva_Unity\Assets\Scripts\ConvexHullCalculator.cs">
@@ -160,7 +160,6 @@
     <Compile Include="Experimental\WorldCollisionTracker.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include=".editorconfig" />
     <None Include="packages.config" />
   </ItemGroup>
   <PropertyGroup>
