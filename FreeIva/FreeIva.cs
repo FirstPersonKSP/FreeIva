@@ -69,6 +69,17 @@ namespace FreeIva
 			get; private set;
 		}
 
+		void Awake()
+		{
+			Paused = false;
+			GameEvents.onGamePause.Add(OnPause);
+			GameEvents.onGameUnpause.Add(OnUnPause);
+			GameEvents.onVesselWasModified.Add(OnVesselWasModified);
+			GameEvents.onSameVesselDock.Add(OnSameVesselDockingChange);
+			GameEvents.onSameVesselUndock.Add(OnSameVesselDockingChange);
+			GameEvents.onVesselChange.Add(OnVesselChange);
+		}
+
 		public void Start()
 		{
 			GuiUtils.DrawGui =
@@ -77,14 +88,6 @@ namespace FreeIva
 #else
             false;
 #endif
-
-			Paused = false;
-			GameEvents.onGamePause.Add(OnPause);
-			GameEvents.onGameUnpause.Add(OnUnPause);
-			GameEvents.onVesselWasModified.Add(OnVesselWasModified);
-			GameEvents.onSameVesselDock.Add(OnSameVesselDockingChange);
-			GameEvents.onSameVesselUndock.Add(OnSameVesselDockingChange);
-			GameEvents.onCrewOnEva.Add(OnCrewOnEva);
 
 			Settings.LoadSettings();
 			SetRenderQueues(FlightGlobals.ActiveVessel.rootPart);
@@ -98,11 +101,13 @@ namespace FreeIva
 			ivaSun.ivaLight.shadows = LightShadows.Hard;
 		}
 
-		private void OnCrewOnEva(GameEvents.FromToAction<Part, Part> data)
+		private void OnVesselChange(Vessel vessel)
 		{
-			StartCoroutine(ModifyEvaFsm(data.to));
+			if (vessel.evaController != null)
+			{
+				StartCoroutine(ModifyEvaFsm(vessel.evaController));
+			}
 		}
-
 
 		internal static Part FindPartWithEmptySeat(Part sourcePart)
 		{
@@ -232,10 +237,8 @@ namespace FreeIva
 			}
 		}
 
-		private IEnumerator ModifyEvaFsm(Part kerbalPart)
+		private IEnumerator ModifyEvaFsm(KerbalEVA kerbalEva)
 		{
-			var kerbalEva = kerbalPart.GetModule<KerbalEVA>();
-
 			while (!kerbalEva.Ready)
 			{
 				yield return null;
@@ -282,7 +285,7 @@ namespace FreeIva
 			GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
 			GameEvents.onSameVesselDock.Remove(OnSameVesselDockingChange);
 			GameEvents.onSameVesselUndock.Remove(OnSameVesselDockingChange);
-			GameEvents.onCrewOnEva.Remove(OnCrewOnEva);
+			GameEvents.onVesselChange.Remove(OnVesselChange);
 			InputLockManager.RemoveControlLock("FreeIVA");
 		}
 
