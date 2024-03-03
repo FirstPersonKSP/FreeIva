@@ -1,3 +1,39 @@
+# [0.2.18.4] - 2024-03-03
+
+## Notable Changes
+
+* Habtech CBM hatches now have a blocked variant
+* Stock mk3 crew cabin now has ventral and dorsal hatches and attachnodes
+* Open animation limit can now be configured per hatch
+* B9PSConditionalProp can now specify multiple subtypes
+
+## Bug Fixes
+
+* Fixed some missing texture errors
+* Fixed a bug where using the seats in the inline docking ports could cause the IVA kerbal to stop spawning
+* Fixed a bug preventing requireDeploy in the internal module from working
+* Improved error reporting when a cutout target isn't found
+* Prevent going EVA from hatches connected to deactivated airlocks
+* "Close forever" button on the tutorial window will now keep it closed until the next KSP restart instead of per scene
+* Fixed auto-detection system for internal spaces that are only referenced via Reviva configs (fixes hatches in some warbirds cockpits when used with Reviva, and probably others)
+* Fixed centrifugal force calculation for spinning parts so that it points towards the axis of rotation rather than center of mass
+* Fixed broken camera when boarding from EVA before IVA had ever been used since the last scene switch
+* Fixed boarding behavior not working when using a kerbal that had not gone EVA since the last scene switch
+* Planetside: Fix hatches not changing properly per subtype in the vertical base node
+* Planetside: Fix going EVA from some parts when alternate endcaps were used
+* Restock: Fix error message when using mk1 lander
+* Restock: Fix inflatable airlock
+* Restock: Fixed hatches in mk2landercan
+* SSPX: inflatable habs and centrifuges no longer show the internal in the IVA overlay when not inflated/expanded
+* SXT: Fixed hatches and cutouts in large passenger cabin
+* SXT: Fixed a bad model reference in the 6-way hub
+* KNES: Fixed dorsal hatch on French Hermes crew module and docking module
+* Tantares: Included v2 parts in support patches
+* ACK: Fixed blocked bottom hatch in HLS
+* ACK: Fixed wrong cutout target in HLS
+
+---
+
 # [0.2.18.3] - 2023-11-14
 
 ## Bug Fixes
