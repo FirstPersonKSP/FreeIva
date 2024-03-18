@@ -11,36 +11,25 @@ namespace FreeIva
 	{
 		#region static
 
-		static TypeInfo x_PlanetaryModuleTypeInfo;
+		static Type x_PlanetaryModuleType;
 		static FieldInfo x_moduleStatusFieldInfo;
 
 		static KPBS_PlanetaryModule()
 		{
-			var type = AssemblyLoader.GetClassByName(typeof(PartModule), "PlanetaryModule");
+			x_PlanetaryModuleType = AssemblyLoader.GetClassByName(typeof(PartModule), "PlanetaryModule");
 
-			if (type == null) return;
+			if (x_PlanetaryModuleType == null) return;
 
-			x_PlanetaryModuleTypeInfo = type.GetTypeInfo();
-			x_moduleStatusFieldInfo = x_PlanetaryModuleTypeInfo.GetField("moduleStatus", BindingFlags.Instance | BindingFlags.Public);
+			x_moduleStatusFieldInfo = x_PlanetaryModuleType.GetField("moduleStatus", BindingFlags.Instance | BindingFlags.Public);
 		}
 
 		public static KPBS_PlanetaryModule Create(Part part)
 		{
-			if (x_PlanetaryModuleTypeInfo == null) return null;
+			PartModule planetaryModule = part.GetModule(x_PlanetaryModuleType);
+			
+			if (planetaryModule == null) return null;
 
-			PartModule module = null;
-			foreach (var m in part.modules.modules)
-			{
-				if (m.GetType() == x_PlanetaryModuleTypeInfo.AsType())
-				{
-					module = m;
-					break;
-				}
-			}
-
-			if (module == null) return null;
-
-			return new KPBS_PlanetaryModule(module);
+			return new KPBS_PlanetaryModule(planetaryModule);
 		}
 
 		#endregion

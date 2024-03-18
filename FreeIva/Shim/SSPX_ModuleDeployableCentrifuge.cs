@@ -12,7 +12,7 @@ namespace FreeIva
 	{
 		#region static
 
-		static TypeInfo x_ModuleDeployableCentrifugeTypeInfo;
+		static Type x_ModuleDeployableCentrifugeType;
 		static FieldInfo x_CurrentSpinRateFieldInfo;
 		static FieldInfo x_IVARotationRootFieldInfo;
 		static FieldInfo x_propDictFieldInfo;
@@ -22,35 +22,22 @@ namespace FreeIva
 
 		static SSPX_ModuleDeployableCentrifuge()
 		{
-			var type = AssemblyLoader.GetClassByName(typeof(PartModule), "ModuleDeployableCentrifuge");
+			x_ModuleDeployableCentrifugeType = AssemblyLoader.GetClassByName(typeof(PartModule), "ModuleDeployableCentrifuge");
 
-			if (type == null) return;
+			if (x_ModuleDeployableCentrifugeType == null) return;
 
-			x_ModuleDeployableCentrifugeTypeInfo = type.GetTypeInfo();
-			x_CurrentSpinRateFieldInfo = x_ModuleDeployableCentrifugeTypeInfo.GetField("CurrentSpinRate", BindingFlags.Instance | BindingFlags.Public);
-			x_IVARotationRootFieldInfo = x_ModuleDeployableCentrifugeTypeInfo.GetField("IVARotationRoot", BindingFlags.Instance | BindingFlags.NonPublic);
-			x_propDictFieldInfo = x_ModuleDeployableCentrifugeTypeInfo.GetField("propDict", BindingFlags.Instance | BindingFlags.NonPublic);
-			x_ResetIVATransformMethodInfo = x_ModuleDeployableCentrifugeTypeInfo.GetMethod("ResetIVATransform", BindingFlags.Instance | BindingFlags.Public);
-			x_DoIVASetupMethodInfo = x_ModuleDeployableCentrifugeTypeInfo.GetMethod("DoIVASetup", BindingFlags.Instance | BindingFlags.NonPublic);
+			x_CurrentSpinRateFieldInfo = x_ModuleDeployableCentrifugeType.GetField("CurrentSpinRate", BindingFlags.Instance | BindingFlags.Public);
+			x_IVARotationRootFieldInfo = x_ModuleDeployableCentrifugeType.GetField("IVARotationRoot", BindingFlags.Instance | BindingFlags.NonPublic);
+			x_propDictFieldInfo = x_ModuleDeployableCentrifugeType.GetField("propDict", BindingFlags.Instance | BindingFlags.NonPublic);
+			x_ResetIVATransformMethodInfo = x_ModuleDeployableCentrifugeType.GetMethod("ResetIVATransform", BindingFlags.Instance | BindingFlags.Public);
+			x_DoIVASetupMethodInfo = x_ModuleDeployableCentrifugeType.GetMethod("DoIVASetup", BindingFlags.Instance | BindingFlags.NonPublic);
 		}
 
 		public static new SSPX_ModuleDeployableCentrifuge Create(Part part)
 		{
-			if (x_ModuleDeployableCentrifugeTypeInfo == null) return null;
-
-			PartModule module = null;
-			foreach (var m in part.modules.modules)
-			{
-				if (m.GetType() == x_ModuleDeployableCentrifugeTypeInfo.AsType())
-				{
-					module = m;
-					break;
-				}
-			}
-
-			if (module == null) return null;
-
-			return new SSPX_ModuleDeployableCentrifuge(module);
+			PartModule centrifugeModule = part.GetModule(x_ModuleDeployableCentrifugeType);
+			if (centrifugeModule == null) return null;
+			return new SSPX_ModuleDeployableCentrifuge(centrifugeModule);
 		}
 
 		#endregion

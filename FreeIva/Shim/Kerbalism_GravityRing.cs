@@ -12,7 +12,7 @@ namespace FreeIva
 	{
 		#region static
 
-		static TypeInfo x_GravityRingTypeInfo;
+		static Type x_GravityRingType;
 		static FieldInfo x_rotate_transfFieldInfo;
 		static FieldInfo x_deployedFieldInfo;
 		static FieldInfo x_deploy_animFieldInfo;
@@ -21,35 +21,24 @@ namespace FreeIva
 
 		static Kerbalism_GravityRing()
 		{
-			var type = AssemblyLoader.GetClassByName(typeof(PartModule), "GravityRing");
+			x_GravityRingType = AssemblyLoader.GetClassByName(typeof(PartModule), "GravityRing");
 
-			if (type == null) return;
+			if (x_GravityRingType == null) return;
 
-			x_GravityRingTypeInfo = type.GetTypeInfo();
-			x_rotate_transfFieldInfo = x_GravityRingTypeInfo.GetField("rotate_transf", BindingFlags.Instance | BindingFlags.Public);
-			x_deployedFieldInfo = x_GravityRingTypeInfo.GetField("deployed", BindingFlags.Instance | BindingFlags.Public);
-			x_deploy_animFieldInfo = x_GravityRingTypeInfo.GetField("deploy_anim", BindingFlags.Instance | BindingFlags.Public);
-			x_rotate_animFieldInfo = x_GravityRingTypeInfo.GetField("rotate_anim", BindingFlags.Instance | BindingFlags.NonPublic);
-			x_rotateFieldInfo = x_GravityRingTypeInfo.GetField("rotate", BindingFlags.Instance | BindingFlags.Public);
+			x_rotate_transfFieldInfo = x_GravityRingType.GetField("rotate_transf", BindingFlags.Instance | BindingFlags.Public);
+			x_deployedFieldInfo = x_GravityRingType.GetField("deployed", BindingFlags.Instance | BindingFlags.Public);
+			x_deploy_animFieldInfo = x_GravityRingType.GetField("deploy_anim", BindingFlags.Instance | BindingFlags.Public);
+			x_rotate_animFieldInfo = x_GravityRingType.GetField("rotate_anim", BindingFlags.Instance | BindingFlags.NonPublic);
+			x_rotateFieldInfo = x_GravityRingType.GetField("rotate", BindingFlags.Instance | BindingFlags.Public);
 		}
 
 		public static Kerbalism_GravityRing Create(Part part, string centrifugeTransformName, Vector3 alignmentRotation)
 		{
-			if (x_GravityRingTypeInfo == null) return null;
+			PartModule gravityRingModule = part.GetModule(x_GravityRingType);
 
-			PartModule module = null;
-			foreach (var m in part.modules.modules)
-			{
-				if (m.GetType() == x_GravityRingTypeInfo.AsType())
-				{
-					module = m;
-					break;
-				}
-			}
+			if (gravityRingModule == null) return null;
 
-			if (module == null) return null;
-
-			return new Kerbalism_GravityRing(module, centrifugeTransformName, Quaternion.Euler(alignmentRotation));
+			return new Kerbalism_GravityRing(gravityRingModule, centrifugeTransformName, Quaternion.Euler(alignmentRotation));
 		}
 
 		#endregion

@@ -11,36 +11,23 @@ namespace FreeIva
 	{
 		#region static
 
-		static TypeInfo x_ModuleDeployableHabitatTypeInfo;
+		static Type x_ModuleDeployableHabitatType;
 		static FieldInfo x_deployStateFieldInfo;
 
 		static SSPX_ModuleDeployableHabitat()
 		{
-			var type = AssemblyLoader.GetClassByName(typeof(PartModule), "ModuleDeployableHabitat");
+			x_ModuleDeployableHabitatType = AssemblyLoader.GetClassByName(typeof(PartModule), "ModuleDeployableHabitat");
 
-			if (type == null) return;
+			if (x_ModuleDeployableHabitatType == null) return;
 
-			x_ModuleDeployableHabitatTypeInfo = type.GetTypeInfo();
-			x_deployStateFieldInfo = x_ModuleDeployableHabitatTypeInfo.GetField("deployState", BindingFlags.Instance | BindingFlags.NonPublic);			
+			x_deployStateFieldInfo = x_ModuleDeployableHabitatType.GetField("deployState", BindingFlags.Instance | BindingFlags.NonPublic);			
 		}
 
 		public static SSPX_ModuleDeployableHabitat Create(Part part)
 		{
-			if (x_ModuleDeployableHabitatTypeInfo == null) return null;
-
-			PartModule module = null;
-			foreach (var m in part.modules.modules)
-			{
-				if (x_ModuleDeployableHabitatTypeInfo.IsAssignableFrom(m.GetType()))
-				{
-					module = m;
-					break;
-				}
-			}
-
-			if (module == null) return null;
-
-			return new SSPX_ModuleDeployableHabitat(module);
+			PartModule habitatModule = part.GetModule(x_ModuleDeployableHabitatType);
+			if (habitatModule == null) return null;
+			return new SSPX_ModuleDeployableHabitat(habitatModule);
 		}
 
 		#endregion

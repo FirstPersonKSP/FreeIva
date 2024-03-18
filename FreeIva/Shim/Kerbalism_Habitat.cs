@@ -11,44 +11,34 @@ namespace FreeIva
 	{
 		#region static
 
-		static TypeInfo x_HabitatTypeInfo;
+		static Type x_HabitatModuleType;
 		static FieldInfo x_stateField;
 
 		static Kerbalism_Habitat()
 		{
-			x_HabitatTypeInfo = AssemblyLoader.GetClassByName(typeof(PartModule), "Habitat")?.GetTypeInfo();
+			x_HabitatModuleType = AssemblyLoader.GetClassByName(typeof(PartModule), "Habitat");
 
-			if (x_HabitatTypeInfo == null) return;
+			if (x_HabitatModuleType == null) return;
 
-			x_stateField = x_HabitatTypeInfo.GetField("state", BindingFlags.Instance | BindingFlags.Public);
+			x_stateField = x_HabitatModuleType.GetField("state", BindingFlags.Instance | BindingFlags.Public);
 		}
 
 		public static Kerbalism_Habitat Create(Part part)
 		{
-			if (x_HabitatTypeInfo == null) return null;
+			var habitatModule = part.GetModule(x_HabitatModuleType);
 
-			PartModule module = null;
-			foreach (var m in part.modules.modules)
-			{
-				if (m.GetType() == x_HabitatTypeInfo.AsType())
-				{
-					module = m;
-					break;
-				}
-			}
+			if (habitatModule == null) return null;
 
-			if (module == null) return null;
-
-			return new Kerbalism_Habitat(module);
+			return new Kerbalism_Habitat(habitatModule);
 		}
 
 		#endregion
 
-		PartModule m_module;
+		PartModule m_habitatModule;
 
-		Kerbalism_Habitat(PartModule module)
+		Kerbalism_Habitat(PartModule habitatModule)
 		{
-			m_module = module;
+			m_habitatModule = habitatModule;
 		}
 
 		public void OnInternalCreated() { }
@@ -57,7 +47,7 @@ namespace FreeIva
 		{
 			get
 			{
-				object valueObj = x_stateField.GetValue(m_module);
+				object valueObj = x_stateField.GetValue(m_habitatModule);
 				int value = (int)Convert.ToInt32(valueObj);
 				return value == 1; // disabled, enabled, pressurizing, depressurizing
 			}

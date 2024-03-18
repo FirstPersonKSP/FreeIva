@@ -11,34 +11,22 @@ namespace FreeIva.Shim
 	{
 		#region static
 
-		static TypeInfo x_WBIInflatablePartModule_TypeInfo;
+		static Type x_WBIInflatablePartModule_Type;
 		static FieldInfo x_isDeployed_FieldInfo;
 
 		static WBIInflatablePartModule()
 		{
-			x_WBIInflatablePartModule_TypeInfo = AssemblyLoader.GetClassByName(typeof(PartModule), "WBIInflatablePartModule")?.GetTypeInfo();
+			x_WBIInflatablePartModule_Type = AssemblyLoader.GetClassByName(typeof(PartModule), "WBIInflatablePartModule");
 			
-			if (x_WBIInflatablePartModule_TypeInfo == null) return;
+			if (x_WBIInflatablePartModule_Type == null) return;
 
-			x_isDeployed_FieldInfo = x_WBIInflatablePartModule_TypeInfo.GetField("isDeployed", BindingFlags.Instance | BindingFlags.Public);
+			x_isDeployed_FieldInfo = x_WBIInflatablePartModule_Type.GetField("isDeployed", BindingFlags.Instance | BindingFlags.Public);
 		}
 
 		public static WBIInflatablePartModule Create(Part part)
 		{
-			if (x_isDeployed_FieldInfo == null) return null;
-
-			PartModule module = null;
-			foreach (var m in part.modules.modules)
-			{
-				if (x_WBIInflatablePartModule_TypeInfo.IsAssignableFrom(m.GetType()))
-				{
-					module = m;
-					break;
-				}
-			}
-
+			PartModule module = part.GetModule(x_WBIInflatablePartModule_Type);
 			if (module == null) return null;
-
 			return new WBIInflatablePartModule(module);
 		}
 
