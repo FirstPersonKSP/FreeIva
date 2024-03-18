@@ -191,6 +191,8 @@ namespace FreeIva
 			return result;
 		}
 
+		// NOTE: beware of interacting with other PartModules in here, because they may not have been started yet
+		// In particular the Kerbalism GravityRing is a little tricky
 		public override void OnStart(StartState state)
 		{
 			if (!HighLogic.LoadedSceneIsFlight) return;

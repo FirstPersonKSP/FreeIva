@@ -51,10 +51,16 @@ namespace FreeIva
 		Quaternion m_alignmentRotation;
 		float m_rotationSpeed;
 
+		// for reference: https://github.com/Kerbalism/Kerbalism/blob/master/src/Kerbalism/Modules/GravityRing.cs
 		public Kerbalism_GravityRing(PartModule module, string centrifugeTransformName, Quaternion alignmentRotation)
 		{
 			m_module = module;
 			m_alignmentRotation = alignmentRotation;
+			m_centrifugeTransform = module.part.FindModelTransform(centrifugeTransformName);
+		}
+
+		public void OnInternalCreated()
+		{
 			object transformator = x_rotate_transfFieldInfo.GetValue(m_module);
 			if (transformator != null)
 			{
@@ -67,14 +73,11 @@ namespace FreeIva
 				m_rotate_anim = new Kerbalism_Animator(x_rotate_animFieldInfo.GetValue(m_module));
 				string rotationAnimClipName = (string)x_rotateFieldInfo.GetValue(m_module);
 				m_rotationSpeed = 360f / m_rotate_anim.anim.GetClip(rotationAnimClipName).length;
-				m_centrifugeTransform = module.part.FindModelTransform(centrifugeTransformName);
 			}
 
 			object animator = x_deploy_animFieldInfo.GetValue(m_module);
 			if (animator != null) m_deploy_anim = new Kerbalism_Animator(animator);
 		}
-
-		public void OnInternalCreated() { }
 
 		public void Update()
 		{
