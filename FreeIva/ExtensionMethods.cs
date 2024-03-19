@@ -8,7 +8,7 @@ namespace FreeIva
 		// this is similar to Part.FindModuleImplementing, except that it can take an arbitrary type and will populate the cache on failure
 		public static PartModule GetModule(this Part part, Type moduleType)
 		{
-			if (moduleType == null) return null;
+			if (part == null || moduleType == null) return null;
 			if (part.cachedModules == null)
 			{
 				part.cachedModules = new Dictionary<Type, PartModule>();
