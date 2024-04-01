@@ -1,7 +1,7 @@
 name: build
 on:
   push:
-    branches: [ main ]
+    branches: [ $default-branch ]
     paths:
       - '**.cs'
   pull_request:
@@ -9,16 +9,29 @@ on:
       - '**.cs'
   workflow_dispatch:
 
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: .
+
+  # Configuration type to build.
+  # You can convert this to a build matrix if you need coverage of multiple configuration types.
+  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  BUILD_CONFIGURATION: Release
+
+  KSP_DIR: ksp
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 5.0.x
+          dotnet-version: 4.x
+
       - name: Download required assemblies
         run: echo "TODO"
 
@@ -28,10 +41,14 @@ jobs:
       - name: Update Version
         run: echo "TODO"
         # TODO: fetch tag, datetime, etc
-      
+
+      - name: Restore NuGet Packages
+        working-directory: ${{env.GITHUB_WORKSPACE}}
+        run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+
       - name: Build Mod Solution
-        run: |
-          msbuild -restore /p:Configuration=Release /p:ReferencePath="${KSP_DIR}" ${GITHUB_WORKSPACE}/FreeIva.sln
+        working-directory: ${{env.GITHUB_WORKSPACE}}
+        run: msbuild /p:Configuration=${{env.SOLUTION_FILE_PATH}} /p:ReferencePath="${env.KSP_DIR}" ${{env.SOLUTION_FILE_PATH}}
       
       - name: Assemble Release
         run: echo "TODO"
