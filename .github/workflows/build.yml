@@ -1,0 +1,40 @@
+name: build
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate-cfg-files:
+    uses: KSP-RO/BuildTools/.github/workflows/validate-cfg-files.yml@master
+  
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Download required assemblies
+        run: echo "TODO"
+
+      - name: Install Dependencies
+        run: echo "TODO"
+
+      - name: Update Version
+        run: echo "TODO"
+        # TODO: fetch tag, datetime, etc
+      
+      - name: Build Mod Solution
+        run: msbuild /p:Configuration=Release /p:ReferencePath="${KSP_DIR}" ${GITHUB_WORKSPACE}/FreeIva.sln
+      
+      - name: Assemble Release
+        run: echo "TODO"
+        # TODO: copy license/readme/changelog etc? copy to temp location?
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          # TODO: add version to filename?
+          name: FreeIva
+          path: ${GITHUB_WORKSPACE}/GameData
