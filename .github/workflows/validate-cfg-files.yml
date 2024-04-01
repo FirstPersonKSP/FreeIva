@@ -19,6 +19,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          filter: '*.cfg'
+          sparse-checkout: GameData
       - name: Validate config files
         uses: KSP-CKAN/KSPMMCfgParser@master
