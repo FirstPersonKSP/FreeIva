@@ -18,7 +18,7 @@ env:
   # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
   BUILD_CONFIGURATION: Release
 
-  KSP_DIR: ksp
+  KSP_DIR: ksp/
 
 jobs:
   build:
@@ -33,7 +33,12 @@ jobs:
           dotnet-version: 5.x
 
       - name: Download required assemblies
-        run: echo "TODO"
+        shell: bash
+        env:
+          KSP_ZIP_PASSWORD: ${{ secrets.KSP_ZIP_PASSWORD }}
+        run: |
+          wget https://github.com/KSPModStewards/KSPCommon/raw/main/KSP-1.12.5.zip
+          unzip -P "${KSP_ZIP_PASSWORD}" KSP-1.12.5.zip -d "${{ env.KSP_DIR }}"
 
       - name: Install Dependencies
         run: echo "TODO"
