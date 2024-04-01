@@ -2,7 +2,11 @@ name: build
 on:
   push:
     branches: [ main ]
+    paths:
+      - '**.cs'
   pull_request:
+    paths:
+      - '**.cs'
   workflow_dispatch:
 
 jobs:
