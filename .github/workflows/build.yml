@@ -48,7 +48,7 @@ jobs:
 
       - name: Build Mod Solution
         working-directory: ${{env.GITHUB_WORKSPACE}}
-        run: msbuild /p:Configuration=${{env.SOLUTION_FILE_PATH}} /p:ReferencePath="${env.KSP_DIR}" ${{env.SOLUTION_FILE_PATH}}
+        run: msbuild /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:ReferencePath="${{env.KSP_DIR}}" ${{env.SOLUTION_FILE_PATH}}
       
       - name: Assemble Release
         run: echo "TODO"
