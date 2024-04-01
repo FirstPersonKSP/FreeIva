@@ -15,7 +15,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
       - name: Download required assemblies
         run: echo "TODO"
 
@@ -27,7 +30,8 @@ jobs:
         # TODO: fetch tag, datetime, etc
       
       - name: Build Mod Solution
-        run: msbuild /p:Configuration=Release /p:ReferencePath="${KSP_DIR}" /restore ${GITHUB_WORKSPACE}/FreeIva.sln
+        run: |
+          msbuild -restore /p:Configuration=Release /p:ReferencePath="${KSP_DIR}" ${GITHUB_WORKSPACE}/FreeIva.sln
       
       - name: Assemble Release
         run: echo "TODO"
