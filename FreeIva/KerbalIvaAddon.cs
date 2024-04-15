@@ -682,7 +682,7 @@ namespace FreeIva
 				// put the kerbal in the seat without adjusting crew assignments
 				// this would normally be done inside AddCrewMemberAt
 				// NOTE: SitKerbalAt alters the ProtoCrewMember's seatIdx member, which is stored in the save file and used when spawning kerbals for the IVA.
-				// https://github.com/pizzaoverhead/FreeIva/issues/380#issuecomment-1952986010
+				// https://github.com/FirstPersonKSP/FreeIva/issues/380#issuecomment-1952986010
 				int oldSeatIndex = crewMember.seatIdx;
 				destModel.SitKerbalAt(crewMember, newSeat);
 				crewMember.seatIdx = oldSeatIndex;
