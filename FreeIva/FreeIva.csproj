@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Import Project="..\packages\Krafs.Publicizer.1.0.3\build\Krafs.Publicizer.props" Condition="Exists('..\packages\Krafs.Publicizer.1.0.3\build\Krafs.Publicizer.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -37,64 +38,10 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <!--Import targets now, which will import the .csproj.user where the path to the KSP install root must be defined in ReferencePath-->
-  <!--This must be done after the main project poperties are defined because it needs the target framework property to be defined -->
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!--Parse KSP platform-specific paths and set the start action-->
+  <Import Project="$(SolutionDir)KSPBuildTools\KSPCommon.props" />
   <PropertyGroup>
-    <KSPExecutable Condition="$([MSBuild]::IsOsPlatform('Windows'))">KSP_x64.exe</KSPExecutable>
-    <KSPExecutable Condition="$([MSBuild]::IsOsPlatform('OSX'))">KSP.app</KSPExecutable>
-    <KSPExecutable Condition="$([MSBuild]::IsOsPlatform('Linux'))">KSP.x86_64</KSPExecutable>
-    <ManagedRelativePath Condition="$([MSBuild]::IsOsPlatform('Windows'))">KSP_x64_Data\Managed</ManagedRelativePath>
-    <ManagedRelativePath Condition="$([MSBuild]::IsOsPlatform('OSX'))">KSP.app\Contents\Resources\Data\Managed</ManagedRelativePath>
-    <ManagedRelativePath Condition="$([MSBuild]::IsOsPlatform('Linux'))">KSP_Data\Managed</ManagedRelativePath>
-    <ManagedPath>$(ReferencePath)$(ManagedRelativePath)</ManagedPath>
-    <StartAction>Program</StartAction>
-    <StartProgram>$(ReferencePath)$(KSPExecutable)</StartProgram>
-    <StartWorkingDirectory>$(ReferencePath)</StartWorkingDirectory>
+    <BinariesOutputRelativePath>GameData/FreeIva/Plugins</BinariesOutputRelativePath>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="$(ManagedPath)\Assembly-CSharp.dll">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="$(ManagedPath)\UnityEngine.dll">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="$(ManagedPath)\UnityEngine.AnimationModule.dll">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="$(ManagedPath)\UnityEngine.AudioModule.dll">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="$(ManagedPath)\UnityEngine.CoreModule.dll">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="$(ManagedPath)\UnityEngine.IMGUIModule.dll">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="$(ManagedPath)\UnityEngine.InputLegacyModule.dll">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="$(ManagedPath)\UnityEngine.PhysicsModule.dll">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="$(ManagedPath)\UnityEngine.UnityWebRequestWWWModule.dll">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="$(ManagedPath)\UnityEngine.AssetBundleModule.dll">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="$(ManagedPath)\UnityEngine.ParticleSystemModule.dll">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="$(ManagedPath)\UnityEngine.TextRenderingModule.dll">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="$(ManagedPath)\UnityEngine.ScreenCaptureModule.dll">
-      <Private>false</Private>
-    </Reference>
-  </ItemGroup>
   <ItemGroup>
     <Publicize Include="Assembly-CSharp" />
   </ItemGroup>
@@ -162,9 +109,6 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <PropertyGroup>
-    <PostBuildEvent>xcopy /Y $(TargetDir)$(TargetName).* $(SolutionDir)GameData\$(ProjectName)\Plugins\$(TargetName).*</PostBuildEvent>
-  </PropertyGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
@@ -173,4 +117,5 @@
     <Error Condition="!Exists('..\packages\Krafs.Publicizer.1.0.3\build\Krafs.Publicizer.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Krafs.Publicizer.1.0.3\build\Krafs.Publicizer.targets'))" />
   </Target>
   <Import Project="..\packages\Krafs.Publicizer.1.0.3\build\Krafs.Publicizer.targets" Condition="Exists('..\packages\Krafs.Publicizer.1.0.3\build\Krafs.Publicizer.targets')" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
