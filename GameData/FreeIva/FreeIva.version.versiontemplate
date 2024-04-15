@@ -1,0 +1,24 @@
+{
+	"NAME": "FreeIva",
+	"URL": "https://github.com/pizzaoverhead/FreeIva/raw/main/GameData/FreeIva/FreeIva.version",
+	"DOWNLOAD": "https://github.com/pizzaoverhead/FreeIva/releases",
+	"VERSION":
+	{
+		"MAJOR": @VERSION_MAJOR@,
+		"MINOR": @VERSION_MINOR@,
+		"PATCH": @VERSION_PATCH@,
+		"BUILD": @VERSION_BUILD@,
+	},
+	"KSP_VERSION_MIN":
+	{
+		"MAJOR": 1,
+		"MINOR": 12,
+		"PATCH": 0
+	},
+	"KSP_VERSION_MAX":
+	{
+		"MAJOR": 1,
+		"MINOR": 12,
+		"PATCH": 99
+	}
+}
