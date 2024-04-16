@@ -6,8 +6,7 @@ on:
       version-string:
         type: string
         required: true
-      changelog-output-file:
-        type: string
+
 jobs:
   create-release:
     uses: KSPModdingLibs/KSPBuildTools/.github/workflows/create-release.yml@main
