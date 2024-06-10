@@ -15,6 +15,18 @@
 * https://yaclog.readthedocs.io
 * https://keepachangelog.com
 
+## Unreleased
+
+### Notable Changes
+
+* Added es-es localization (thanks 9field and masertank!)
+* Added support for [Stockalike Mining Extension](https://forum.kerbalspaceprogram.com/topic/130325-110x-stockalike-mining-extension-115-release-782020/)
+
+### Bug Fixes
+
+* Fixed centrifuges not working properly with Kerbalism
+* Fixed potential NRE spam with certain combinations of mods
+
 ## 0.2.18.4 - 2024-03-03
 
 ### Notable Changes
