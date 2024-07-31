@@ -369,7 +369,14 @@ namespace FreeIva
 
 			if (internalDepthMask != null)
 			{
-				foreach (var meshRenderer in internalDepthMask.GetComponentsInChildren<MeshRenderer>())
+				var depthMaskRenderers = internalDepthMask.GetComponentsInChildren<MeshRenderer>();
+
+				if (depthMaskRenderers.Length == 0)
+				{
+					Debug.LogError($"[FreeIva] INTERNAL '{internalModel.internalName}' internalDepthMask '{internalDepthMaskName}' exists but does not have any mesh renderers");
+				}
+
+				foreach (var meshRenderer in depthMaskRenderers)
 				{
 					meshRenderer.sharedMaterial = Utils.GetDepthMaskCullingMaterial();
 					meshRenderer.gameObject.layer = (int)Layers.InternalSpace;
