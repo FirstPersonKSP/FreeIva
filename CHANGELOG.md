@@ -22,6 +22,7 @@
 * Added es-es localization (thanks 9field and masertank!)
 * Added support for [Stockalike Mining Extension](https://forum.kerbalspaceprogram.com/topic/130325-110x-stockalike-mining-extension-115-release-782020/)
 * Added support for [Kerbal Changelog](https://forum.kerbalspaceprogram.com/topic/200702-19%E2%80%93112-kerbal-changelog-v142-adopted/)
+* Added passthrough for mk2 cargo bays
 
 ### Bug Fixes
 
