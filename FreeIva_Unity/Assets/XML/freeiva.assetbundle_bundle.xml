@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KSPBundleDefinition xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" UrlName="freeiva.assetbundle" Name="freeiva.assetbundle" CreatedTime="-8584746540915436223" AutoLoad="false">
+  <Author />
+  <Info />
+  <Assets>
+    <Asset Name="DepthMask_Culling" Path="Assets/ForBundle/DepthMask_Culling.shader" Type="Shader" Url="ForBundle/DepthMask_Culling" AutoLoad="false" />
+    <Asset Name="extinguisherParticles" Path="Assets/ForBundle/extinguisherParticles.prefab" Type="GameObject" Url="ForBundle/extinguisherParticles" AutoLoad="false" />
+    <Asset Name="glassShatter" Path="Assets/ForBundle/glassShatter.prefab" Type="GameObject" Url="ForBundle/glassShatter" AutoLoad="false" />
+  </Assets>
+  <Dependencies />
+</KSPBundleDefinition>
