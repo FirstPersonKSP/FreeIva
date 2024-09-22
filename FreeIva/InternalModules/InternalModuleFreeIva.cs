@@ -389,13 +389,9 @@ namespace FreeIva
 		static Dictionary<Shader, Shader> x_windowShaderTranslations = null;
 		static Shader[] x_windowShaders = null;
 
-		// transparents are normally 3000, opaque geometry is 2000
-		// we need something that will render before opaque geometry so that it writes to the z-buffer early and prevents other internals from drawing behind it
-		public static readonly int WINDOW_RENDER_QUEUE = 1999;
-
-		private void OnLoad_Windows(ConfigNode node)
+		private static void FindShaders()
 		{
-			bool hasWindows = false;
+			// NOTE: this a separate function because Shabby will transpile any function that contains Shader.Find, so pulling it out here improves debugging
 
 			if (x_windowShaderTranslations == null)
 			{
@@ -415,7 +411,33 @@ namespace FreeIva
 					Shader.Find("KSP/Alpha/Unlit Transparent"),
 				};
 			}
+		}
 
+		// transparents are normally 3000, opaque geometry is 2000
+		// we need something that will render before opaque geometry so that it writes to the z-buffer early and prevents other internals from drawing behind it
+		public static readonly int WINDOW_RENDER_QUEUE = 1999;
+
+		private void OnLoad_WindowRenderer(MeshRenderer meshRenderer)
+		{
+			// TODO: should we be using sharedMaterial in here instead?
+			meshRenderer.material.renderQueue = WINDOW_RENDER_QUEUE;
+
+			// if deferred rendering is active, transparencies are always drawn after opaque geometry regardless of renderqueue
+			// so we need to add a depth mask material to this mesh which will draw before the opaque geometry to mask it out
+			var materials = meshRenderer.materials;
+			int lastIndex = materials.Length;
+			Array.Resize(ref materials, lastIndex + 1);
+			materials[lastIndex] = Utils.GetDepthMaskCullingMaterial();
+			meshRenderer.materials = materials;
+		}
+
+		private void OnLoad_Windows(ConfigNode node)
+		{
+			bool hasWindows = false;
+
+			FindShaders();
+
+			// handle explicit window transforms
 			var windowNames = node.GetValues("windowName");
 			foreach (var windowName in windowNames)
 			{
@@ -424,12 +446,15 @@ namespace FreeIva
 				{
 					foreach (var meshRenderer in windowTransform.GetComponentsInChildren<MeshRenderer>())
 					{
+						// TODO: should we be using sharedMaterial in here instead?
+
+						// do shader replacements to ensure z-write
 						if (x_windowShaderTranslations.TryGetValue(meshRenderer.material.shader, out Shader newShader))
 						{
 							meshRenderer.material.shader = newShader;
 						}
 
-						meshRenderer.material.renderQueue = WINDOW_RENDER_QUEUE;
+						OnLoad_WindowRenderer(meshRenderer);
 					}
 
 					hasWindows = true;
@@ -446,7 +471,7 @@ namespace FreeIva
 					if (x_windowShaders.Contains(meshRenderer.material.shader))
 					{
 						hasWindows = true;
-						meshRenderer.material.renderQueue = WINDOW_RENDER_QUEUE;
+						OnLoad_WindowRenderer(meshRenderer);
 						meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 						Debug.Log($"[FreeIva] INTERNAL '{internalModel.internalName}' auto-detected window transform '{meshRenderer.transform.name}'");
 					}
