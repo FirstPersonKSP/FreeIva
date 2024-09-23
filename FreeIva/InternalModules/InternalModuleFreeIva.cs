@@ -388,6 +388,7 @@ namespace FreeIva
 
 		static Dictionary<Shader, Shader> x_windowShaderTranslations = null;
 		static Shader[] x_windowShaders = null;
+		static bool x_deferredInstalled = false;
 
 		private static void FindShaders()
 		{
@@ -400,16 +401,15 @@ namespace FreeIva
 				{
 					{Shader.Find("Unlit/Transparent"), Shader.Find("KSP/Alpha/Unlit Transparent")},
 				};
-			}
-
-			if (x_windowShaders == null)
-			{
+			
 				x_windowShaders = new Shader[]
 				{
 					Shader.Find("KSP/Alpha/Translucent Specular"),
 					Shader.Find("KSP/Alpha/Translucent"),
 					Shader.Find("KSP/Alpha/Unlit Transparent"),
 				};
+
+				x_deferredInstalled = AssemblyLoader.loadedAssemblies.Contains("Deferred");
 			}
 		}
 
@@ -424,11 +424,14 @@ namespace FreeIva
 
 			// if deferred rendering is active, transparencies are always drawn after opaque geometry regardless of renderqueue
 			// so we need to add a depth mask material to this mesh which will draw before the opaque geometry to mask it out
-			var materials = meshRenderer.materials;
-			int lastIndex = materials.Length;
-			Array.Resize(ref materials, lastIndex + 1);
-			materials[lastIndex] = Utils.GetDepthMaskCullingMaterial();
-			meshRenderer.materials = materials;
+			if (x_deferredInstalled)
+			{
+				var materials = meshRenderer.materials;
+				int lastIndex = materials.Length;
+				Array.Resize(ref materials, lastIndex + 1);
+				materials[lastIndex] = Utils.GetDepthMaskCullingMaterial();
+				meshRenderer.materials = materials;
+			}
 		}
 
 		private void OnLoad_Windows(ConfigNode node)
