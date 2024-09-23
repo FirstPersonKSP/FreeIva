@@ -12,7 +12,10 @@
         ZWrite On
         Cull Back
         ColorMask 0
-        Pass {}
+        Pass
+        {
+            Offset 0.25,0.25
+        }
     }
 
     SubShader
@@ -27,6 +30,9 @@
         ZWrite On
         Cull Back
         ColorMask 0
-        Pass {}
+        Pass
+        {
+            Offset 0.25,0.25
+        }
     }
 }
