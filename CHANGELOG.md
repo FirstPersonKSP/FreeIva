@@ -15,7 +15,7 @@
 * https://yaclog.readthedocs.io
 * https://keepachangelog.com
 
-## 0.2.19.0 - 2024-09-23
+## Unreleased
 
 ### Notable Changes
 
