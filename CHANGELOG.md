@@ -15,6 +15,12 @@
 * https://yaclog.readthedocs.io
 * https://keepachangelog.com
 
+## Unreleased
+
+### Notable Changes
+
+* Added support for [Simplex station parts habs](https://spacedock.info/mod/3644/SIMPLEX%20Station%20Parts%20Habs)
+
 ## 0.2.19.0 - 2024-09-23
 
 ### Notable Changes
