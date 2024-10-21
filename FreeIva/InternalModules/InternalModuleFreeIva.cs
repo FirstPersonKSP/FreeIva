@@ -497,6 +497,7 @@ namespace FreeIva
 			Part part = ModuleFreeIva.GetPartPrefabForInternal(internalModel.internalName);
 
 			List<FreeIvaHatch> hatches = new List<FreeIvaHatch>();
+			List<string> boundAirlockNames = new List<string>();
 
 			foreach (var prop in internalModel.props)
 			{
@@ -504,6 +505,11 @@ namespace FreeIva
 				if (hatch != null)
 				{
 					var hatchConfig = prop.GetComponent<HatchConfig>();
+
+					if (hatch.airlockName != string.Empty)
+					{
+						boundAirlockNames.Add(hatch.airlockName);
+					}
 
 					if (hatchConfig != null || hatch.cutoutTargetTransformName != string.Empty)
 					{
@@ -575,6 +581,8 @@ namespace FreeIva
 					var airlock = airlocks[airlockIndex];
 					float bestDistanceSquared = 1; // we're pretty generous with positioning (compared to attachnodes) because these don't need to line up perfectly
 					FreeIvaHatch bestHatch = null;
+
+					if (boundAirlockNames.Contains(airlockNames[airlockIndex])) continue;
 
 					foreach (var hatch in hatches)
 					{
