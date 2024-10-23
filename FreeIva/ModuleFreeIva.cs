@@ -209,6 +209,9 @@ namespace FreeIva
 			{
 				Log.Error($"no deployable module found on part {part.partInfo.name}");
 			}
+
+			isEnabled = false;
+			enabled = false;
 		}
 
 		public void OnInternalCreated(InternalModuleFreeIva internalModule)
