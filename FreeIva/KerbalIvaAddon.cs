@@ -764,10 +764,23 @@ namespace FreeIva
 				// This won't unhide a helmet hidden elsewhere.
 				if (ActiveKerbal != null)
 				{
+					// Since the held prop is a child of the camera, and the camera is a child of the kerbal, make sure we
+					// don't accidentally hide the held prop too.
+					Transform oldHeldPropParent = PhysicalProp.HeldProp?.transform.parent;
+					if (oldHeldPropParent != null)
+					{
+						PhysicalProp.HeldProp.transform.SetParent(null, true);
+					}
+
 					Renderer[] renderers = ActiveKerbal.KerbalRef.GetComponentsInChildren<Renderer>();
 					foreach (var r in renderers)
 					{
 						r.enabled = !hidden;
+					}
+
+					if (oldHeldPropParent != null)
+					{
+						PhysicalProp.HeldProp.transform.SetParent(oldHeldPropParent, true);
 					}
 				}
 
