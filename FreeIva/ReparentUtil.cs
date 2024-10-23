@@ -27,11 +27,11 @@ namespace FreeIva
 
 				if (childTransform == null)
 				{
-					Debug.LogError($"[FreeIva] Reparent node in prop {prop.name} failed to find '{childTransformName}'");
+					Log.Error($"Reparent node in prop {prop.name} failed to find '{childTransformName}'");
 				}
 				if (parentTransform == null)
 				{
-					Debug.LogError($"[FreeIva] Reparent node in prop {prop.name} failed to find '{parentTransformName}'");
+					Log.Error($"Reparent node in prop {prop.name} failed to find '{parentTransformName}'");
 				}
 
 				if (childTransform != null && parentTransform != null)
@@ -63,7 +63,7 @@ namespace FreeIva
 			}
 			else
 			{
-				Debug.LogError($"[FreeIva] Reparent node in prop {prop.propName} requires 'childTransformName' and 'parentTransformName' values");
+				Log.Error($"Reparent node in prop {prop.propName} requires 'childTransformName' and 'parentTransformName' values");
 			}
 		}
 	}

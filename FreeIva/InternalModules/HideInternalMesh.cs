@@ -12,7 +12,7 @@ namespace FreeIva
 			string meshName = string.Empty;
 			int meshIndex = -1;
 
-			Debug.Log("#HideInternalMesh OnLoad: " + node);
+			Log.Debug("#HideInternalMesh OnLoad: " + node);
 			if (node.HasValue("meshName"))
 			{
 				meshName = node.GetValue("meshName");
@@ -28,12 +28,12 @@ namespace FreeIva
 			MeshRenderer[] meshRenderers = this.internalModel.GetComponentsInChildren<MeshRenderer>();
 			if (meshRenderers.Length <= meshIndex)
 			{
-				Debug.LogError("[FreeIVA] HideInternalMesh: Searching for mesh with index " + meshIndex + ", only " + meshRenderers.Length + " mesh available.");
+				Log.Error("HideInternalMesh: Searching for mesh with index " + meshIndex + ", only " + meshRenderers.Length + " mesh available.");
 				return;
 			}
 			if (meshRenderers[meshIndex].name != meshName)
 			{
-				Debug.LogError("[FreeIVA] HideInternalMesh: Searching for mesh " + meshName + " at index " + meshIndex + " but found mesh " +
+				Log.Error("HideInternalMesh: Searching for mesh " + meshName + " at index " + meshIndex + " but found mesh " +
 					meshRenderers[meshIndex].name + " instead. Skipping...");
 				return;
 			}

@@ -18,11 +18,11 @@ namespace FreeIva
 			{
 				if (internalProp.hasModel)
 				{
-					Debug.Log($"[FreeIva] HatchConfig in internal {internalModel.internalName} placed in prop {internalProp.propName} that does not have a FreeIvaHatch module");
+					Log.Error($"HatchConfig in internal {internalModel.internalName} placed in prop {internalProp.propName} that does not have a FreeIvaHatch module");
 				}
 				else
 				{
-					Debug.LogError($"[FreeIva] HatchConfig in internal {internalModel.internalName} was placed outside of a PROP node");
+					Log.Error($"HatchConfig in internal {internalModel.internalName} was placed outside of a PROP node");
 				}
 				return;
 			}
@@ -50,7 +50,7 @@ namespace FreeIva
 					objectToHide.name = hideNode.GetValue("name");
 					if (objectToHide.name == null)
 					{
-						Debug.LogWarning("[FreeIVA] HideWhenOpen name not found.");
+						Log.Warning("HideWhenOpen name not found.");
 						continue;
 					}
 
@@ -60,7 +60,7 @@ namespace FreeIva
 					}
 					else
 					{
-						Debug.LogWarning($"[FreeIVA] Invalid HideWhenOpen position definition in INTERNAL {internalModel.internalName} PROP {internalProp.propName}");
+						Log.Warning($"Invalid HideWhenOpen position definition in INTERNAL {internalModel.internalName} PROP {internalProp.propName}");
 					}
 				}
 			}

@@ -42,7 +42,7 @@ namespace FreeIva
 			{
 				if (!int.TryParse(transformName.Substring(commaIndex + 1), out index))
 				{
-					Debug.LogError($"[FreeIva] failed to parse index from transform {transformName} in {contextType} {contextName}");
+					Log.Error($"failed to parse index from transform {transformName} in {contextType} {contextName}");
 					return null;
 				}
 				trimmedName = transformName.Substring(0, commaIndex);
@@ -52,7 +52,7 @@ namespace FreeIva
 			
 			if (transform == null && emitError)
 			{
-				Debug.LogError($"[FreeIva] could not find transform {transformName} in {contextType} {contextName}");
+				Log.Error($"could not find transform {transformName} in {contextType} {contextName}");
 			}
 
 			return transform;
@@ -101,7 +101,7 @@ namespace FreeIva
 				}
 			}
 
-			Debug.LogError($"[FreeIva] Could not find model file '{modelFileName}' in '{root.name}'");
+			Log.Error($"Could not find model file '{modelFileName}' in '{root.name}'");
 			return null;
 		}
 	}

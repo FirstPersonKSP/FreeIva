@@ -78,7 +78,7 @@ namespace FreeIva
 
 			if (!node.HasValue("type"))
 			{
-				Debug.LogWarning("[FreeIVA] CutParameter type not found, skipping.");
+				Log.Warning("CutParameter type not found, skipping.");
 				return null;
 			}
 
@@ -86,7 +86,7 @@ namespace FreeIva
 			string typeString = node.GetValue("type");
 			if (!Enum.TryParse(typeString, out param.type))
 			{
-				Debug.LogWarning($"[FreeIVA] invalid Cut Parameter type {typeString}");
+				Log.Warning($"invalid Cut Parameter type {typeString}");
 				return null;
 			}
 
@@ -104,7 +104,7 @@ namespace FreeIva
 					!float.TryParse(node.GetValue("height"), out param.height) ||
 					!int.TryParse(node.GetValue("slices"), out param.slices))
 					{
-						Debug.LogWarning($"[FreeIVA] invalid Cut Parameter radius, depth, or sides");
+						Log.Warning($"invalid Cut Parameter radius, depth, or sides");
 						return null;
 					}
 				}

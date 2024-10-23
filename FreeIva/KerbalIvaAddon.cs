@@ -526,7 +526,7 @@ namespace FreeIva
 			if (TargetedSeat == null || (TargetedSeat.taken && TargetedSeat.crew != ActiveKerbal))
 				return;
 
-			Debug.Log(ActiveKerbal.name + " is entering seat " + TargetedSeat.transform.name + " in part " + FreeIva.CurrentPart);
+			Log.Message(ActiveKerbal.name + " is entering seat " + TargetedSeat.transform.name + " in part " + FreeIva.CurrentPart);
 
 			buckled = true;
 			MoveKerbalToSeat(ActiveKerbal, TargetedSeat);
@@ -673,7 +673,7 @@ namespace FreeIva
 				}
 				else
 				{
-					Debug.LogWarning($"[FreeIva] Kerbal {crewMember.name} did not exist in crew of source part {crewMember.KerbalRef.InPart.partInfo.name} nor anywhere on the vessel");
+					Log.Warning($"Kerbal {crewMember.name} did not exist in crew of source part {crewMember.KerbalRef.InPart.partInfo.name} nor anywhere on the vessel");
 					destModel.SitKerbalAt(crewMember, newSeat);
 				}
 			}
@@ -779,7 +779,7 @@ namespace FreeIva
 			}
 			catch (Exception ex)
 			{
-				Debug.LogError("[FreeIVA] Error hiding current kerbal: " + ex.Message + ", " + ex.StackTrace);
+				Log.Error("Error hiding current kerbal: " + ex.Message + ", " + ex.StackTrace);
 			}
 		}
 
@@ -1003,21 +1003,21 @@ namespace FreeIva
 
 		public void OnCollisionEnter(Collision collision)
 		{
-			//Debug.Log("# OnCollisionEnter " + name + " with " + collision.gameObject + " layer " + collision.gameObject.layer);
+			//Log.Message("# OnCollisionEnter " + name + " with " + collision.gameObject + " layer " + collision.gameObject.layer);
 			ScreenMessages.PostScreenMessage("OnCollisionEnter " + name + " with " + collision.gameObject + " layer " + collision.gameObject.layer,
 				1f, ScreenMessageStyle.LOWER_CENTER);
 		}
 
 		public void OnCollisionStay(Collision collision)
 		{
-			//Debug.Log("# OnCollisionStay " + collision.gameObject + " with " + collision.transform);
+			//Log.Message("# OnCollisionStay " + collision.gameObject + " with " + collision.transform);
 			ScreenMessages.PostScreenMessage("OnCollisionStay " + collision.gameObject + " with " + collision.transform + " layer " + collision.gameObject.layer,
 				1f, ScreenMessageStyle.LOWER_CENTER);
 		}
 
 		public void OnCollisionExit(Collision collision)
 		{
-			//Debug.Log("# OnCollisionExit " + collision.gameObject + " with " + collision.transform);
+			//Log.Message("# OnCollisionExit " + collision.gameObject + " with " + collision.transform);
 			ScreenMessages.PostScreenMessage("OnCollisionExit " + collision.gameObject + " with " + collision.transform + " layer " + collision.gameObject.layer,
 				1f, ScreenMessageStyle.LOWER_CENTER);
 		}

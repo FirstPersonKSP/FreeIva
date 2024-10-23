@@ -42,7 +42,7 @@ namespace FreeIva
 						}
 						else
 						{
-							Debug.LogError($"[FreeIVA] HandRail on {dbgName} does not have a collider on transform {transformName} and no procedural colliders");
+							Log.Error($"HandRail on {dbgName} does not have a collider on transform {transformName} and no procedural colliders");
 						}
 					}
 					else
@@ -54,7 +54,7 @@ namespace FreeIva
 				}
 				else
 				{
-					Debug.LogError($"[FreeIVA] HandRail on {internalProp.name} could not find a transform named {transformName}");
+					Log.Error($"HandRail on {internalProp.name} could not find a transform named {transformName}");
 				}
 			}
 		}

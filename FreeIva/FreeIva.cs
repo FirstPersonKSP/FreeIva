@@ -162,7 +162,7 @@ namespace FreeIva
 
 			if (protoCrewMember.KerbalRef == null)
 			{
-				Debug.LogErrorFormat("[FreeIva] PostBoardCoroutine: KerbalRef is null in internal {0}", protoCrewMember.seat.internalModel.internalName);
+				Log.Error($"PostBoardCoroutine: KerbalRef is null in internal {protoCrewMember.seat.internalModel.internalName}");
 				yield break;
 			}
 
@@ -385,14 +385,14 @@ namespace FreeIva
 
 			if (InternalCamera.Instance == null)
 			{
-				Debug.LogError("InternalCamera was null");
-				Debug.Log("Searching for camera: " + InternalCamera.FindObjectOfType<Camera>());
+				Log.Error("InternalCamera was null");
+				Log.Message("Searching for camera: " + InternalCamera.FindObjectOfType<Camera>());
 				return;
 			}
 
 			if (_previousCameraPosition == InternalCamera.Instance.transform.position)
 				return;
-			//Debug.Log("###########################");
+			//Log.Message("###########################");
 			_previousCameraPosition = InternalCamera.Instance.transform.position;
 			Vector3 camPos = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
 			InternalModuleFreeIva newModule = null;
@@ -426,7 +426,7 @@ namespace FreeIva
 			}
 			if (possibleModules.Count == 0)
 			{
-				//Debug.Log("# Zero connected parts found, checking everything.");
+				//Log.Message("# Zero connected parts found, checking everything.");
 				foreach (Part p in FlightGlobals.ActiveVessel.parts)
 				{
 					GetInternalModulesBoundingCamera(p, possibleModules);
@@ -435,7 +435,7 @@ namespace FreeIva
 
 			if (possibleModules.Count == 0)
 			{
-				//Debug.Log("# No potential parts found");
+				//Log.Message("# No potential parts found");
 				return;
 			}
 
@@ -446,7 +446,7 @@ namespace FreeIva
 			else if (possibleModules.Count > 1)
 			{
 				float minDistance = float.MaxValue;
-				//Debug.Log("# Checking " + possibleParts.Count + " possibilities.");
+				//Log.Message("# Checking " + possibleParts.Count + " possibilities.");
 				foreach (InternalModuleFreeIva possibleModule in possibleModules)
 				{
 					Profiler.BeginSample("Testing possible part");
@@ -460,7 +460,7 @@ namespace FreeIva
 					RaycastHit hitInfo;
 					if (!pp.collider.Raycast(ray, out hitInfo, direction.magnitude))
 					{
-						//Debug.Log("# Raycast missed part from inside: " + pp);
+						//Log.Message("# Raycast missed part from inside: " + pp);
 						// Ray didn't hit the collider => we are inside the collider.
 						float dist = Vector3.Distance(pp.collider.bounds.center, camPos);
 						if (dist < minDistance)
@@ -469,10 +469,10 @@ namespace FreeIva
 							minDistance = dist;
 						}
 						/*else
-							Debug.Log("# Part was further away: " + minDistance + " vs part's " + dist);*/
+							Log.Message("# Part was further away: " + minDistance + " vs part's " + dist);*/
 					}
 					/*else
-						Debug.Log("# Raycast hit part from outside: " + pp);*/
+						Log.Message("# Raycast hit part from outside: " + pp);*/
 					Profiler.EndSample();
 				}
 			}
@@ -483,7 +483,7 @@ namespace FreeIva
 			}
 
 			/*else
-                Debug.Log("# No closest part found.");*/
+                Log.Message("# No closest part found.");*/
 			// Keep the last part we were inside as the current part: We could be transitioning between hatches.
 			// TODO: Idendify/store when we are outside all parts (EVA from IVA?).
 		}
@@ -519,7 +519,7 @@ namespace FreeIva
 
 			if (newModule == null && CurrentInternalModuleFreeIva != null)
 			{
-				Debug.LogWarningFormat("[FreeIva] setting current module to null (was {0}) for INTERNAL {1}", CurrentInternalModuleFreeIva.internalModel.internalName, newModel == null ? "null" : newModel.internalName);
+				Log.Warning($"setting current module to null (was {CurrentInternalModuleFreeIva.internalModel.internalName}) for INTERNAL {(newModel == null ? "null" : newModel.internalName)}");
 			}
 
 			if (FreeIva.CurrentInternalModuleFreeIva != newModule)
@@ -614,7 +614,7 @@ namespace FreeIva
 			}
 			catch (Exception ex)
 			{
-				Debug.LogError("[FreeIVA] Error enabling internals: " + ex.Message + ", " + ex.StackTrace);
+				Log.Error("Error enabling internals: " + ex.Message + ", " + ex.StackTrace);
 			}
 		}
 	}

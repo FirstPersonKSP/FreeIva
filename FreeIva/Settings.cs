@@ -79,11 +79,11 @@ namespace FreeIva
 
 		public static void LoadSettings()
 		{
-			Debug.Log("[FreeIVA] Loading settings...");
+			Log.Message("Loading settings...");
 			ConfigNode settings = GameDatabase.Instance.GetConfigNode("FreeIva/settings/FreeIvaConfig");
 			if (settings == null)
 			{
-				Debug.LogWarning("[FreeIVA] FreeIva/settings.cfg not found! Using default values.");
+				Log.Warning("FreeIva/settings.cfg not found! Using default values.");
 				return;
 			}
 

@@ -24,7 +24,7 @@ namespace FreeIva
 				AssetBundle bundle = AssetBundle.LoadFromFile(fullPath);
 				if (bundle == null)
 				{
-					Debug.LogError("Error loading asset bundle from: " + fullPath);
+					Log.Error("Error loading asset bundle from: " + fullPath);
 				}
 				else
 				{
@@ -34,7 +34,7 @@ namespace FreeIva
 					{
 						string assetName = assetNames[i];
 #if DEBUG
-						Debug.Log("Bundle: " + bundle.name + ", Asset: " + assetName);
+						Log.Message("Bundle: " + bundle.name + ", Asset: " + assetName);
 #endif
 
 						// find prefabs
@@ -42,19 +42,19 @@ namespace FreeIva
 						{
 							GameObject assetGameObject = bundle.LoadAsset<GameObject>(assetName);
 							gameObjectsDictionary.Add(assetGameObject.name, assetGameObject);
-							Debug.Log($"Loaded GameObject '{assetGameObject.name}' from '{assetName}'");
+							Log.Message($"Loaded GameObject '{assetGameObject.name}' from '{assetName}'");
 						}
 						else if (assetName.EndsWith(".shader"))
 						{
 							Shader assetShader = bundle.LoadAsset<Shader>(assetName);
 							shadersDictionary.Add(assetShader.name, assetShader);
-							Debug.Log($"Loaded Shader '{assetShader.name}' from '{assetName}'");
+							Log.Message($"Loaded Shader '{assetShader.name}' from '{assetName}'");
 						}
 						else if (assetName.EndsWith(".ttf"))
 						{
 							Font assetFont = bundle.LoadAsset<Font>(assetName);
 							fontsDictionary.Add(assetFont.name, assetFont);
-							Debug.Log($"Loaded Font '{assetFont.name}' from '{assetName}'");
+							Log.Message($"Loaded Font '{assetFont.name}' from '{assetName}'");
 						}
 					}
 
@@ -69,7 +69,7 @@ namespace FreeIva
 			{
 				return obj;
 			}
-			Debug.LogError($"No gameobject named '{gameObjectName}' found in assetbundles!");
+			Log.Error($"No gameobject named '{gameObjectName}' found in assetbundles!");
 			return null;
 		}
 
@@ -80,7 +80,7 @@ namespace FreeIva
 			{
 				return shader;
 			}
-			Debug.LogError($"No shader named '{shaderName}' found in assetbundles!");
+			Log.Error($"No shader named '{shaderName}' found in assetbundles!");
 			return null;
 		}
 
@@ -91,7 +91,7 @@ namespace FreeIva
 			{
 				return font;
 			}
-			Debug.LogError($"No font named '{fontName}' found in assetbundles!");
+			Log.Error($"No font named '{fontName}' found in assetbundles!");
 			return null;
 		}
 
@@ -102,7 +102,7 @@ namespace FreeIva
 			{
 				return font;
 			}
-			Debug.LogError($"No tmpFont named '{fontName}' found in assetbundles!");
+			Log.Error($"No tmpFont named '{fontName}' found in assetbundles!");
 			return null;
 		}
 	}

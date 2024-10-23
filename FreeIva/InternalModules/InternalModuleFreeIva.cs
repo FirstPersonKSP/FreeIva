@@ -179,7 +179,7 @@ namespace FreeIva
 							else
 							{
 								string validNames = string.Join(", ", Enum.GetNames(typeof(ShadowCastingMode)));
-								Debug.LogError($"[FreeIva] INTERNAL '{internalModel.internalName}' invalid shadow casting mode for transform '{value.name}': '{value.value}'. Valid names: {validNames}");
+								Log.Error($"INTERNAL '{internalModel.internalName}' invalid shadow casting mode for transform '{value.name}': '{value.value}'. Valid names: {validNames}");
 							}
 						}
 					}
@@ -207,12 +207,12 @@ namespace FreeIva
 
 					if (colliders.Length == 0)
 					{
-						Debug.LogError($"[FreeIva] shellCollider {shellColliderName} in internal {internalModel.internalName} exists but does not have a MeshCollider");
+						Log.Error($"shellCollider {shellColliderName} in internal {internalModel.internalName} exists but does not have a MeshCollider");
 					}
 				}
 				else
 				{
-					Debug.LogError($"[FreeIva] shellCollider {shellColliderName} not found in internal {internalModel.internalName}");
+					Log.Error($"shellCollider {shellColliderName} not found in internal {internalModel.internalName}");
 				}
 			}
 
@@ -280,18 +280,18 @@ namespace FreeIva
 						{
 							if (otherRenderers.Any(otherRenderer => otherRenderer.transform.IsChildOf(externalDepthMask)))
 							{
-								Debug.LogWarning($"[FreeIva] INTERNAL '{internalModel.internalName}' auto-detected depth mask common ancestor '{externalDepthMask.name}' also has non-depth-mask renderers; cannot be used");
+								Log.Warning($"INTERNAL '{internalModel.internalName}' auto-detected depth mask common ancestor '{externalDepthMask.name}' also has non-depth-mask renderers; cannot be used");
 								externalDepthMask = null;
 							}
 						}
 						else
 						{
-							Debug.Log($"[FreeIva] INTERNAL '{internalModel.internalName}' auto-detected external depth mask transform '{externalDepthMask.name}'");
+							Log.Debug($"INTERNAL '{internalModel.internalName}' auto-detected external depth mask transform '{externalDepthMask.name}'");
 						}
 					}
 					else
 					{
-						Debug.LogWarning($"[FreeIva] could not auto-detect depth mask for INTERNAL '{internalModel.internalName}' - no matching MeshRenderers found");
+						Log.Warning($"could not auto-detect depth mask for INTERNAL '{internalModel.internalName}' - no matching MeshRenderers found");
 					}
 				}
 			}
@@ -353,7 +353,7 @@ namespace FreeIva
 					}
 					catch (Exception ex)
 					{
-						Debug.LogException(ex);
+						Log.MessageException(ex);
 					}
 				}
 
@@ -362,7 +362,7 @@ namespace FreeIva
 
 				if (internalDepthMask != null)
 				{
-					Debug.Log($"[FreeIVA] depth mask convex hull for {internalModel.internalName}; {newVerts.Count} verts; {newIndices.Count / 3} triangles; {stopwatch.Elapsed.TotalMilliseconds}ms");
+					Log.Debug($"depth mask convex hull for {internalModel.internalName}; {newVerts.Count} verts; {newIndices.Count / 3} triangles; {stopwatch.Elapsed.TotalMilliseconds}ms");
 				}
 			}
 #endif
@@ -373,7 +373,7 @@ namespace FreeIva
 
 				if (depthMaskRenderers.Length == 0)
 				{
-					Debug.LogError($"[FreeIva] INTERNAL '{internalModel.internalName}' internalDepthMask '{internalDepthMaskName}' exists but does not have any mesh renderers");
+					Log.Error($"INTERNAL '{internalModel.internalName}' internalDepthMask '{internalDepthMaskName}' exists but does not have any mesh renderers");
 				}
 
 				foreach (var meshRenderer in depthMaskRenderers)
@@ -476,14 +476,14 @@ namespace FreeIva
 						hasWindows = true;
 						OnLoad_WindowRenderer(meshRenderer);
 						meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-						Debug.Log($"[FreeIva] INTERNAL '{internalModel.internalName}' auto-detected window transform '{meshRenderer.transform.name}'");
+						Log.Debug($"INTERNAL '{internalModel.internalName}' auto-detected window transform '{meshRenderer.transform.name}'");
 					}
 				}
 			}
 
 			if (internalDepthMask == null && !hasWindows && !intentionallyLeftBlank)
 			{
-				Debug.LogWarning($"[FreeIva] INTERNAL '{internalModel.internalName}' has neither an internal depth mask nor detectable windows.  It may be possible to see the internals of other parts from here.");
+				Log.Warning($"INTERNAL '{internalModel.internalName}' has neither an internal depth mask nor detectable windows.  It may be possible to see the internals of other parts from here.");
 			}
 		}
 
@@ -540,7 +540,7 @@ namespace FreeIva
 									localPosition.y = 0;
 									if (localPosition.sqrMagnitude < 0.1f)
 									{
-										Debug.Log($"[FreeIva] INTERNAL '{internalModel.internalName}' hatch PROP '{prop.propName}' at {prop.transform.position} auto-detected attachnode '{attachNode.id}'");
+										Log.Debug($"INTERNAL '{internalModel.internalName}' hatch PROP '{prop.propName}' at {prop.transform.position} auto-detected attachnode '{attachNode.id}'");
 										hatch.attachNodeId = attachNode.id;
 										break;
 									}
@@ -609,7 +609,7 @@ namespace FreeIva
 					if (bestHatch != null)
 					{
 						bestHatch.airlockName = airlockNames[airlockIndex];
-						Debug.Log($"[FreeIva] INTERNAL '{internalModel.internalName}' hatch PROP '{bestHatch.internalProp.propName}' at {bestHatch.internalProp.transform.position} auto-detected airlock '{bestHatch.airlockName}'");
+						Log.Debug($"INTERNAL '{internalModel.internalName}' hatch PROP '{bestHatch.internalProp.propName}' at {bestHatch.internalProp.transform.position} auto-detected airlock '{bestHatch.airlockName}'");
 					}
 				}
 			}
@@ -648,7 +648,7 @@ namespace FreeIva
 				}
 				else
 				{
-					Debug.LogError($"[FreeIva] could not find cutout transform {hatch.cutoutTransformName} on prop {hatch.internalProp.propName}");
+					Log.Error($"could not find cutout transform {hatch.cutoutTransformName} on prop {hatch.internalProp.propName}");
 				}
 			}
 		}
@@ -671,7 +671,7 @@ namespace FreeIva
 
 					var mesh = internalDepthMask.GetComponent<MeshFilter>().mesh;
 
-					Debug.Log($"[FreeIva] after cutting internal depth mask: {mesh.vertices.Length} verts; {mesh.triangles.Length / 3} tris");
+					Log.Message($"after cutting internal depth mask: {mesh.vertices.Length} verts; {mesh.triangles.Length / 3} tris");
 				}
 #endif
 			}
@@ -686,7 +686,7 @@ namespace FreeIva
 			InternalModel internalPart = PartLoader.GetInternalPart(internalName);
 			if (internalPart == null)
 			{
-				Debug.LogError($"[FreeIva] Could not find INTERNAL named '{internalName}' referenced from INTERNAL '{internalModel.name}'");
+				Log.Error($"Could not find INTERNAL named '{internalName}' referenced from INTERNAL '{internalModel.name}'");
 				return null;
 			}
 			var result = UnityEngine.Object.Instantiate(internalPart);
@@ -694,7 +694,7 @@ namespace FreeIva
 			result.gameObject.SetActive(value: true);
 			if (result == null)
 			{
-				Debug.LogError($"[FreeIva] Failed to instantiate INTERNAL named '{internalName}' referenced from INTERNAL '{internalModel.name}'");
+				Log.Error($"Failed to instantiate INTERNAL named '{internalName}' referenced from INTERNAL '{internalModel.name}'");
 				return null;
 			}
 			result.part = part;
@@ -721,7 +721,7 @@ namespace FreeIva
 
 			if (partModule == null)
 			{
-				Debug.LogError($"[FreeIva] INTERNAL '{internalModel.internalName}' used in PART '{part.partInfo.name}' but it does not have a ModuleFreeIva");
+				Log.Error($"INTERNAL '{internalModel.internalName}' used in PART '{part.partInfo.name}' but it does not have a ModuleFreeIva");
 			}
 			else
 			{
@@ -736,14 +736,14 @@ namespace FreeIva
 
 				if (SecondaryInternalModel != null && Centrifuge == null)
 				{
-					Debug.LogError($"[FreeIva] Could not find a centrifuge module in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
+					Log.Error($"Could not find a centrifuge module in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
 				}
 
 				Deployable = partModule.Deployable;
 
 				if (NeedsDeployable && Deployable == null)
 				{
-					Debug.LogError($"[FreeIva] Could not find a module to handle deployment in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
+					Log.Error($"Could not find a module to handle deployment in INTERNAL '{internalModel.internalName}' for PART '{part.partInfo.name}'");
 				}
 			}
 		}

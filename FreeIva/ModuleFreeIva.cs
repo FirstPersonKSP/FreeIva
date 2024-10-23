@@ -131,7 +131,7 @@ namespace FreeIva
 				return partList;
 			}
 
-			Debug.LogWarningFormat($"[FreeIva] No parts referencing internal '{internalName}' were found; autodetection will not work");
+			Log.Warning($"No parts referencing internal '{internalName}' were found; autodetection will not work");
 			return null;
 		}
 
@@ -145,7 +145,7 @@ namespace FreeIva
 
 			if (partPrefabs.Count > 1)
 			{
-				Debug.LogWarning($"[FreeIva] multiple parts are referencing INTERNAL '{internalName}'; using the first one for autodetection: {part.partInfo.name}");
+				Log.Warning($"multiple parts are referencing INTERNAL '{internalName}'; using the first one for autodetection: {part.partInfo.name}");
 			}
 
 			return part;
@@ -207,7 +207,7 @@ namespace FreeIva
 
 			if ((requireDeploy || deployAnimationName != string.Empty) && Deployable == null)
 			{
-				Debug.LogError($"[FreeIva] no deployable module found on part {part.partInfo.name}");
+				Log.Error($"no deployable module found on part {part.partInfo.name}");
 			}
 		}
 

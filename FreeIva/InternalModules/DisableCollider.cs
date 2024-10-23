@@ -23,20 +23,20 @@ namespace FreeIva
 					}
 					else if (prop.hasModel)
 					{
-						Debug.LogError($"[FreeIva] DisableCollider: no collider found on transform {colliderName} in prop {prop.propName}");
+						Log.Error($"DisableCollider: no collider found on transform {colliderName} in prop {prop.propName}");
 					}
 					else
 					{
-						Debug.LogError($"[FreeIva] DisableCollider: no collider found on transform {colliderName} in internal {prop.internalModel.internalName}");
+						Log.Error($"DisableCollider: no collider found on transform {colliderName} in internal {prop.internalModel.internalName}");
 					}
 				}
 				else if (prop.hasModel)
 				{
-					Debug.LogError($"[FreeIva] DisableCollider: no transform named {colliderName} in prop {prop.propName}");
+					Log.Error($"DisableCollider: no transform named {colliderName} in prop {prop.propName}");
 				}
 				else
 				{
-					Debug.LogError($"[FreeIva] DisableCollider: no transform named {colliderName} in internal {prop.internalModel.internalName}");
+					Log.Error($"DisableCollider: no transform named {colliderName} in internal {prop.internalModel.internalName}");
 				}
 			}
 		}

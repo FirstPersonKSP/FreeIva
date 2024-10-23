@@ -15,7 +15,7 @@ namespace FreeIva
 		private Rigidbody _rbToApplyCollisionsTo;
 		public void Initialise(Rigidbody rbToApplyCollisionsTo)
 		{
-			Debug.Log("# Starting WorldCollisionTracker");
+			Log.Message("# Starting WorldCollisionTracker");
 			_rbToApplyCollisionsTo = rbToApplyCollisionsTo;
 		}
 

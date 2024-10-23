@@ -20,7 +20,7 @@ namespace FreeIva
 			/*string path = Utils.GetDllDirectoryPath() + "../Shaders/DepthMask.shader";
             if (!File.Exists(path))
             {
-                Debug.LogError("[Free IVA] Error loading shader: File not found at " + path);
+                Log.Error("[Free IVA] Error loading shader: File not found at " + path);
                 return null;
             }*/
 			/* No longer supported
@@ -29,7 +29,7 @@ namespace FreeIva
             sr.Close(); */
 			_depthMask = Shader.Find("DepthMask");
 			if (_depthMask == null)
-				Debug.LogError("[Free IVA] Error loading depth mask shader: Shader not found.");
+				Log.Error("[Free IVA] Error loading depth mask shader: Shader not found.");
 			return _depthMask;
 		}
 
@@ -117,20 +117,20 @@ namespace FreeIva
 
 		public static void PrintInternals(Part p)
 		{
-			Debug.Log("Part: " + p);
+			Log.Message("Part: " + p);
 			MeshRenderer[] componentsInChildren = p.GetComponentsInChildren<MeshRenderer>();
 			MeshRenderer[] array = componentsInChildren;
 			for (int i = 0; i < array.Length; i++)
 			{
 				MeshRenderer meshRenderer = array[i];
-				Debug.Log("   Mesh renderer: " + meshRenderer);
+				Log.Message("   Mesh renderer: " + meshRenderer);
 			}
 			SkinnedMeshRenderer[] componentsInChildren2 = p.GetComponentsInChildren<SkinnedMeshRenderer>();
 			SkinnedMeshRenderer[] array2 = componentsInChildren2;
 			for (int j = 0; j < array2.Length; j++)
 			{
 				SkinnedMeshRenderer skinnedMeshRenderer = array2[j];
-				Debug.Log("   Skinned mesh renderer: " + skinnedMeshRenderer);
+				Log.Message("   Skinned mesh renderer: " + skinnedMeshRenderer);
 			}
 		}
 
@@ -187,7 +187,7 @@ namespace FreeIva
 							imr.enabled = true;
 						}
 						else
-							Debug.Log("Highlighting MR - null");
+							Log.Message("Highlighting MR - null");
 					}
 				}
 				sb.Append("\t\t").Append("Skinned mesh renderers").Append("\n");
@@ -206,31 +206,12 @@ namespace FreeIva
 							ismr.enabled = true;
 						}
 						else
-							Debug.Log("Highlighting SMR - null");
+							Log.Message("Highlighting SMR - null");
 					}
 				}
 			}
-			Debug.Log(sb.ToString());
+			Log.Message(sb.ToString());
 			dumpComplete = true;
-		}
-
-		public static string GetDllDirectoryPath()
-		{
-			string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-			UriBuilder uri = new UriBuilder(codeBase);
-			string path = Uri.UnescapeDataString(uri.Path);
-			//Debug.Log(string.Format("Current assembly path: {0}", Path.GetDirectoryName(path)));
-
-			return Path.GetDirectoryName(path);
-		}
-
-		public static void DetectPressedKeyOrButton()
-		{
-			foreach (KeyCode c in Enum.GetValues(typeof(KeyCode)))
-			{
-				if (Input.GetKeyDown(c))
-					Debug.Log("KeyCode down: " + c);
-			}
 		}
 
 		public static void ChangeHelmetMesh(GameObject original, Part p)
@@ -239,7 +220,7 @@ namespace FreeIva
 			try
 			{
 				string modelPath = "FreeIva/Models/TestSphere";
-				Debug.Log("#Changing helmet mesh");
+				Log.Debug("#Changing helmet mesh");
 				GameObject testSphere = GameDatabase.Instance.GetModel(modelPath);
 				if (testSphere != null)
 				{
@@ -254,7 +235,7 @@ namespace FreeIva
 							/*MeshFilter[] mfs = c.KerbalRef.headTransform.GetComponentsInChildren<MeshFilter>();
                             foreach (var mf in mfs)
                             {
-                                Debug.Log(mf);
+                                Log.Message(mf);
                                 mfM = mf;
                                 break;
                             }*/
@@ -264,31 +245,14 @@ namespace FreeIva
 
 					Mesh m = FreeIva.Instantiate(mfM.mesh) as Mesh;
 					mfC.mesh = m;
-					Debug.Log("#Changed mesh");
+					Log.Debug("#Changed mesh");
 				}
 				else
-					Debug.LogError("[Free IVA] TestSphere.dae not found at " + modelPath);
+					Log.Error("TestSphere.dae not found at " + modelPath);
 			}
 			catch (Exception ex)
 			{
-				Debug.LogError("[Free IVA] Error Loading mesh: " + ex.Message + ", " + ex.StackTrace);
-			}
-		}
-
-		private static GameObject hatchMask = null;
-		private static void DumpModels()
-		{
-			hatchMask = GameDatabase.Instance.GetModel("FreeIva/TestSphere");
-			if (hatchMask != null)
-			{
-				//Debug.Log("#MeshFilter: " + hatchMask.GetComponent<MeshFilter>());
-				//Debug.Log("#MeshRenderer: " + hatchMask.GetComponent<MeshRenderer>());
-
-				//Debug.Log("#Creating hatchMask");
-				GameObject hatchInstance = GameObject.Instantiate(hatchMask, FlightGlobals.ActiveVessel.rootPart.transform.position, Quaternion.identity) as GameObject;
-				//Debug.Log("# instance null? " + (hatchInstance == null));
-				hatchInstance.transform.parent = FlightCamera.fetch.transform;
-				hatchInstance.transform.position = FlightCamera.fetch.transform.forward;
+				Log.Error("Error Loading mesh: " + ex.Message + ", " + ex.StackTrace);
 			}
 		}
 	}

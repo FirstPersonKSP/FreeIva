@@ -41,7 +41,7 @@ namespace FreeIva
 						}
 						else
 						{
-							Debug.LogError($"[FreeIVA] PropBuckleButton on {dbgName} does not have a collider on transform {transformName} and no procedural colliders");
+							Log.Error($"PropBuckleButton on {dbgName} does not have a collider on transform {transformName} and no procedural colliders");
 						}
 					}
 					else
@@ -51,7 +51,7 @@ namespace FreeIva
 				}
 				else
 				{
-					Debug.LogError($"[FreeIVA] PropBuckleButton on {internalProp.propName} could not find a transform named {transformName}");
+					Log.Error($"PropBuckleButton on {internalProp.propName} could not find a transform named {transformName}");
 				}
 
 				string soundName = node.GetValue("soundName");
@@ -67,7 +67,7 @@ namespace FreeIva
 					}
 					else
 					{
-						Debug.LogError($"[FreeIva] PropBuckleButton on {internalProp.propName} could not find audio clip {soundName}");
+						Log.Error($"PropBuckleButton on {internalProp.propName} could not find audio clip {soundName}");
 					}
 				}
 			}
@@ -142,7 +142,7 @@ namespace FreeIva
 					Vector3 seatEyePosition = seat.seatTransform.position + seat.seatTransform.rotation * seat.kerbalEyeOffset;
 					float distanceFromKerbal = Vector3.Distance(InternalCamera.Instance.transform.position, seatEyePosition);
 
-					Debug.Log("[FreeIva] PropBuckleButton clicked while unbuckled; distance = " + distanceFromKerbal.ToString());
+					Log.Debug("PropBuckleButton clicked while unbuckled; distance = " + distanceFromKerbal.ToString());
 
 					if (distanceFromKerbal < MaxRangeFromKerbal)
 					{

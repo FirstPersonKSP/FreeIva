@@ -219,7 +219,7 @@ namespace FreeIva
 				}
 				else if (doorTransformName != string.Empty)
 				{
-					Debug.LogError($"[FreeIva] doorTransform {doorTransformName} not found in {internalProp.propName}");
+					Log.Error($"doorTransform {doorTransformName} not found in {internalProp.propName}");
 				}
 			}
 
@@ -284,7 +284,7 @@ namespace FreeIva
 				m_animationComponent = animators.FirstOrDefault();
 				if (m_animationComponent == null)
 				{
-					Debug.LogError($"[FreeIva] could not find animation named {openAnimationName} in prop {internalProp.propName}");
+					Log.Error($"could not find animation named {openAnimationName} in prop {internalProp.propName}");
 				}
 			}
 		}
@@ -292,7 +292,7 @@ namespace FreeIva
 		{
 			if (!HighLogic.LoadedSceneIsFlight) return;
 
-			Debug.Log($"# Creating hatch {internalProp.propName} for part {part.partInfo.name}");
+			Log.Debug($"# Creating hatch {internalProp.propName} for part {part.partInfo.name}");
 
 			HatchOpenSound = SetupAudio(hatchOpenSoundFile, "HatchOpen");
 			HatchCloseSound = SetupAudio(hatchCloseSoundFile, "HatchClose");
@@ -326,7 +326,7 @@ namespace FreeIva
 
 				if (m_dockingNodeModule == null)
 				{
-					Debug.LogError($"[FreeIva] No ModuleDockingNode with nodeTransformName '{dockingPortNodeName}' found in part {part.partInfo.name} for prop {internalProp.propName} in internal {internalModel.internalName}");
+					Log.Error($"No ModuleDockingNode with nodeTransformName '{dockingPortNodeName}' found in part {part.partInfo.name} for prop {internalProp.propName} in internal {internalModel.internalName}");
 				}
 			}
 
@@ -338,7 +338,7 @@ namespace FreeIva
 			var internalModule = InternalModuleFreeIva.GetForModel(internalModel);
 			if (internalModule == null)
 			{
-				Debug.LogError($"[FreeIva] no InternalModuleFreeIva instance registered for internal {internalModel.internalName} for hatch prop {internalProp.propName}");
+				Log.Error($"no InternalModuleFreeIva instance registered for internal {internalModel.internalName} for hatch prop {internalProp.propName}");
 			}
 			else
 			{
@@ -453,7 +453,7 @@ namespace FreeIva
 
 				if (attachNode == null && attachNodeId != string.Empty)
 				{
-					Debug.LogError($"[FreeIva] INTERNAL '{internalModel.internalName}' contains PROP '{internalProp.propName}' with attachNodeId '{attachNodeId}' but it was not found in PART '{part.partInfo.name}'");
+					Log.Error($"INTERNAL '{internalModel.internalName}' contains PROP '{internalProp.propName}' with attachNodeId '{attachNodeId}' but it was not found in PART '{part.partInfo.name}'");
 				}
 
 				var attachedPart = attachNode?.attachedPart;
@@ -601,7 +601,7 @@ namespace FreeIva
 
 				if (currentNode == null)
 				{
-					Debug.LogError($"[FreeIva] node {passThroughNodeName} wasn't found in part {otherPart.partInfo.name}");
+					Log.Error($"node {passThroughNodeName} wasn't found in part {otherPart.partInfo.name}");
 					return null;
 				}
 
@@ -927,7 +927,7 @@ namespace FreeIva
 						float error = Vector3.Distance(mr.transform.localPosition, hideProp.position);
 						if (error < 0.15)
 						{
-							Debug.Log("# Toggling " + mr.name);
+							Log.Debug("# Toggling " + mr.name);
 
 							if (permanent)
 							{
@@ -945,7 +945,7 @@ namespace FreeIva
 
 				if (!found)
 				{
-					Debug.LogError($"[FreeIva] HideWhenOpen - could not find meshrenderer named {hideProp.name} in model {internalModel.internalName}");
+					Log.Error($"HideWhenOpen - could not find meshrenderer named {hideProp.name} in model {internalModel.internalName}");
 				}
 			}
 		}
@@ -962,11 +962,11 @@ namespace FreeIva
 				}
 				else if (childTransform == null)
 				{
-					Debug.LogError($"[FreeIva] could not find airlock transform named {airlockName} on part {part.partInfo.name}");
+					Log.Error($"could not find airlock transform named {airlockName} on part {part.partInfo.name}");
 				}
 				else
 				{
-					Debug.LogError($"[FreeIva] found airlock transform named {airlockName} on part {part.partInfo.name} but it doesn't have the 'Airlock' tag");
+					Log.Error($"found airlock transform named {airlockName} on part {part.partInfo.name} but it doesn't have the 'Airlock' tag");
 				}
 			}
 
@@ -1090,7 +1090,7 @@ namespace FreeIva
 			InternalProp result = PartLoader.GetInternalProp(propName);
 			if (result == null)
 			{
-				Debug.LogError("[FreeIVA] Unable to load open prop hatch \"" + propName + "\" in internal " + atProp.internalModel.internalName);
+				Log.Error("Unable to load open prop hatch \"" + propName + "\" in internal " + atProp.internalModel.internalName);
 			}
 			else
 			{

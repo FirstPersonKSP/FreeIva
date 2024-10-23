@@ -103,7 +103,7 @@ namespace FreeIva
 #if DEBUG
 			if (PrintingEnabled)
 			{
-				//Debug.Log("# OnTriggerEnter " + other.transform);
+				//Log.Message("# OnTriggerEnter " + other.transform);
 				ScreenMessages.PostScreenMessage("OnTriggerEnter " + other.transform,
 				1f, ScreenMessageStyle.LOWER_CENTER);
 			}

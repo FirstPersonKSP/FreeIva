@@ -30,7 +30,7 @@ namespace FreeIva
 		{
 			if (x_ModuleB9PPartSwitchTypeInfo == null)
 			{
-				Debug.LogError($"[FreeIva]: PROP {prop.propName} in INTERNAL {prop.internalModel.internalName} for PART {prop.part.partInfo.name} asked for a ModuleB9PartSwitch but it doesn't seem to be installed");
+				Log.Error($"[FreeIva]: PROP {prop.propName} in INTERNAL {prop.internalModel.internalName} for PART {prop.part.partInfo.name} asked for a ModuleB9PartSwitch but it doesn't seem to be installed");
 				return null;
 			}
 
@@ -48,7 +48,7 @@ namespace FreeIva
 
 			if (module == null)
 			{
-				Debug.LogError($"[FreeIva]: PROP {prop.propName} in INTERNAL {prop.internalModel.internalName} for PART {part.partInfo.name} asked for a ModuleB9PartSwitch with moduleID '{moduleID}' but it could not be found");
+				Log.Error($"[FreeIva]: PROP {prop.propName} in INTERNAL {prop.internalModel.internalName} for PART {part.partInfo.name} asked for a ModuleB9PartSwitch with moduleID '{moduleID}' but it could not be found");
 				return null;
 			}
 

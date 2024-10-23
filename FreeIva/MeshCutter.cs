@@ -52,7 +52,7 @@ namespace FreeIva
 				++targetCount;
 				cutCount += targetCuts.Count();
 
-				Debug.Log($"[FreeIVA/MeshCutter] Cutting on target '{targetName}' on internal '{model.internalName}'");
+				Log.Debug($"Cutting on target '{targetName}' on internal '{model.internalName}'");
 				Transform targetTransform = TransformUtil.FindInternalModelTransform(model, targetName);
 
 				if (targetTransform == null) continue;
@@ -61,7 +61,7 @@ namespace FreeIva
 
 				if (target == null)
 				{
-					Debug.LogError($"[FreeIva/MeshCutter] transform {targetName} in internal '{model.internalName}' does not have a MeshFilter component");
+					Log.Error($"[FreeIva/MeshCutter] transform {targetName} in internal '{model.internalName}' does not have a MeshFilter component");
 					continue;
 				}
 
@@ -72,7 +72,7 @@ namespace FreeIva
 			stopwatch.Stop();
 			if (cutCount > 0)
 			{
-				Debug.Log($"[FreeIVA/MeshCutter] Cutting on internal '{model.internalName}': {cutCount} cut(s) on {targetCount} target(s), time used: {stopwatch.Elapsed.TotalMilliseconds}ms");
+				Log.Debug($"Cutting on internal '{model.internalName}': {cutCount} cut(s) on {targetCount} target(s), time used: {stopwatch.Elapsed.TotalMilliseconds}ms");
 			}
 		}
 
@@ -97,7 +97,7 @@ namespace FreeIva
 			}
 			catch (Exception ex)
 			{
-				Debug.LogException(ex);
+				Log.Exception(ex);
 			}
 		}
 

@@ -114,7 +114,7 @@ namespace FreeIva
 				}
 				else
 				{
-					Debug.LogError($"PhysicalProp: prop {internalProp.propName} does not have a collider");
+					Log.Error($"PhysicalProp: prop {internalProp.propName} does not have a collider");
 				}
 
 				if (m_collider != null)
@@ -164,7 +164,7 @@ namespace FreeIva
 				}
 				catch (Exception ex)
 				{
-					Debug.LogException(ex);
+					Log.Exception(ex);
 				}
 			}
 		}
@@ -181,7 +181,7 @@ namespace FreeIva
 			}
 			else
 			{
-				Debug.LogError($"PROP {internalProp.propName}: No PhysicalProp.Interaction named {name} exists");
+				Log.Error($"PROP {internalProp.propName}: No PhysicalProp.Interaction named {name} exists");
 			}
 		}
 		#endregion
@@ -251,7 +251,7 @@ namespace FreeIva
 
 			if (result == null)
 			{
-				Debug.LogError($"Failed to find audio clip {clipUrl} for prop {internalProp.propName}");
+				Log.Error($"Failed to find audio clip {clipUrl} for prop {internalProp.propName}");
 			}
 
 			return result;
@@ -583,7 +583,7 @@ namespace FreeIva
 
 				if (!interactionNode.TryGetValue(nameof(thrustVector), ref thrustVector))
 				{
-					Debug.LogError($"PROP {PhysicalProp.internalProp.propName} InteractionExtinguisher could not parse key {nameof(thrustVector)}");
+					Log.Error($"PROP {PhysicalProp.internalProp.propName} InteractionExtinguisher could not parse key {nameof(thrustVector)}");
 				}
 
 				m_audioClip = PhysicalProp.LoadAudioClip(interactionNode, "sound");
@@ -605,12 +605,12 @@ namespace FreeIva
 
 						if (m_particleSystem == null)
 						{
-							Debug.LogError($"PROP {PhysicalProp.internalProp.propName} tried to reference a particle system named {particleSystemName} - the object was found but it does not have a ParticleSystem component.");
+							Log.Error($"PROP {PhysicalProp.internalProp.propName} tried to reference a particle system named {particleSystemName} - the object was found but it does not have a ParticleSystem component.");
 						}
 					}
 					else
 					{
-						Debug.LogError($"PROP {PhysicalProp.internalProp.propName} could not find a particle system named {particleSystemName}");
+						Log.Error($"PROP {PhysicalProp.internalProp.propName} could not find a particle system named {particleSystemName}");
 					}
 				}
 			}

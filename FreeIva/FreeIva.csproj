@@ -68,6 +68,7 @@
     <Compile Include="InternalModules\Hatches\HatchConfig.cs" />
     <Compile Include="Experimental\ModuleInternalPressure.cs" />
     <Compile Include="InternalModules\PhysicalProp.cs" />
+    <Compile Include="Log.cs" />
     <Compile Include="ModuleFreeIvaPartInfo.cs" />
     <Compile Include="ShadowCascadeTweak.cs" />
     <Compile Include="Shim\Kerbalism_Habitat.cs" />

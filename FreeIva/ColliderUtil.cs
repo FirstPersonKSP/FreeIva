@@ -27,7 +27,7 @@ namespace FreeIva
 
 			if (!cfg.TryGetValue("shape", ref colliderShape))
 			{
-				Debug.LogError($"[FreeIVA] Collider in {debugContext} does not have a collider in the model and does not have a shape field");
+				Log.Error($"Collider in {debugContext} does not have a collider in the model and does not have a shape field");
 			}
 			else switch (colliderShape)
 			{
@@ -46,7 +46,7 @@ namespace FreeIva
 				}
 				else
 				{
-					Debug.LogError($"[FreeIVA] Collider in {debugContext}: capsule shape requires center, radius, height, and axis fields");
+					Log.Error($"Collider in {debugContext}: capsule shape requires center, radius, height, and axis fields");
 				}
 				break;
 			case "Box":
@@ -60,7 +60,7 @@ namespace FreeIva
 				}
 				else
 				{
-					Debug.LogError($"[FreeIVA] Collider in {debugContext}: box shape requires center and dimensions fields");
+					Log.Error($"Collider in {debugContext}: box shape requires center and dimensions fields");
 				}
 				break;
 			case "Sphere":
@@ -74,11 +74,11 @@ namespace FreeIva
 				}
 				else
 				{
-					Debug.LogError($"[FreeIVA] Collider in {debugContext }: sphere shape requires center and radius fields");
+					Log.Error($"Collider in {debugContext }: sphere shape requires center and radius fields");
 				}
 				break;
 			default:
-				Debug.LogError($"[FreeIVA] Collider in {debugContext} has invalid collider shape '{colliderShape}");
+				Log.Error($"Collider in {debugContext} has invalid collider shape '{colliderShape}");
 				break;
 			}
 

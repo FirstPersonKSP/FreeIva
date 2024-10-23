@@ -552,7 +552,7 @@ namespace FreeIva
                     for (int i = 0; i < meshRenderers.Length; i++)
                     {
                         meshRenderers[meshRendererIndex].enabled = i != meshRendererIndex;
-                        Debug.Log("MR " + meshRenderers[meshRendererIndex] + " is now " + meshRenderers[meshRendererIndex].enabled);
+                        Log.Message("MR " + meshRenderers[meshRendererIndex] + " is now " + meshRenderers[meshRendererIndex].enabled);
                     }
                 }*/
 				GUILayout.Label("<b>MeshRenderer</b>");
