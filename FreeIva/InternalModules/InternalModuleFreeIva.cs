@@ -67,6 +67,23 @@ namespace FreeIva
 			}
 		}
 
+		public static void HideAllTubes()
+		{
+			foreach (var ivaModule in perModelCache.Values)
+			{
+				if (ivaModule.isActiveAndEnabled)
+				{
+					foreach (var hatch in ivaModule.Hatches)
+					{
+						if (hatch.tubeTransform != null)
+						{
+							hatch.tubeTransform.gameObject.SetActive(false);
+						}
+					}
+				}
+			}
+		}
+
 		#endregion
 
 		[KSPField]

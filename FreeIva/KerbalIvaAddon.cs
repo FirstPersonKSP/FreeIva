@@ -206,6 +206,7 @@ namespace FreeIva
 			else if (cameraMode != CameraManager.CameraMode.IVA && _previousCameraMode == CameraManager.CameraMode.IVA)
 			{
 				InternalModuleFreeIva.RefreshDepthMasks();
+				InternalModuleFreeIva.HideAllTubes();
 
 				InputLockManager.RemoveControlLock("FreeIVA");
 

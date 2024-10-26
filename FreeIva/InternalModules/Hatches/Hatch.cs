@@ -404,7 +404,9 @@ namespace FreeIva
 					tubeScale = Vector3.Dot(toTarget, tubeAxis);
 				}
 
-				tubeTransform.gameObject.SetActive(tubeScale > 0);
+				bool tubeShouldBeActive = tubeScale > 0 && CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA;
+
+				tubeTransform.gameObject.SetActive(tubeShouldBeActive);
 
 				if (tubeScale > 0)
 				{
