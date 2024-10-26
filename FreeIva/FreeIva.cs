@@ -236,7 +236,14 @@ namespace FreeIva
 
 		public void FixedUpdate()
 		{
-			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA && CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.Internal) return;
+			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA && CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.Internal)
+			{
+				if (CurrentInternalModuleFreeIva != null)
+				{
+					SetCurrentPart(null);
+				}
+				return;
+			}
 
 			UpdateCurrentPart();
 
@@ -308,18 +315,6 @@ namespace FreeIva
 					PhysicalProp.HeldProp.StopInteraction();
 				}
 			}
-		}
-
-		public static int DepthMaskQueue = 999;
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="activePart">The part that the IVA player is currently inside.</param>
-		public static void SetRenderQueues(Part activePart)
-		{
-			InternalModuleFreeIva.RefreshDepthMasks();
-			return;
 		}
 
 		List<InternalModuleFreeIva> possibleModules = new List<InternalModuleFreeIva>();
@@ -458,36 +453,19 @@ namespace FreeIva
 			Profiler.EndSample();
 		}
 
-		static void SetModelRenderQueue(InternalModuleFreeIva internalModule, int fromRenderQueue, int toRenderQueue)
-		{
-			if (internalModule == null) return;
-			var internalModel = internalModule.internalModel;
-			if (internalModel == null) return;
-			var modelTransform = internalModel.transform.Find("model");
-			if (modelTransform == null) return;
-
-			foreach (var renderer in modelTransform.GetComponentsInChildren<Renderer>())
-			{
-				if (renderer.material.renderQueue == fromRenderQueue)
-				{
-					renderer.material.renderQueue = toRenderQueue;
-				}
-			}
-		}
-
 		public static void SetCurrentPart(InternalModel newModel)
 		{
 			var newModule = InternalModuleFreeIva.GetForModel(newModel);
 
-			if (newModule == null && CurrentInternalModuleFreeIva != null)
+			if (newModule == null && CurrentInternalModuleFreeIva != null && CameraManager.Instance != null && CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA)
 			{
 				Log.Warning($"setting current module to null (was {CurrentInternalModuleFreeIva.internalModel.internalName}) for INTERNAL {(newModel == null ? "null" : newModel.internalName)}");
 			}
 
 			if (FreeIva.CurrentInternalModuleFreeIva != newModule)
 			{
-				SetModelRenderQueue(FreeIva.CurrentInternalModuleFreeIva, InternalModuleFreeIva.CURRENT_PART_RENDER_QUEUE, InternalModuleFreeIva.OPAQUE_RENDER_QUEUE);
-				SetModelRenderQueue(newModule, InternalModuleFreeIva.OPAQUE_RENDER_QUEUE, InternalModuleFreeIva.CURRENT_PART_RENDER_QUEUE);
+				if (CurrentInternalModuleFreeIva != null) CurrentInternalModuleFreeIva.SetIsCurrentModule(false);
+				if (newModule != null) newModule.SetIsCurrentModule(true);
 
 				CurrentInternalModuleFreeIva = newModule;
 				CameraManager.Instance.activeInternalPart = CurrentPart;

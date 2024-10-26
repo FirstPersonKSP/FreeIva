@@ -600,7 +600,6 @@ namespace FreeIva
 				if (GUILayout.Button("Select current MeshRenderer"))
 					FreeIva.SelectedObject = mr.gameObject;
 
-				FreeIva.DepthMaskQueue = GUIUtil.EditableIntField("Render Queue for open parts", FreeIva.DepthMaskQueue, null);
 				mr.gameObject.layer = GUIUtil.EditableIntField("Layer", mr.gameObject.layer, null);
 			}
 		}

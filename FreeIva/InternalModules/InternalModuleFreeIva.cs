@@ -804,5 +804,24 @@ namespace FreeIva
 				GameObject.Destroy(SecondaryInternalModel.gameObject);
 			}
 		}
+
+		internal void SetIsCurrentModule(bool isCurrentModule)
+		{
+			if (internalModel == null) return;
+			var modelTransform = internalModel.transform.Find("model");
+			if (modelTransform == null) return;
+
+			int fromRenderQueue = isCurrentModule ? OPAQUE_RENDER_QUEUE : CURRENT_PART_RENDER_QUEUE;
+			int toRenderQueue = isCurrentModule ? CURRENT_PART_RENDER_QUEUE : OPAQUE_RENDER_QUEUE;
+
+			// TODO: this includes seated kerbals
+			foreach (var renderer in modelTransform.GetComponentsInChildren<Renderer>())
+			{
+				if (renderer.material.renderQueue == fromRenderQueue)
+				{
+					renderer.material.renderQueue = toRenderQueue;
+				}
+			}
+		}
 	}
 }
