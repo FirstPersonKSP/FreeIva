@@ -40,7 +40,6 @@ namespace FreeIva
 #endif
 
 			Settings.LoadSettings();
-			SetRenderQueues(FlightGlobals.ActiveVessel.rootPart);
 
 			Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.InternalSpace);
 			Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.Kerbals, false);
@@ -463,6 +462,23 @@ namespace FreeIva
 			Profiler.EndSample();
 		}
 
+		static void SetModelRenderQueue(InternalModuleFreeIva internalModule, int fromRenderQueue, int toRenderQueue)
+		{
+			if (internalModule == null) return;
+			var internalModel = internalModule.internalModel;
+			if (internalModel == null) return;
+			var modelTransform = internalModel.transform.Find("model");
+			if (modelTransform == null) return;
+
+			foreach (var renderer in modelTransform.GetComponentsInChildren<Renderer>())
+			{
+				if (renderer.material.renderQueue == fromRenderQueue)
+				{
+					renderer.material.renderQueue = toRenderQueue;
+				}
+			}
+		}
+
 		public static void SetCurrentPart(InternalModel newModel)
 		{
 			var newModule = InternalModuleFreeIva.GetForModel(newModel);
@@ -474,6 +490,9 @@ namespace FreeIva
 
 			if (FreeIva.CurrentInternalModuleFreeIva != newModule)
 			{
+				SetModelRenderQueue(FreeIva.CurrentInternalModuleFreeIva, InternalModuleFreeIva.CURRENT_PART_RENDER_QUEUE, InternalModuleFreeIva.OPAQUE_RENDER_QUEUE);
+				SetModelRenderQueue(newModule, InternalModuleFreeIva.OPAQUE_RENDER_QUEUE, InternalModuleFreeIva.CURRENT_PART_RENDER_QUEUE);
+
 				CurrentInternalModuleFreeIva = newModule;
 				CameraManager.Instance.activeInternalPart = CurrentPart;
 			}

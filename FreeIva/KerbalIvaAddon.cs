@@ -131,7 +131,6 @@ namespace FreeIva
 
 					FreeIva.EnableInternals();
 					UpdateActiveKerbal();
-					FreeIva.SetRenderQueues(FreeIva.CurrentPart);
 
 					var freeIvaModule = FreeIva.CurrentPart.GetModule<ModuleFreeIva>();
 					if (freeIvaModule != null && freeIvaModule.allowsUnbuckling)
@@ -719,7 +718,6 @@ namespace FreeIva
 			}
 
 			FreeIva.EnableInternals();
-			FreeIva.SetRenderQueues(FreeIva.CurrentPart);
 			OriginalSeat = ActiveKerbal.seat;
 
 			Gravity = Gravity && Settings.EnableCollisions;

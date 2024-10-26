@@ -415,22 +415,23 @@ namespace FreeIva
 
 		// transparents are normally 3000, opaque geometry is 2000
 		// we need something that will render before opaque geometry so that it writes to the z-buffer early and prevents other internals from drawing behind it
-		public static readonly int WINDOW_RENDER_QUEUE = 1999;
+		public const int CURRENT_PART_RENDER_QUEUE = 999;
+		public const int WINDOW_RENDER_QUEUE = 1999;
+		public const int OPAQUE_RENDER_QUEUE = 2000;
 
 		private void OnLoad_WindowRenderer(MeshRenderer meshRenderer)
 		{
-			// TODO: should we be using sharedMaterial in here instead?
-			meshRenderer.material.renderQueue = WINDOW_RENDER_QUEUE;
+			meshRenderer.sharedMaterial.renderQueue = WINDOW_RENDER_QUEUE;
 
 			// if deferred rendering is active, transparencies are always drawn after opaque geometry regardless of renderqueue
 			// so we need to add a depth mask material to this mesh which will draw before the opaque geometry to mask it out
 			if (x_deferredInstalled)
 			{
-				var materials = meshRenderer.materials;
+				var materials = meshRenderer.sharedMaterials;
 				int lastIndex = materials.Length;
 				Array.Resize(ref materials, lastIndex + 1);
 				materials[lastIndex] = Utils.GetDepthMaskCullingMaterial();
-				meshRenderer.materials = materials;
+				meshRenderer.sharedMaterials = materials;
 			}
 		}
 
