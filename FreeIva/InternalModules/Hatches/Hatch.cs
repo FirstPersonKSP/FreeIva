@@ -752,7 +752,9 @@ namespace FreeIva
 			{
 			case State.Closed:
 				animState.normalizedTime = 0;
-				m_animationComponent.Stop();
+				animState.speed = 0;
+				animState.enabled = true;
+				//m_animationComponent.Stop(); // this seems to prevent it from actually moving
 				m_animationCoroutine = null;
 				break;
 
@@ -1061,21 +1063,6 @@ namespace FreeIva
 					yield return null;
 
 					ThroughTheEyes.EnterFirstPerson();
-				}
-			}
-		}
-
-		public static void InitialiseAllHatchesClosed()
-		{
-			foreach (Part p in FlightGlobals.ActiveVessel.Parts)
-			{
-				InternalModuleFreeIva mfi = InternalModuleFreeIva.GetForModel(p.internalModel);
-				if (mfi != null)
-				{
-					foreach (var hatch in mfi.Hatches)
-					{
-						hatch.SetOpened(false);
-					}
 				}
 			}
 		}

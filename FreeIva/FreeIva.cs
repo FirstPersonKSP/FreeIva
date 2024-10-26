@@ -24,7 +24,7 @@ namespace FreeIva
 			Paused = false;
 			GameEvents.onGamePause.Add(OnPause);
 			GameEvents.onGameUnpause.Add(OnUnPause);
-			GameEvents.onVesselWasModified.Add(OnVesselWasModified);
+			GameEvents.onVesselPartCountChanged.Add(OnVesselPartCountChanged);
 			GameEvents.onSameVesselDock.Add(OnSameVesselDockingChange);
 			GameEvents.onSameVesselUndock.Add(OnSameVesselDockingChange);
 			GameEvents.onVesselChange.Add(OnVesselChange);
@@ -210,7 +210,12 @@ namespace FreeIva
 			Paused = false;
 		}
 
-		private void OnVesselWasModified(Vessel vessel)
+		private void OnVesselPartCountChanged(Vessel vessel)
+		{
+			m_internalVisibilityDirty = true;
+		}
+
+		private void OnSameVesselDockingChange(GameEvents.FromToAction<ModuleDockingNode, ModuleDockingNode> data)
 		{
 			if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA)
 			{
@@ -218,20 +223,11 @@ namespace FreeIva
 			}
 		}
 
-		private void OnSameVesselDockingChange(GameEvents.FromToAction<ModuleDockingNode, ModuleDockingNode> data)
-		{
-			OnVesselWasModified(data.to.vessel);
-			if (data.from.vessel != data.to.vessel)
-			{
-				OnVesselWasModified(data.from.vessel);
-			}
-		}
-
 		public void OnDestroy()
 		{
 			GameEvents.onGamePause.Remove(OnPause);
 			GameEvents.onGameUnpause.Remove(OnUnPause);
-			GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
+			GameEvents.onVesselPartCountChanged.Remove(OnVesselPartCountChanged);
 			GameEvents.onSameVesselDock.Remove(OnSameVesselDockingChange);
 			GameEvents.onSameVesselUndock.Remove(OnSameVesselDockingChange);
 			GameEvents.onVesselChange.Remove(OnVesselChange);
