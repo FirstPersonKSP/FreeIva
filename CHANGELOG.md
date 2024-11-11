@@ -20,6 +20,20 @@
 ### Notable Changes
 
 * Added support for [Simplex station parts habs](https://spacedock.info/mod/3644/SIMPLEX%20Station%20Parts%20Habs)
+* Add passthrough options for stock 1.25m fuel tanks
+* Reduced logging verbosity to improve loading performance
+* Improve performance overhead of FreeIva part modules
+* Adjusted depth mask/window rendering order to fix lots of clipping issues at the borders of windows
+* Close hatches when undocking/decoupling when necessary
+* Hatch tubes are now hidden when IVA overlay mode is enabled
+* Added sounds to food/drink props (and one bonus prop)
+
+### Bug Fixes
+
+* Fix a bug causing hatches in the Pathfinder Hacienda module to not be connected properly
+* Fix a bug that could cause you to fall out of the world when boarding the Planetside MMSEV rover from EVA
+* Fix a bug where held props could disappear if you buckled and unbuckled
+* Fix a bug that would break the flight camera if the active kerbal died while in a separate part
 
 ## 0.2.19.0 - 2024-09-23
 
