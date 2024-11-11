@@ -118,6 +118,13 @@ namespace FreeIva
 				ReturnToSeat();
 			}
 
+			// if the kerbal disappeared somehow (generally from dying in a separate part), reset the camera
+			if (!buckled && ActiveKerbal.KerbalRef == null)
+			{
+				ReturnToSeat();
+				CameraManager.Instance.SetCameraFlight();
+			}
+
 			if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)
 			{
 				GuiTutorial.Active = false;
