@@ -15,7 +15,7 @@
 * https://yaclog.readthedocs.io
 * https://keepachangelog.com
 
-## Unreleased
+## 0.2.20.0 - 2024-11-11
 
 ### Notable Changes
 
@@ -34,6 +34,7 @@
 * Fix a bug that could cause you to fall out of the world when boarding the Planetside MMSEV rover from EVA
 * Fix a bug where held props could disappear if you buckled and unbuckled
 * Fix a bug that would break the flight camera if the active kerbal died while in a separate part
+
 
 ## 0.2.19.0 - 2024-09-23
 
