@@ -61,6 +61,8 @@ namespace FreeIva
 
 		internal static PhysicalProp HeldProp { get; private set; }
 
+		private string DebugName => internalProp.hasModel ? internalProp.propName : (internalModel.internalName + "." + transformName);
+
 		public override void OnLoad(ConfigNode node)
 		{
 			base.OnLoad(node);
@@ -70,8 +72,6 @@ namespace FreeIva
 				var colliderNode = node.GetNode("Collider");
 				if (colliderNode != null)
 				{
-					string dbgName = internalProp.hasModel ? internalProp.propName : internalModel.internalName;
-
 					Transform colliderTransform;
 					var transformName = colliderNode.GetValue("parentTransformName");
 					if (transformName != null)
@@ -85,7 +85,7 @@ namespace FreeIva
 
 					if (colliderTransform != null)
 					{
-						m_collider = ColliderUtil.CreateCollider(colliderTransform, colliderNode, dbgName);
+						m_collider = ColliderUtil.CreateCollider(colliderTransform, colliderNode, DebugName);
 					}
 				}
 				else if (transformName != string.Empty)
@@ -114,7 +114,7 @@ namespace FreeIva
 				}
 				else
 				{
-					Log.Error($"PhysicalProp: prop {internalProp.propName} does not have a collider");
+					Log.Error($"PhysicalProp: prop {DebugName} does not have a collider");
 				}
 
 				if (m_collider != null)
@@ -123,16 +123,6 @@ namespace FreeIva
 					m_grabAudioClip = LoadAudioClip(node, "grabSound");
 					m_stickAudioClip = LoadAudioClip(node, "stickSound");
 					m_impactAudioClip = LoadAudioClip(node, "impactSound");
-
-					if (m_grabAudioClip != null || m_stickAudioClip != null || m_impactAudioClip != null)
-					{
-						m_audioSource = m_collider.gameObject.AddComponent<AudioSource>();
-						m_audioSource.volume = GameSettings.SHIP_VOLUME;
-						m_audioSource.minDistance = 2;
-						m_audioSource.maxDistance = 10;
-						m_audioSource.playOnAwake = false;
-						m_audioSource.spatialize = true;
-					}
 
 					// setup interactions (requires a collider)
 					var interactionNode = node.GetNode("Interaction");
@@ -251,7 +241,23 @@ namespace FreeIva
 
 			if (result == null)
 			{
-				Log.Error($"Failed to find audio clip {clipUrl} for prop {internalProp.propName}");
+				Log.Error($"Failed to find audio clip {clipUrl} for prop {DebugName}");
+			}
+			else if (m_audioSource == null)
+			{
+				if (m_collider != null)
+				{
+					m_audioSource = m_collider.gameObject.AddComponent<AudioSource>();
+					m_audioSource.volume = GameSettings.SHIP_VOLUME;
+					m_audioSource.minDistance = 2;
+					m_audioSource.maxDistance = 10;
+					m_audioSource.playOnAwake = false;
+					m_audioSource.spatialize = true;
+				}
+				else
+				{
+					Log.Error($"Loaded audio clip {clipUrl} for prop {DebugName} but it does not have a collider!");
+				}
 			}
 
 			return result;
@@ -542,22 +548,35 @@ namespace FreeIva
 
 		public class InteractionSqueak : Interaction
 		{
-			[SerializeReference] AudioClip m_squeakSound;
+			[SerializeReference] AudioClip squeakSound;
 
 			public override void OnLoad(ConfigNode interactionNode)
 			{
 				base.OnLoad(interactionNode);
-				m_squeakSound = PhysicalProp.LoadAudioClip(interactionNode, "squeakSound");
-			}
-
-			public override void OnGrab()
-			{
-				PhysicalProp.PlayAudioClip(m_squeakSound);
+				squeakSound = PhysicalProp.LoadAudioClip(interactionNode, nameof(squeakSound));
 			}
 
 			public override void StartInteraction()
 			{
-				PhysicalProp.PlayAudioClip(m_squeakSound);
+				PhysicalProp.PlayAudioClip(squeakSound);
+			}
+		}
+
+		public class InteractionConsume : Interaction
+		{
+			[SerializeReference] AudioClip consumeSound;
+
+			public override void OnLoad(ConfigNode interactionNode)
+			{
+				base.OnLoad(interactionNode);
+				consumeSound = PhysicalProp.LoadAudioClip(interactionNode, nameof(consumeSound));
+			}
+
+			public override void StartInteraction()
+			{
+				consumeSound.PlayUnspatializedClip();
+				GameObject.Destroy(PhysicalProp.rigidBodyObject);
+				HeldProp = null;
 			}
 		}
 

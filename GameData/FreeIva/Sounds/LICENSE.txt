@@ -81,6 +81,9 @@ https://freesound.org/people/mushroomjesus/sounds/141709/
 http://creativecommons.org/publicdomain/zero/1.0/
 
 synth.wav
+drink01.wav
+food01.wav
+ouch01.wav
 original recording by JonnyOThan
 http://creativecommons.org/publicdomain/zero/1.0/
 
