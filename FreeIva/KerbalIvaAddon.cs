@@ -226,6 +226,21 @@ namespace FreeIva
 						{
 							p.internalModel.gameObject.SetActive(true);
 							p.internalModel.SpawnCrew();
+
+							// make sure kerbals and seats get linked up
+							// this is similar to logic in InternalModel.Initialize
+							foreach (var pcm in p.protoModuleCrew)
+							{
+								if (pcm.seatIdx == -1)
+								{
+									pcm.seatIdx = p.internalModel.GetNextAvailableSeatIndex();
+								}
+								if (pcm.seatIdx != -1)
+								{
+									p.internalModel.AssignToSeat(pcm);
+								}
+							}	
+
 							_markCrewAlive = true;
 						}
 					}
@@ -752,7 +767,7 @@ namespace FreeIva
 
 		private void UpdateActiveKerbal()
 		{
-			if (ActiveKerbal.KerbalRef != null && ActiveKerbal.KerbalRef.InPart != null)
+			if (ActiveKerbal.KerbalRef != null && ActiveKerbal.seat != null)
 			{
 				FreeIva.SetCurrentPart(ActiveKerbal.seat.internalModel);
 			}
