@@ -793,7 +793,7 @@ namespace FreeIva
 
 		new void Awake()
 		{
-			if (HighLogic.LoadedScene == GameScenes.FLIGHT)
+			if (HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.EDITOR)
 			{
 				perModelCache[internalModel] = this;
 			}
