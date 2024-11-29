@@ -418,12 +418,9 @@ namespace FreeIva
 
 		public void RefreshConnection()
 		{
-			if (enabled)
-			{
-				// start a coroutine so that all the hatches have been initialized
-				gameObject.SetActive(true);
-				StartCoroutine(CheckForConnection());
-			}
+			// start a coroutine so that all the hatches have been initialized
+			gameObject.SetActive(true);
+			StartCoroutine(CheckForConnection());
 		}
 
 		IEnumerator CheckForConnection()
