@@ -405,8 +405,18 @@ namespace FreeIva
 				}
 
 				bool tubeShouldBeActive = tubeScale > 0 && CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA;
-
+				bool tubeWasActive = tubeTransform.gameObject.activeSelf;
 				tubeTransform.gameObject.SetActive(tubeShouldBeActive);
+
+				// InternalModel.SetVisible will enable or disable renderers, but it only touches active objects
+				// So if we had previously disabled this tube, it may have its renderers disabled and we need to turn them back on
+				if (tubeShouldBeActive && !tubeWasActive)
+				{
+					foreach (MeshRenderer renderer in tubeTransform.GetComponentsInChildren(typeof(MeshRenderer)))
+					{
+						renderer.enabled = true;
+					}
+				}
 
 				if (tubeScale > 0)
 				{
