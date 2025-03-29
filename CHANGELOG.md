@@ -15,6 +15,10 @@
 * https://yaclog.readthedocs.io
 * https://keepachangelog.com
 
+## Unreleased
+
+* Improved Japanese translation (thanks @nohimazin)
+
 ## 0.2.20.0 - 2024-11-11
 
 ### Notable Changes
