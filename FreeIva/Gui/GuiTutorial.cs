@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using KSP.Localization;
+using System.Reflection;
 
 namespace FreeIva
 {
@@ -31,6 +32,7 @@ namespace FreeIva
 		private static readonly string label_PlaceProp = Localizer.Format("#FreeIVA_Tutorial_PlaceProp");
 		private static readonly string button_Close = Localizer.Format("#FreeIVA_Tutorial_Close");
 		private static readonly string button_CloseForever = Localizer.Format("#FreeIVA_Tutorial_CloseForever");
+		private static readonly string window_Title = $"FreeIva {Assembly.GetExecutingAssembly().GetName().Version}";
 
 		private static Rect windowPos = new Rect(Screen.width * 0.75f, Screen.height * 0.5f, 10, 10);
 		public static bool Active = false;
@@ -39,7 +41,7 @@ namespace FreeIva
 		{
 			if (Active && Settings.ShowTutorial && !Settings.TutorialWasClosedForever && !KerbalIvaAddon.Instance.buckled)
 			{
-				windowPos = GUILayout.Window(instanceId, windowPos, WindowGui, "FreeIva", GUILayout.Width(250), GUILayout.Height(200));
+				windowPos = GUILayout.Window(instanceId, windowPos, WindowGui, window_Title, GUILayout.Width(250), GUILayout.Height(200));
 			}
 		}
 
