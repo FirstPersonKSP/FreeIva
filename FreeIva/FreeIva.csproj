@@ -1,44 +1,15 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="FreeIva.version.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{AEB6EEAB-46BC-49EE-8941-3833E1B1171B}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>FreeIva</RootNamespace>
     <AssemblyName>FreeIva</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <PublicizeAsReferenceAssemblies>false</PublicizeAsReferenceAssemblies>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>portable</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>portable</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
+    <TargetFramework>net4.8</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
     <BinariesOutputRelativePath>GameData/FreeIva/Plugins</BinariesOutputRelativePath>
+    <GenerateKSPAssemblyAttribute>true</GenerateKSPAssemblyAttribute>
+    <GenerateKSPAssemblyDependencyAttributes>true</GenerateKSPAssemblyDependencyAttributes>
   </PropertyGroup>
   <ItemGroup>
     <Publicize Include="Assembly-CSharp" />
@@ -50,58 +21,6 @@
     <Compile Include="..\FreeIva_Unity\Assets\Scripts\MeshCutter2.cs">
       <Link>MeshCutter2.cs</Link>
     </Compile>
-    <Compile Include="AssetLoader.cs" />
-    <Compile Include="ColliderUtil.cs" />
-    <Compile Include="CutParameter.cs" />
-    <Compile Include="Gui\GuiTutorial.cs" />
-    <Compile Include="InternalModules\B9PSConditionalProp.cs" />
-    <Compile Include="InternalModules\ChangeObjectLayer.cs" />
-    <Compile Include="InternalModules\DeleteInternalObject.cs" />
-    <Compile Include="InternalModules\DisableCollider.cs" />
-    <Compile Include="InternalModules\FreeIvaInternalCameraSwitch.cs" />
-    <Compile Include="Gui\GuiManager.cs" />
-    <Compile Include="InternalModules\HandRail.cs" />
-    <Compile Include="InternalModules\HideInternalMesh.cs" />
-    <Compile Include="ClickWatcher.cs" />
-    <Compile Include="InternalModules\InternalModuleFreeIva.cs" />
-    <Compile Include="InternalModules\Hatches\HatchConfig.cs" />
-    <Compile Include="Experimental\ModuleInternalPressure.cs" />
-    <Compile Include="InternalModules\PhysicalProp.cs" />
-    <Compile Include="Log.cs" />
-    <Compile Include="ModuleFreeIvaPartInfo.cs" />
-    <Compile Include="ShadowCascadeTweak.cs" />
-    <Compile Include="Shim\Kerbalism_Habitat.cs" />
-    <Compile Include="InternalModules\PropBuckleButton.cs" />
-    <Compile Include="Enums.cs" />
-    <Compile Include="ExtensionMethods.cs" />
-    <Compile Include="KerbalIvaAddon.cs" />
-    <Compile Include="IvaCollisionTracker.cs" />
-    <Compile Include="FreeIva.cs" />
-    <Compile Include="Gui\GuiUtils.cs" />
-    <Compile Include="InternalModules\Hatches\Hatch.cs" />
-    <Compile Include="KerbalIvaController.cs" />
-    <Compile Include="MeshCutter.cs" />
-    <Compile Include="ModuleFreeIva.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReparentUtil.cs" />
-    <Compile Include="Settings.cs" />
-    <Compile Include="Shim\B9PS_ModuleB9PartSwitch.cs" />
-    <Compile Include="Shim\Centrifuge.cs" />
-    <Compile Include="Shim\Deployable.cs" />
-    <Compile Include="Shim\Kerbalism_Animator.cs" />
-    <Compile Include="Shim\Kerbalism_GravityRing.cs" />
-    <Compile Include="Shim\Kerbalism_Transformator.cs" />
-    <Compile Include="Shim\KOSPropMonitor.cs" />
-    <Compile Include="Shim\KPBS_PlanetaryModule.cs" />
-    <Compile Include="Shim\Squad_ModuleAnimateGeneric.cs" />
-    <Compile Include="Shim\Squad_RetractableLadder.cs" />
-    <Compile Include="Shim\SSPX_ModuleDeployableCentrifuge.cs" />
-    <Compile Include="Shim\SSPX_ModuleDeployableHabitat.cs" />
-    <Compile Include="Shim\ThroughTheEyes.cs" />
-    <Compile Include="Shim\WBIInflatablePartModule .cs" />
-    <Compile Include="TransformUtil.cs" />
-    <Compile Include="Utils.cs" />
-    <Compile Include="Experimental\WorldCollisionTracker.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Krafs.Publicizer">
@@ -110,8 +29,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="KSPBuildTools">
-      <Version>0.0.2-alpha.7</Version>
+      <Version>0.0.4</Version>
     </PackageReference>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
