@@ -18,6 +18,7 @@
 ## Unreleased
 
 * Improved Japanese translation (thanks @nohimazin)
+* Junior docking port now hides the bottom hatch when connected because there's usually not enough space to open it
 
 ## 0.2.20.0 - 2024-11-11
 

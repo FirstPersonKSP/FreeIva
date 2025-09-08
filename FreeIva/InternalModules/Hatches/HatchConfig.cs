@@ -27,6 +27,8 @@ namespace FreeIva
 				return;
 			}
 
+			// TODO: maybe we should make a generalized version of this that can set any field in any internal module?
+
 			node.TryGetValue(nameof(FreeIvaHatch.attachNodeId), ref propHatch.attachNodeId);
 			node.TryGetValue(nameof(FreeIvaHatch.airlockName), ref propHatch.airlockName);
 			node.TryGetValue(nameof(FreeIvaHatch.tubeExtent), ref propHatch.tubeExtent);
@@ -37,6 +39,7 @@ namespace FreeIva
 			node.TryGetValue(nameof(FreeIvaHatch.isEvaHatch), ref propHatch.isEvaHatch);
 			node.TryGetValue(nameof(FreeIvaHatch.openAnimationLimit), ref propHatch.openAnimationLimit);
 			node.TryGetValue(nameof(FreeIvaHatch.openAnimationLimitEVA), ref propHatch.openAnimationLimitEVA);
+			node.TryGetValue(nameof(FreeIvaHatch.blockedPropName), ref propHatch.blockedPropName);
 
 			ConfigNode[] hideNodes = node.GetNodes("HideWhenOpen");
 			if (hideNodes != null && hideNodes.Length > 0)
