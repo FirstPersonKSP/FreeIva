@@ -21,6 +21,7 @@
 * Junior docking port now hides the bottom hatch when connected because there's usually not enough space to open it
 * Fixed hatches not connecting to airlocks properly in cupola, hitchhiker, and lab when restock or SSPX is installed
 * Fixed Tantares configs that broke in the last Tantares update
+* Now supports the two science lab parts from Station Science
 
 ## 0.2.20.0 - 2024-11-11
 
