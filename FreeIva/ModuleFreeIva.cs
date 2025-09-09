@@ -119,6 +119,7 @@ namespace FreeIva
 			{
 				partList = new HashSet<Part>();
 				x_internalNameToPartPrefab.Add(internalName, partList);
+				Log.Debug($"Registering part '{partPrefab.partInfo.name}' for internal '{internalName}'");
 			}
 
 			partList.Add(partPrefab);
