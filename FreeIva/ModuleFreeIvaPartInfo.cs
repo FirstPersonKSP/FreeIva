@@ -15,5 +15,12 @@ namespace FreeIva
 		{
 			return message;
 		}
+
+		public override void OnAwake()
+		{
+			// make this module cheaper in update loops
+			isEnabled = false;
+			enabled = false;
+		}
 	}
 }
