@@ -24,6 +24,7 @@
 * Improved Spanish translation (thanks @Deznait)
 * Junior docking port now hides the bottom hatch when connected because there's usually not enough space to open it
 * Now supports the two science lab parts from Station Science
+* KPBS parts that require HabTechProps will now say so if it's not installed
 
 ### Bug Fixes
 
