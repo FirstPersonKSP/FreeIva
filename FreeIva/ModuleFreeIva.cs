@@ -50,13 +50,6 @@ namespace FreeIva
 			get; private set;
 		}
 
-		public override void OnAwake()
-		{
-			// make this module cheaper in update loops
-			isEnabled = false;
-			enabled = false;
-		}
-
 		public override void OnLoad(ConfigNode node)
 		{
 			base.OnLoad(node);
