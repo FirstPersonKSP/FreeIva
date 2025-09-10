@@ -15,7 +15,7 @@
 * https://yaclog.readthedocs.io
 * https://keepachangelog.com
 
-## Unreleased
+## 0.2.20.1 - 2025-09-10
 
 ### Changes
 
@@ -35,6 +35,7 @@
 * Fixed Tantares configs that broke in the last Tantares update
 * Fixed upside down hatch and cleaned up some things in the mobile lab
 * Fixed mk2Expansion shielded docking port remaining locked
+
 
 ## 0.2.20.0 - 2024-11-11
 
