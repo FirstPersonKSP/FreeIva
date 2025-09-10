@@ -17,15 +17,21 @@
 
 ## Unreleased
 
+### Changes
+
 * Improved collision model in mk1pod so that it's easier to move around
-* Fixed NullReferenceException when cycling back from ProbeControlRoom
-* Fixed a few bugs that would prevent tubes between hatches from being created in certain situations
 * Improved Japanese translation (thanks @nohimazin)
 * Improved Spanish translation (thanks @Deznait)
 * Junior docking port now hides the bottom hatch when connected because there's usually not enough space to open it
+* Now supports the two science lab parts from Station Science
+
+### Bug Fixes
+
+* Fixed NullReferenceException when cycling back from ProbeControlRoom
+* Fixed a few bugs that would prevent tubes between hatches from being created in certain situations
 * Fixed hatches not connecting to airlocks properly in several stock parts when restock or SSPX is installed
 * Fixed Tantares configs that broke in the last Tantares update
-* Now supports the two science lab parts from Station Science
+* Fixed upside down hatch and cleaned up some things in the mobile lab
 
 ## 0.2.20.0 - 2024-11-11
 
