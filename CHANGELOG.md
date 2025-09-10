@@ -34,6 +34,7 @@
 * Fixed hatches not connecting to airlocks properly in several stock parts when restock or SSPX is installed
 * Fixed Tantares configs that broke in the last Tantares update
 * Fixed upside down hatch and cleaned up some things in the mobile lab
+* Fixed mk2Expansion shielded docking port remaining locked
 
 ## 0.2.20.0 - 2024-11-11
 
