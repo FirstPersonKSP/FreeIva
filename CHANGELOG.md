@@ -20,7 +20,7 @@
 ### Changes
 
 * Improved collision model in mk1pod so that it's easier to move around
-* Improved Japanese translation (thanks @nohimazin)
+* Added Japanese translation (thanks @Mikeore and @nohimazin)
 * Improved Spanish translation (thanks @Deznait)
 * Junior docking port now hides the bottom hatch when connected because there's usually not enough space to open it
 * Now supports the two science lab parts from Station Science
