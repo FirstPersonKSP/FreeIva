@@ -15,6 +15,10 @@
 * https://yaclog.readthedocs.io
 * https://keepachangelog.com
 
+## Unreleased
+
+* Add textures to a few SSPX parts (thanks @JadeOfMaar for the texture!)
+
 ## 0.2.20.1 - 2025-09-10
 
 ### Changes
