@@ -564,7 +564,7 @@ namespace FreeIva
 				}
 				else if (HighLogic.LoadedSceneIsEditor)
 				{
-					var vessel = EditorLogic.fetch.rootPart.gameObject.AddComponent<Vessel>();
+					var vessel = EditorLogic.fetch.rootPart.gameObject.GetOrAddComponent<Vessel>();
 					vessel.enabled = false;
 					FlightGlobals.fetch.activeVessel = vessel;
 					vessel.parts = new List<Part>();
@@ -617,8 +617,6 @@ namespace FreeIva
 			{
 				EnablePartInternalsRecursive(child, vessel);
 			}
-
-			part.vessel = null;
 		}
 	}
 }
