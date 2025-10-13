@@ -60,7 +60,30 @@ namespace FreeIva
 				cameraManager.currentCameraMode = CameraMode.IVA;
 				GameEvents.OnCameraChange.Fire(CameraMode.IVA);
 			}
+
+			EditorCamera.Instance.gameObject.GetComponent<VABCamera>().enabled = false;
+			EditorCamera.Instance.gameObject.GetComponent<SPHCamera>().enabled = false;
+
 			return true;
+		}
+
+		public static void SetCameraEditor(this CameraManager cameraManager)
+		{
+			ICameras_DeactivateAll();
+			if (cameraManager.ivaCameraActiveKerbal != null)
+			{
+				ICameras_ResetAll();
+				cameraManager.ivaCameraActiveKerbal.IVADisable();
+			}
+
+			cameraManager.ivaCameraActiveKerbal = null;
+			cameraManager.activeInternalPart = null;
+
+			EditorCamera.Instance.gameObject.GetComponent<VABCamera>().enabled = true;
+			//EditorCamera.Instance.gameObject.GetComponent<SPHCamera>().enabled = true;
+
+			GameEvents.OnCameraChange.Fire(CameraMode.External);
+
 		}
 	}
 }

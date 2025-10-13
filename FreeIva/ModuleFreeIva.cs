@@ -54,9 +54,6 @@ namespace FreeIva
 			var kerbal = EditorLogic.fetch.rootPart.protoModuleCrew[0].KerbalRef;
 			bool oldControlPointSetting = GameSettings.IVA_RETAIN_CONTROL_POINT;
 			CameraManager.Instance.SetCameraIVA_Editor(kerbal, true);
-			
-			EditorCamera.Instance.gameObject.GetComponent<VABCamera>().enabled = false;
-			EditorCamera.Instance.gameObject.GetComponent<SPHCamera>().enabled = false;
 
 		}
 

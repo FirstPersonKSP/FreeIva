@@ -113,9 +113,16 @@ namespace FreeIva
 				ScreenMessages.PostScreenMessage(Gravity ? str_GravityEnabled : str_GravityDisabled, 1f, ScreenMessageStyle.LOWER_CENTER);
 			}
 
-			if (!buckled && GameSettings.CAMERA_MODE.GetKeyDown(true))
+			if (GameSettings.CAMERA_MODE.GetKeyDown(true))
 			{
-				ReturnToSeat();
+				if (!buckled)
+				{
+					ReturnToSeat();
+				}
+				else if (HighLogic.LoadedSceneIsEditor)
+				{
+					CameraManager.Instance.SetCameraEditor();
+				}
 			}
 
 			// if the kerbal disappeared somehow (generally from dying in a separate part), reset the camera
