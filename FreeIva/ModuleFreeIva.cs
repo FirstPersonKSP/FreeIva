@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using KSP.Localization;
 using System.Linq;
+using System.Collections;
 
 namespace FreeIva
 {
@@ -39,6 +40,25 @@ namespace FreeIva
 		public string centrifugeTransformName = string.Empty;
 		[KSPField]
 		public Vector3 centrifugeAlignmentRotation = new Vector3(180, 0, 180);
+
+		[KSPEvent(guiActiveEditor = true)]
+		public void ActivateInEditor()
+		{
+			StartCoroutine(StartIVA());
+		}
+
+		IEnumerator StartIVA()
+		{
+			FreeIva.EnableInternals();
+			yield return null;
+			var kerbal = EditorLogic.fetch.rootPart.protoModuleCrew[0].KerbalRef;
+			bool oldControlPointSetting = GameSettings.IVA_RETAIN_CONTROL_POINT;
+			CameraManager.Instance.SetCameraIVA_Editor(kerbal, true);
+			
+			EditorCamera.Instance.gameObject.GetComponent<VABCamera>().enabled = false;
+			EditorCamera.Instance.gameObject.GetComponent<SPHCamera>().enabled = false;
+
+		}
 
 		public IDeployable Deployable
 		{
@@ -196,7 +216,7 @@ namespace FreeIva
 		// In particular the Kerbalism GravityRing is a little tricky
 		public override void OnStart(StartState state)
 		{
-			if (!HighLogic.LoadedSceneIsFlight) return;
+			if (!(HighLogic.LoadedSceneIsFlight || HighLogic.LoadedSceneIsEditor)) return;
 
 			Centrifuge = CentrifugeFactory.Create(part, centrifugeTransformName, centrifugeAlignmentRotation);
 			Deployable = Centrifuge as IDeployable; // some centrifuges may also be deployables

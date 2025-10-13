@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Profiling;
 
-
 namespace FreeIva
 {
-	[KSPAddon(KSPAddon.Startup.Flight, false)]
+	/// <summary>
+	/// Main controller for FreeIva behaviours.
+	/// </summary>
+	[KSPAddon(KSPAddon.Startup.FlightAndEditor, false)]
 	public class FreeIva : MonoBehaviour
 	{
 		public static Part CurrentPart => CurrentInternalModuleFreeIva == null ? null : CurrentInternalModuleFreeIva.part;
@@ -39,15 +41,39 @@ namespace FreeIva
             false;
 #endif
 
+			if (HighLogic.LoadedSceneIsEditor)
+			{
+				var cameraManager = gameObject.AddComponent<CameraManager>();
+				cameraManager.enabled = false;
+				var internalSpace = gameObject.AddComponent<InternalSpace>();
+				var internalCameraObject = new GameObject("internalCamera");
+				internalCameraObject.transform.SetParent(internalSpace.transform, false);
+				var internalCamera = internalCameraObject.AddComponent<Camera>();
+				internalCamera.clearFlags = CameraClearFlags.Depth;
+				internalCamera.cullingMask = (1 << 16) | (1 << 20);
+				internalCamera.depth = 3;
+				internalCamera.eventMask = -65537;
+				internalCamera.farClipPlane = 50;
+				internalCamera.nearClipPlane = 0.01f;
+				internalCameraObject.AddComponent<InternalCamera>();
+				gameObject.AddComponent<CrewHatchController>();
+
+				FlightGlobals.fetch.enabled = false;
+			}
+
 			Settings.LoadSettings();
+			InternalModuleFreeIva.RefreshDepthMasks();
 
 			Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.InternalSpace);
 			Physics.IgnoreLayerCollision((int)Layers.Kerbals, (int)Layers.Kerbals, false);
 
-			var ivaSun = InternalSpace.Instance.transform.Find("IVASun").GetComponent<IVASun>();
-			ivaSun.ivaLight.shadowBias = 0;
-			ivaSun.ivaLight.shadowNormalBias = 0;
-			ivaSun.ivaLight.shadows = LightShadows.Hard;
+			var ivaSun = InternalSpace.Instance.transform.Find("IVASun")?.GetComponent<IVASun>();
+			if (ivaSun)
+			{
+				ivaSun.ivaLight.shadowBias = 0;
+				ivaSun.ivaLight.shadowNormalBias = 0;
+				ivaSun.ivaLight.shadows = LightShadows.Hard;
+			}
 		}
 
 		private void OnVesselChange(Vessel vessel)
@@ -317,6 +343,8 @@ namespace FreeIva
 			}
 		}
 
+		public static int DepthMaskQueue = 999;
+
 		List<InternalModuleFreeIva> possibleModules = new List<InternalModuleFreeIva>();
 		Vector3 _previousCameraPosition = Vector3.zero;
 		public void UpdateCurrentPart()
@@ -527,29 +555,24 @@ namespace FreeIva
 					currentInternal.gameObject.SetActive(true);
 					currentInternal.SetVisible(true);
 				}
-				else
+				else if (HighLogic.LoadedSceneIsFlight)
 				{
 					foreach (Part p in FlightGlobals.ActiveVessel.parts)
 					{
-						if (ShouldCreateInternals(p))
-						{
-							if (p.internalModel == null)
-							{
-								p.CreateInternalModel();
-								if (p.internalModel != null)
-								{
-									p.internalModel.Initialize(p);
-									p.internalModel.SpawnCrew();
-								}
-							}
-
-							if (p.internalModel != null)
-							{
-								p.internalModel.gameObject.SetActive(true);
-								p.internalModel.SetVisible(true);
-							}
-						}
+						EnablePartInternals(p);
 					}
+				}
+				else if (HighLogic.LoadedSceneIsEditor)
+				{
+					var vessel = EditorLogic.fetch.rootPart.gameObject.AddComponent<Vessel>();
+					vessel.enabled = false;
+					FlightGlobals.fetch.activeVessel = vessel;
+					vessel.parts = new List<Part>();
+					Component.Destroy(vessel.precalc);
+					foreach (var vm in vessel.vesselModules) Component.Destroy(vm);
+					vessel.vesselModules.Clear();
+					ShipConstruction.ShipManifest.AssignCrewToVessel(EditorLogic.fetch.ship);
+					EnablePartInternalsRecursive(EditorLogic.fetch.rootPart, vessel);
 				}
 
 				InternalModuleFreeIva.RefreshInternals();
@@ -559,6 +582,43 @@ namespace FreeIva
 			{
 				Log.Error("Error enabling internals: " + ex.Message + ", " + ex.StackTrace);
 			}
+		}
+
+		static void EnablePartInternals(Part p)
+		{
+			if (ShouldCreateInternals(p))
+			{
+				if (p.internalModel == null)
+				{
+					p.CreateInternalModel();
+					if (p.internalModel != null)
+					{
+						p.internalModel.Initialize(p);
+						p.internalModel.SpawnCrew();
+					}
+				}
+
+				if (p.internalModel != null)
+				{
+					p.internalModel.gameObject.SetActive(true);
+					p.internalModel.SetVisible(true);
+				}
+			}
+		}
+
+		static void EnablePartInternalsRecursive(Part part, Vessel vessel)
+		{
+			if (part == null) return;
+
+			part.vessel = vessel;
+			EnablePartInternals(part);
+
+			foreach (var child in part.children)
+			{
+				EnablePartInternalsRecursive(child, vessel);
+			}
+
+			part.vessel = null;
 		}
 	}
 }

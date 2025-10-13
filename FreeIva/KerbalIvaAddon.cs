@@ -17,7 +17,7 @@ namespace FreeIva
 	/// <summary>
 	/// Character controller for IVA movement.
 	/// </summary>
-	[KSPAddon(KSPAddon.Startup.Flight, false)]
+	[KSPAddon(KSPAddon.Startup.FlightAndEditor, false)]
 	public class KerbalIvaAddon : MonoBehaviour
 	{
 		// Localisation strings
