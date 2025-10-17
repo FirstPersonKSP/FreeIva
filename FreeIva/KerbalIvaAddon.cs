@@ -926,6 +926,20 @@ namespace FreeIva
 
 		IEnumerator StartEditorIVACoroutine()
 		{
+			var vessel = EditorLogic.fetch.rootPart.gameObject.GetOrAddComponent<Vessel>();
+			vessel.enabled = false;
+			FlightGlobals.fetch.activeVessel = vessel;
+			vessel.parts = new List<Part>();
+			EditorLogic.fetch.rootPart.GetComponentsInChildren<Part>(vessel.Parts);
+			foreach (Part p in vessel.Parts)
+			{
+				p.vessel = vessel;
+			}
+			Component.Destroy(vessel.precalc);
+			foreach (var vm in vessel.vesselModules) Component.Destroy(vm);
+			vessel.vesselModules.Clear();
+			ShipConstruction.ShipManifest.AssignCrewToVessel(EditorLogic.fetch.ship);
+
 			FreeIva.EnableInternals();
 			yield return null;
 			var kerbal = EditorLogic.fetch.rootPart.protoModuleCrew[0].KerbalRef;

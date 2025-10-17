@@ -561,24 +561,12 @@ namespace FreeIva
 					currentInternal.gameObject.SetActive(true);
 					currentInternal.SetVisible(true);
 				}
-				else if (HighLogic.LoadedSceneIsFlight)
+				else
 				{
 					foreach (Part p in FlightGlobals.ActiveVessel.parts)
 					{
 						EnablePartInternals(p);
 					}
-				}
-				else if (HighLogic.LoadedSceneIsEditor)
-				{
-					var vessel = EditorLogic.fetch.rootPart.gameObject.GetOrAddComponent<Vessel>();
-					vessel.enabled = false;
-					FlightGlobals.fetch.activeVessel = vessel;
-					vessel.parts = new List<Part>();
-					Component.Destroy(vessel.precalc);
-					foreach (var vm in vessel.vesselModules) Component.Destroy(vm);
-					vessel.vesselModules.Clear();
-					ShipConstruction.ShipManifest.AssignCrewToVessel(EditorLogic.fetch.ship);
-					EnablePartInternalsRecursive(EditorLogic.fetch.rootPart, vessel);
 				}
 
 				InternalModuleFreeIva.RefreshInternals();
@@ -609,19 +597,6 @@ namespace FreeIva
 					p.internalModel.gameObject.SetActive(true);
 					p.internalModel.SetVisible(true);
 				}
-			}
-		}
-
-		static void EnablePartInternalsRecursive(Part part, Vessel vessel)
-		{
-			if (part == null) return;
-
-			part.vessel = vessel;
-			EnablePartInternals(part);
-
-			foreach (var child in part.children)
-			{
-				EnablePartInternalsRecursive(child, vessel);
 			}
 		}
 
