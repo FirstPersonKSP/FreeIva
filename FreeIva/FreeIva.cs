@@ -8,9 +8,8 @@ using UnityEngine.Profiling;
 
 namespace FreeIva
 {
-	/// <summary>
-	/// Main controller for FreeIva behaviours.
-	/// </summary>
+	// there's too much overlap between this class and KerbalIvaAddon.
+	// Eventually this class can become fully static and contain utliity functions
 	[KSPAddon(KSPAddon.Startup.FlightAndEditor, false)]
 	public class FreeIva : MonoBehaviour
 	{
@@ -26,10 +25,6 @@ namespace FreeIva
 			Paused = false;
 			GameEvents.onGamePause.Add(OnPause);
 			GameEvents.onGameUnpause.Add(OnUnPause);
-			GameEvents.onVesselPartCountChanged.Add(OnVesselPartCountChanged);
-			GameEvents.onSameVesselDock.Add(OnSameVesselDockingChange);
-			GameEvents.onSameVesselUndock.Add(OnSameVesselDockingChange);
-			GameEvents.onVesselChange.Add(OnVesselChange);
 		}
 
 		public void Start()
@@ -73,14 +68,6 @@ namespace FreeIva
 				ivaSun.ivaLight.shadowBias = 0;
 				ivaSun.ivaLight.shadowNormalBias = 0;
 				ivaSun.ivaLight.shadows = LightShadows.Hard;
-			}
-		}
-
-		private void OnVesselChange(Vessel vessel)
-		{
-			if (vessel.evaController != null)
-			{
-				StartCoroutine(ModifyEvaFsm(vessel.evaController));
 			}
 		}
 
@@ -212,19 +199,6 @@ namespace FreeIva
 			}
 		}
 
-		private IEnumerator ModifyEvaFsm(KerbalEVA kerbalEva)
-		{
-			while (!kerbalEva.Ready)
-			{
-				yield return null;
-			}
-
-			kerbalEva.On_boardPart.OnEvent = delegate
-			{
-				BoardPartFromAirlock(kerbalEva, true);
-			};
-		}
-
 		public static bool Paused = false;
 		public void OnPause()
 		{
@@ -236,27 +210,10 @@ namespace FreeIva
 			Paused = false;
 		}
 
-		private void OnVesselPartCountChanged(Vessel vessel)
-		{
-			m_internalVisibilityDirty = true;
-		}
-
-		private void OnSameVesselDockingChange(GameEvents.FromToAction<ModuleDockingNode, ModuleDockingNode> data)
-		{
-			if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA)
-			{
-				m_internalVisibilityDirty = true;
-			}
-		}
-
 		public void OnDestroy()
 		{
 			GameEvents.onGamePause.Remove(OnPause);
 			GameEvents.onGameUnpause.Remove(OnUnPause);
-			GameEvents.onVesselPartCountChanged.Remove(OnVesselPartCountChanged);
-			GameEvents.onSameVesselDock.Remove(OnSameVesselDockingChange);
-			GameEvents.onSameVesselUndock.Remove(OnSameVesselDockingChange);
-			GameEvents.onVesselChange.Remove(OnVesselChange);
 			InputLockManager.RemoveControlLock("FreeIVA");
 		}
 
@@ -296,20 +253,8 @@ namespace FreeIva
 			}
 		}
 
-		bool m_internalVisibilityDirty = false;
-
 		void LateUpdate()
 		{
-			if (m_internalVisibilityDirty)
-			{
-				EnableInternals();
-				if (KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.refreshCoroutine != null)
-				{
-					KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.StopCoroutine(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.refreshCoroutine);
-				}
-				m_internalVisibilityDirty = false;
-			}
-
 			if (PhysicalProp.HeldProp != null)
 			{
 				if (Input.GetMouseButtonDown(0))

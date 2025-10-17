@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using KSP.Localization;
+using System.Collections;
 
 namespace FreeIva
 {
@@ -69,6 +70,9 @@ namespace FreeIva
 			GameEvents.OnCameraChange.Add(OnCameraChange);
 			GameEvents.OnIVACameraKerbalChange.Add(OnIVACameraKerbalChange);
 			GameEvents.onVesselChange.Add(OnVesselChange);
+			GameEvents.onVesselPartCountChanged.Add(OnVesselPartCountChanged);
+			GameEvents.onSameVesselDock.Add(OnSameVesselDockingChange);
+			GameEvents.onSameVesselUndock.Add(OnSameVesselDockingChange);
 			_instance = this;
 		}
 
@@ -78,6 +82,9 @@ namespace FreeIva
 			GameEvents.OnCameraChange.Remove(OnCameraChange);
 			GameEvents.OnIVACameraKerbalChange.Remove(OnIVACameraKerbalChange);
 			GameEvents.onVesselChange.Remove(OnVesselChange);
+			GameEvents.onVesselPartCountChanged.Remove(OnVesselPartCountChanged);
+			GameEvents.onSameVesselDock.Remove(OnSameVesselDockingChange);
+			GameEvents.onSameVesselUndock.Remove(OnSameVesselDockingChange);
 
 			_instance = null;
 			KerbalIva = null;
@@ -184,6 +191,16 @@ namespace FreeIva
 		// This must be after the internal camera updates
 		private void LateUpdate()
 		{
+			if (m_internalVisibilityDirty)
+			{
+				FreeIva.EnableInternals();
+				if (KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.refreshCoroutine != null)
+				{
+					KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.StopCoroutine(KSP.UI.Screens.Flight.KerbalPortraitGallery.Instance.refreshCoroutine);
+				}
+				m_internalVisibilityDirty = false;
+			}
+
 			if (FreeIva.Paused) return;
 
 			ApplyInput(input);
@@ -275,11 +292,41 @@ namespace FreeIva
 			UpdateActiveKerbal();
 		}
 
-		private void OnVesselChange(Vessel data)
+		private void OnVesselChange(Vessel vessel)
 		{
 			if (!buckled)
 			{
 				ReturnToSeatInternal(false);
+			}
+
+			if (vessel.evaController != null)
+			{
+				StartCoroutine(ModifyEvaFsm(vessel.evaController));
+			}
+		}
+
+		private IEnumerator ModifyEvaFsm(KerbalEVA kerbalEva)
+		{
+			while (!kerbalEva.Ready)
+			{
+				yield return null;
+			}
+
+			kerbalEva.On_boardPart.OnEvent = () => FreeIva.BoardPartFromAirlock(kerbalEva, true);
+		}
+
+		bool m_internalVisibilityDirty = false;
+
+		private void OnVesselPartCountChanged(Vessel vessel)
+		{
+			m_internalVisibilityDirty = true;
+		}
+
+		private void OnSameVesselDockingChange(GameEvents.FromToAction<ModuleDockingNode, ModuleDockingNode> data)
+		{
+			if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA)
+			{
+				m_internalVisibilityDirty = true;
 			}
 		}
 
@@ -1040,27 +1087,6 @@ namespace FreeIva
 			case FreeIvaHatch.Interaction.Close: return str_CloseHatch + " [" + Settings.OpenHatchKey + "]";
 			default: return string.Empty;
 			}
-		}
-
-		public void OnCollisionEnter(Collision collision)
-		{
-			//Log.Message("# OnCollisionEnter " + name + " with " + collision.gameObject + " layer " + collision.gameObject.layer);
-			ScreenMessages.PostScreenMessage("OnCollisionEnter " + name + " with " + collision.gameObject + " layer " + collision.gameObject.layer,
-				1f, ScreenMessageStyle.LOWER_CENTER);
-		}
-
-		public void OnCollisionStay(Collision collision)
-		{
-			//Log.Message("# OnCollisionStay " + collision.gameObject + " with " + collision.transform);
-			ScreenMessages.PostScreenMessage("OnCollisionStay " + collision.gameObject + " with " + collision.transform + " layer " + collision.gameObject.layer,
-				1f, ScreenMessageStyle.LOWER_CENTER);
-		}
-
-		public void OnCollisionExit(Collision collision)
-		{
-			//Log.Message("# OnCollisionExit " + collision.gameObject + " with " + collision.transform);
-			ScreenMessages.PostScreenMessage("OnCollisionExit " + collision.gameObject + " with " + collision.transform + " layer " + collision.gameObject.layer,
-				1f, ScreenMessageStyle.LOWER_CENTER);
 		}
 	}
 }
