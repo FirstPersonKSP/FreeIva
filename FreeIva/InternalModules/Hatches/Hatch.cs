@@ -989,7 +989,7 @@ namespace FreeIva
 		{
 			var flightEVA = FlightEVA.fetch;
 
-			Part crewPart = KerbalIvaAddon.GetPartContainingCrew(pCrew);
+			Part crewPart = FreeIva.GetPartContainingCrew(pCrew);
 
 			part.hatchObstructionCheckOutwardDistance = 0.5f;
 			if (FlightEVA.HatchIsObstructed(part, fromAirlock)) // NOTE: stock code also checks hatchInsideFairing

@@ -44,17 +44,7 @@ namespace FreeIva
 		[KSPEvent(guiActiveEditor = true)]
 		public void ActivateInEditor()
 		{
-			StartCoroutine(StartIVA());
-		}
-
-		IEnumerator StartIVA()
-		{
-			FreeIva.EnableInternals();
-			yield return null;
-			var kerbal = EditorLogic.fetch.rootPart.protoModuleCrew[0].KerbalRef;
-			bool oldControlPointSetting = GameSettings.IVA_RETAIN_CONTROL_POINT;
-			CameraManager.Instance.SetCameraIVA_Editor(kerbal, true);
-
+			KerbalIvaAddon.Instance.StartEditorIVA();
 		}
 
 		public IDeployable Deployable
