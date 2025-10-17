@@ -392,7 +392,7 @@ namespace FreeIva
 		public Vector3 GetCentrifugeAccel()
 		{
 			if (currentCentrifuge == null) return Vector3.zero;
-			return KerbalIvaAddon.GetCentrifugeAccel(currentCentrifuge, transform.position);
+			return FreeIva.GetCentrifugeAccel(currentCentrifuge, transform.position);
 		}
 
 		public void UpdatePosition(Vector3 flightAccel, Vector3 movementThrottle, bool jump)
@@ -428,7 +428,7 @@ namespace FreeIva
 
 		Vector3 UpdateGravity()
 		{
-			Vector3 flightAccel = KerbalIvaAddon.GetInternalSubjectiveAcceleration(FreeIva.CurrentInternalModuleFreeIva, transform.position);
+			Vector3 flightAccel = FreeIva.GetInternalSubjectiveAcceleration(FreeIva.CurrentInternalModuleFreeIva, transform.position);
 
 			float minAccelForHorizon = (FlightGlobals.ActiveVessel.LandedOrSplashed || currentCentrifuge != null)
 				? MIN_ACCEL_FOR_HORIZON_LANDED

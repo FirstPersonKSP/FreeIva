@@ -418,7 +418,7 @@ namespace FreeIva
 		{
 			if (m_applyGravity)
 			{
-				var accel = KerbalIvaAddon.GetInternalSubjectiveAcceleration(m_freeIvaModule, rigidBodyObject.transform.position);
+				var accel = FreeIva.GetInternalSubjectiveAcceleration(m_freeIvaModule, rigidBodyObject.transform.position);
 				m_rigidBody.AddForce(accel, ForceMode.Acceleration);
 			}
 		}
