@@ -76,14 +76,17 @@ namespace FreeIva
 				cameraManager.ivaCameraActiveKerbal.IVADisable();
 			}
 
+			FlightCamera.fetch.DisableCamera();
+			FlightCamera.fetch.DeactivateUpdate();
+
 			cameraManager.ivaCameraActiveKerbal = null;
 			cameraManager.activeInternalPart = null;
-
-			EditorCamera.Instance.gameObject.GetComponent<VABCamera>().enabled = true;
-			//EditorCamera.Instance.gameObject.GetComponent<SPHCamera>().enabled = true;
+			cameraManager.currentCameraMode = CameraMode.External;
 
 			GameEvents.OnCameraChange.Fire(CameraMode.External);
 
+			EditorCamera.Instance.gameObject.GetComponent<VABCamera>().enabled = true;
+			//EditorCamera.Instance.gameObject.GetComponent<SPHCamera>().enabled = true;
 		}
 	}
 }
