@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using KSP.Localization;
 using System.Collections;
+using KSP.UI;
 
 namespace FreeIva
 {
@@ -945,11 +946,13 @@ namespace FreeIva
 			var kerbal = EditorLogic.fetch.rootPart.protoModuleCrew[0].KerbalRef;
 			bool oldControlPointSetting = GameSettings.IVA_RETAIN_CONTROL_POINT;
 			CameraManager.Instance.SetCameraIVA_Editor(kerbal, true);
+			GameEvents.onHideUI.Fire();
 		}
 
 		void StopEditorIVA()
 		{
 			CameraManager.Instance.SetCameraEditor();
+			GameEvents.onShowUI.Fire();
 		}
 	}
 }
