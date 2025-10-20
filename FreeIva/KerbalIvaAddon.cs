@@ -248,11 +248,6 @@ namespace FreeIva
 				// Normally the InternalCamera's transform is copied to the FlightCamera at the end of InternalCamera.Update, which will have happened right before this component updates.
 				// So we need to make sure the latest internal camera rotation gets copied to the flight camera.
 				FlightCamera.fetch.transform.SetPositionAndRotation(cameraWorldPosition, cameraWorldRotation);
-
-				if (HighLogic.LoadedSceneIsEditor)
-				{
-					EditorLogic.fetch.editorCamera.transform.SetPositionAndRotation(cameraWorldPosition, cameraWorldRotation);
-				}
 			}
 		}
 

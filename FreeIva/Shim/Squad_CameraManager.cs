@@ -66,9 +66,13 @@ namespace FreeIva
 			EditorCamera.Instance.gameObject.GetComponent<VABCamera>().enabled = false;
 			EditorCamera.Instance.gameObject.GetComponent<SPHCamera>().enabled = false;
 
-			var editorCameraOffset = EditorCamera.Instance.gameObject.GetComponent<EditorCameraOffset>();
-			x_editorCameraOffset = editorCameraOffset.SidebarPixelWidth;
-			editorCameraOffset.SidebarPixelWidth = 0;
+			EditorCamera.Instance.gameObject.AddComponent<SecondaryCamera>();
+			var editorCameraOffsets = EditorCamera.Instance.gameObject.GetComponentsInChildren<EditorCameraOffset>();
+			foreach (var cameraOffset in editorCameraOffsets)
+			{
+				x_editorCameraOffset = cameraOffset.SidebarPixelWidth; // no big deal if we store this more than once, they should all have the same value
+				cameraOffset.SidebarPixelWidth = 0;
+			}
 
 			return true;
 		}
@@ -91,7 +95,13 @@ namespace FreeIva
 
 			GameEvents.OnCameraChange.Fire(CameraMode.External);
 
-			EditorCamera.Instance.gameObject.GetComponent<EditorCameraOffset>().SidebarPixelWidth = x_editorCameraOffset;
+			Component.Destroy(EditorCamera.Instance.gameObject.GetComponent<SecondaryCamera>());
+
+			var editorCameraOffsets = EditorCamera.Instance.gameObject.GetComponentsInChildren<EditorCameraOffset>();
+			foreach (var cameraOffset in editorCameraOffsets)
+			{
+				cameraOffset.SidebarPixelWidth = x_editorCameraOffset;
+			}
 
 			EditorCamera.Instance.gameObject.GetComponent<VABCamera>().enabled = true;
 			//EditorCamera.Instance.gameObject.GetComponent<SPHCamera>().enabled = true;
