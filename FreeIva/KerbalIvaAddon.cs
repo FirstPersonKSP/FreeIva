@@ -242,10 +242,17 @@ namespace FreeIva
 
 			if (!buckled)
 			{
+				Vector3 cameraWorldPosition = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
+				Quaternion cameraWorldRotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
+
 				// Normally the InternalCamera's transform is copied to the FlightCamera at the end of InternalCamera.Update, which will have happened right before this component updates.
 				// So we need to make sure the latest internal camera rotation gets copied to the flight camera.
-				FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-				FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
+				FlightCamera.fetch.transform.SetPositionAndRotation(cameraWorldPosition, cameraWorldRotation);
+
+				if (HighLogic.LoadedSceneIsEditor)
+				{
+					EditorLogic.fetch.editorCamera.transform.SetPositionAndRotation(cameraWorldPosition, cameraWorldRotation);
+				}
 			}
 		}
 

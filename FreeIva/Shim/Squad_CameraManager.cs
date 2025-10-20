@@ -13,6 +13,8 @@ namespace FreeIva
 {
 	static class CameraManagerExtensions
 	{
+		static float x_editorCameraOffset;
+
 		public static bool SetCameraIVA_Editor(this CameraManager cameraManager, Kerbal kerbal, bool resetCamera)
 		{
 			if (!MissionSystem.AllowCameraSwitch(CameraMode.IVA))
@@ -64,6 +66,10 @@ namespace FreeIva
 			EditorCamera.Instance.gameObject.GetComponent<VABCamera>().enabled = false;
 			EditorCamera.Instance.gameObject.GetComponent<SPHCamera>().enabled = false;
 
+			var editorCameraOffset = EditorCamera.Instance.gameObject.GetComponent<EditorCameraOffset>();
+			x_editorCameraOffset = editorCameraOffset.SidebarPixelWidth;
+			editorCameraOffset.SidebarPixelWidth = 0;
+
 			return true;
 		}
 
@@ -84,6 +90,8 @@ namespace FreeIva
 			cameraManager.currentCameraMode = CameraMode.External;
 
 			GameEvents.OnCameraChange.Fire(CameraMode.External);
+
+			EditorCamera.Instance.gameObject.GetComponent<EditorCameraOffset>().SidebarPixelWidth = x_editorCameraOffset;
 
 			EditorCamera.Instance.gameObject.GetComponent<VABCamera>().enabled = true;
 			//EditorCamera.Instance.gameObject.GetComponent<SPHCamera>().enabled = true;
