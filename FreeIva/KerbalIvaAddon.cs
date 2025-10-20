@@ -4,6 +4,7 @@ using UnityEngine;
 using KSP.Localization;
 using System.Collections;
 using KSP.UI;
+using KSP.UI.Screens;
 
 namespace FreeIva
 {
@@ -949,12 +950,16 @@ namespace FreeIva
 			bool oldControlPointSetting = GameSettings.IVA_RETAIN_CONTROL_POINT;
 			CameraManager.Instance.SetCameraIVA_Editor(kerbal, true);
 			GameEvents.onHideUI.Fire();
+			UIMasterController.Instance.screenMessageCanvas.enabled = true;
+			UIMainCamera.Camera.enabled = true;
+			EditorPartList.Instance.gameObject.SetActive(false);
 		}
 
 		void StopEditorIVA()
 		{
 			CameraManager.Instance.SetCameraEditor();
 			GameEvents.onShowUI.Fire();
+			EditorPartList.Instance.gameObject.SetActive(true);
 		}
 	}
 }
