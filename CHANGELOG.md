@@ -18,8 +18,13 @@
 ## Unreleased
 
 * Add textures to a few SSPX parts (thanks @JadeOfMaar for the texture!)
-* Fix Benjee APAS and IDA docking ports
 * Add Sandcastle support
+
+
+## 0.2.20.2 - 2025-10-24
+
+* Fix Benjee APAS and IDA docking ports
+
 
 ## 0.2.20.1 - 2025-09-10
 
