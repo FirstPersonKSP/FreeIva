@@ -7,6 +7,11 @@ using UnityEngine;
 
 namespace FreeIva.InternalModules
 {
+	// TODO: limit rotation to specific axes
+	// TODO: provide angle limits for rotation
+	// TODO: smoothing
+	// TODO: return to neutral when weightless?
+
 	internal class GravityGimbal : InternalModule
 	{
 		[KSPField]
@@ -19,6 +24,7 @@ namespace FreeIva.InternalModules
 		public Transform controlledTransform;
 
 		InternalModuleFreeIva m_freeIvaModule;
+		Quaternion m_defaultRotation;
 
 		public override void OnLoad(ConfigNode node)
 		{
@@ -32,22 +38,22 @@ namespace FreeIva.InternalModules
 				}
 				else
 				{
-					controlledTransform = internalProp.hasModel ? controlledTransform : internalModel.transform;
+					controlledTransform = internalProp.hasModel ? transform : internalModel.transform;
 				}
 			}
 		}
 
 		protected void Start()
 		{
+			m_defaultRotation = controlledTransform?.rotation ?? Quaternion.identity;
 			m_freeIvaModule = InternalModuleFreeIva.GetForModel(internalModel);
 		}
 
-		public override void OnFixedUpdate()
+		void FixedUpdate()
 		{
-			base.OnFixedUpdate();
-
 			if (controlledTransform != null)
 			{
+				// TODO: use upAxis 
 				Vector3 subjectiveGravity = FreeIva.GetInternalSubjectiveAcceleration(m_freeIvaModule, controlledTransform.position);
 				controlledTransform.up = -subjectiveGravity;
 			}
