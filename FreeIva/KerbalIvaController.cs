@@ -426,15 +426,20 @@ namespace FreeIva
 #endif
 		}
 
+		internal static bool UseHorizon(Vector3 flightAccel, bool inCentrifuge)
+		{
+			float minAccelForHorizon = (FlightGlobals.ActiveVessel.LandedOrSplashed || inCentrifuge)
+				? MIN_ACCEL_FOR_HORIZON_LANDED
+				: MIN_ACCEL_FOR_HORIZON_AIRBORNE;
+
+			return flightAccel.magnitude >= minAccelForHorizon;
+		}
+
 		Vector3 UpdateGravity()
 		{
 			Vector3 flightAccel = FreeIva.GetInternalSubjectiveAcceleration(FreeIva.CurrentInternalModuleFreeIva, transform.position);
 
-			float minAccelForHorizon = (FlightGlobals.ActiveVessel.LandedOrSplashed || currentCentrifuge != null)
-				? MIN_ACCEL_FOR_HORIZON_LANDED
-				: MIN_ACCEL_FOR_HORIZON_AIRBORNE;
-
-			usingRelativeMovement = flightAccel.magnitude >= minAccelForHorizon;
+			usingRelativeMovement = UseHorizon(flightAccel, currentCentrifuge != null);
 			horizonDownVector = usingRelativeMovement ? flightAccel : Vector3.zero;
 
 			// update attaching/detaching to things (note that detaching from a centrifuge is handled in ExitCentrifuge)

@@ -15,15 +15,21 @@ namespace FreeIva.InternalModules
 	internal class GravityGimbal : InternalModule
 	{
 		[KSPField]
-		public Vector3 upAxis = new Vector3(0, 1, 0);
+		public Vector3 rotationAxis = new Vector3(1, 0, 0); // in prop space
 
 		[KSPField]
 		public string transformName = string.Empty;
 
-		[SerializeField]
-		public Transform controlledTransform;
+		[KSPField]
+		public float minAccel = 0.05f;
+
+		[KSPField]
+		public float smoothingFactor = 0.2f;
+
+		[SerializeField] Transform m_controlledTransform;
 
 		InternalModuleFreeIva m_freeIvaModule;
+		Vector3 m_rotationAxisInternalSpace;
 		Quaternion m_defaultRotation;
 
 		public override void OnLoad(ConfigNode node)
@@ -34,28 +40,42 @@ namespace FreeIva.InternalModules
 			{
 				if (transformName != string.Empty)
 				{
-					controlledTransform = TransformUtil.FindPropTransform(internalProp, transformName);
+					m_controlledTransform = TransformUtil.FindPropTransform(internalProp, transformName);
 				}
 				else
 				{
-					controlledTransform = internalProp.hasModel ? transform : internalModel.transform;
+					m_controlledTransform = internalProp.hasModel ? transform : internalModel.transform;
 				}
 			}
 		}
 
 		protected void Start()
 		{
-			m_defaultRotation = controlledTransform?.rotation ?? Quaternion.identity;
 			m_freeIvaModule = InternalModuleFreeIva.GetForModel(internalModel);
+			m_rotationAxisInternalSpace = transform.TransformDirection(rotationAxis);
+			m_defaultRotation = transform.rotation;
 		}
 
 		void FixedUpdate()
 		{
-			if (controlledTransform != null)
+			if (m_controlledTransform != null)
 			{
-				// TODO: use upAxis 
-				Vector3 subjectiveGravity = FreeIva.GetInternalSubjectiveAcceleration(m_freeIvaModule, controlledTransform.position);
-				controlledTransform.up = -subjectiveGravity;
+				Vector3 subjectiveGravity = FreeIva.GetInternalSubjectiveAcceleration(m_freeIvaModule, m_controlledTransform.position);
+				Quaternion targetRotation;
+
+				if (KerbalIvaController.UseHorizon(subjectiveGravity, m_freeIvaModule.Centrifuge != null))
+				{
+					Vector3 forward = Vector3.Cross(subjectiveGravity, m_rotationAxisInternalSpace);
+					Vector3 up = Vector3.Cross(forward, m_rotationAxisInternalSpace);
+
+					targetRotation = Quaternion.LookRotation(forward, up);
+				}
+				else
+				{
+					targetRotation = m_defaultRotation;
+				}
+
+				m_controlledTransform.rotation = Quaternion.Lerp(m_controlledTransform.rotation, targetRotation, smoothingFactor);
 			}
 		}
 	}
