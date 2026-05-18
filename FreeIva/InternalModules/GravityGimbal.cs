@@ -7,10 +7,7 @@ using UnityEngine;
 
 namespace FreeIva.InternalModules
 {
-	// TODO: limit rotation to specific axes
 	// TODO: provide angle limits for rotation
-	// TODO: smoothing
-	// TODO: return to neutral when weightless?
 
 	internal class GravityGimbal : InternalModule
 	{
