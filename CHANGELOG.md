@@ -19,6 +19,10 @@
 
 * Add textures to a few SSPX parts (thanks @JadeOfMaar for the texture!)
 * Add Sandcastle support
+* Add bottom hatch to mk1-3 pod
+* Add support for stock mk1-2pod internals (used by RPM IVA layout)
+* Add GravityGimbal module for rotating a prop according to local subjective gravity
+* Add InstanceInternal module for instantiating another internal space as a child of a prop
 
 
 ## 0.2.20.2 - 2025-10-24
