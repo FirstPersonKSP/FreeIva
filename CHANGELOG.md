@@ -24,6 +24,7 @@
 * Add GravityGimbal module for rotating a prop according to local subjective gravity
 * Add InstanceInternal module for instantiating another internal space as a child of a prop
 * Add info message for SSPX parts when the IVAs are not installed
+* Add support for ReStockPlus spherical pod parts when Making History is not installed
 
 
 ## 0.2.20.2 - 2025-10-24
