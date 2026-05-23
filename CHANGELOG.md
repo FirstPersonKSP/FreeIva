@@ -25,6 +25,7 @@
 * Add InstanceInternal module for instantiating another internal space as a child of a prop
 * Add info message for SSPX parts when the IVAs are not installed
 * Add support for ReStockPlus spherical pod parts when Making History is not installed
+* Fix incorrect part name for orbital engine cluster from Near Future Spacecraft
 
 
 ## 0.2.20.2 - 2025-10-24
