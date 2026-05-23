@@ -23,6 +23,7 @@
 * Add support for stock mk1-2pod internals (used by RPM IVA layout)
 * Add GravityGimbal module for rotating a prop according to local subjective gravity
 * Add InstanceInternal module for instantiating another internal space as a child of a prop
+* Add info message for SSPX parts when the IVAs are not installed
 
 
 ## 0.2.20.2 - 2025-10-24
