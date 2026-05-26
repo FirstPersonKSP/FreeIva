@@ -56,6 +56,8 @@ namespace FreeIva
 				{
 					foreach (var hatch in ivaModule.Hatches)
 					{
+						if (hatch == null) continue;
+						
 						var otherHatch = hatch.ConnectedHatch;
 						if (otherHatch == null || otherHatch.vessel != hatch.vessel)
 						{

@@ -18,6 +18,8 @@ namespace FreeIva
 		[SerializeField]
 		public string[] subtypes;
 
+		bool m_pendingDelete;
+
 		public override void OnLoad(ConfigNode node)
 		{
 			base.OnLoad(node);
@@ -32,8 +34,10 @@ namespace FreeIva
 			if (!HighLogic.LoadedSceneIsFlight) return;
 
 			var b9psModule = B9PS_ModuleB9PartSwitch.Create(internalProp, moduleID);
+			string currentSubtypeName = b9psModule != null ? b9psModule.CurrentSubtypeName() : string.Empty;
+			bool subtypeActive = subtypes.IndexOf(currentSubtypeName) != -1;
 
-			if (b9psModule == null || subtypes.IndexOf(b9psModule.CurrentSubtypeName()) == -1)
+			if (!subtypeActive)
 			{
 				for (int i = 0; i < internalProp.internalModules.Count; i++)
 				{
@@ -43,8 +47,12 @@ namespace FreeIva
 					}
 				}
 
-				internalProp.gameObject.SetActive(false);
+				// NOTE: OnAwake is being called in a loop over the internal's props, so we can't remove the prop here
+				GameObject.Destroy(internalProp.gameObject);
+				m_pendingDelete = true;
 			}
+
+			Log.Debug($"B9PSConditionalProp {(subtypeActive ? "keeping" : "deactivating")} PROP {internalProp.propName} in INTERNAL {internalProp.internalModel.internalName} for PART {part.partInfo.name}; active subtype {currentSubtypeName}; allowed subtypes [{string.Join(",", subtypes)}]");
 		}
 
 		// This module can destroy itself so that it doesn't consume resources after it's done its job
@@ -52,6 +60,12 @@ namespace FreeIva
 		// I had tried changing the OnAwake function above to be unity's Awake method instead, but at that point the prop has not been fully initialized (it doesn't get set up in the prefab, only after it's spawned)
 		void Update()
 		{
+			if (m_pendingDelete)
+			{
+				internalModel.props.Remove(internalProp);
+				m_pendingDelete = false;
+			}
+
 			internalProp.internalModules.Remove(this);
 			Component.Destroy(this);
 		}

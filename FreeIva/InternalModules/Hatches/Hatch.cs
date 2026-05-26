@@ -353,6 +353,15 @@ namespace FreeIva
 			RefreshConnection();
 		}
 
+		void OnDestroy()
+		{
+			var internalModule = InternalModuleFreeIva.GetForModel(internalModel);
+			if (internalModule != null)
+			{
+				internalModule.Hatches.Remove(this);
+			}
+		}
+
 		public bool IsBlockedByAnimation(bool checkConnectedHatch = true)
 		{
 			// check the other hatch first (non-recursively)
