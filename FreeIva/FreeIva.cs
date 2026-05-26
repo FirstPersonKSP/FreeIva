@@ -533,9 +533,17 @@ namespace FreeIva
 
 			var freeIvaModule = part.FindModuleImplementing<ModuleFreeIva>();
 
-			if (freeIvaModule != null && freeIvaModule.requireDeploy && freeIvaModule.Deployable != null && !freeIvaModule.Deployable.IsDeployed)
+			if (freeIvaModule != null)
 			{
-				return false;
+				if (freeIvaModule.requireDeploy && freeIvaModule.Deployable != null && !freeIvaModule.Deployable.IsDeployed)
+				{
+					return false;
+				}
+
+				if (freeIvaModule.hideInOverlayView && KerbalPortraitGallery.isIVAOverlayVisible)
+				{
+					return false;
+				}
 			}
 
 			return true;

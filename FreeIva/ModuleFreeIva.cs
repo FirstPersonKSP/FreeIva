@@ -29,6 +29,9 @@ namespace FreeIva
 		public string partInfo = string.Empty;
 
 		[KSPField]
+		public bool hideInOverlayView = false;
+
+		[KSPField]
 		public bool forceInternalCreation = false;
 		[KSPField]
 		public bool requireDeploy = false;
