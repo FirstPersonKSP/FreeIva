@@ -335,6 +335,31 @@ namespace FreeIva
 				airlockTransform = FindAirlock(part, airlockName);
 			}
 
+			// Auto-detect the attach node for this hatch against the actual flight part.
+			// This must run per-instance at flight time rather than at prefab load time,
+			// because multiple parts can share the same internal: detecting on the prefab
+			// using the first matching part would write an incorrect attachNodeId into the
+			// shared prefab, which every subsequent part then inherits.
+			if (attachNodeId == string.Empty && tubeTransform != null)
+			{
+				foreach (var attachNode in part.attachNodes)
+				{
+					Vector3 attachNodeInternalSpace = InternalModuleFreeIva.x_partToInternalSpace * attachNode.position;
+					Vector3 localPosition = tubeTransform.InverseTransformPoint(attachNodeInternalSpace);
+
+					if (localPosition.y >= -1 && localPosition.y <= 0)
+					{
+						localPosition.y = 0;
+						if (localPosition.sqrMagnitude < 0.1f)
+						{
+							Log.Debug($"INTERNAL '{internalModel.internalName}' hatch PROP '{internalProp.propName}' auto-detected attachnode '{attachNode.id}' for part '{part.partInfo.name}'");
+							attachNodeId = attachNode.id;
+							break;
+						}
+					}
+				}
+			}
+
 			var internalModule = InternalModuleFreeIva.GetForModel(internalModel);
 			if (internalModule == null)
 			{

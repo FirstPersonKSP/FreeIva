@@ -507,7 +507,7 @@ namespace FreeIva
 			}
 		}
 
-		static Quaternion x_partToInternalSpace = Quaternion.Euler(90, 0, 180);
+		internal static Quaternion x_partToInternalSpace = Quaternion.Euler(90, 0, 180);
 		static Quaternion x_internalToPartSpace = Quaternion.Inverse(x_partToInternalSpace);
 
 		void OnLoad_Finalize()
@@ -547,26 +547,9 @@ namespace FreeIva
 							AddPropCut(hatch);
 						}
 
-						// for attachnodes...
-						if (part != null && hatch.tubeTransform != null && hatch.attachNodeId == string.Empty)
-						{
-							foreach (var attachNode in part.attachNodes)
-							{
-								Vector3 attachNodeInternalSpace = x_partToInternalSpace * attachNode.position;
-								Vector3 localPosition = hatch.tubeTransform.InverseTransformPoint(attachNodeInternalSpace);
-
-								if (localPosition.y >= -1 && localPosition.y <= 0)
-								{
-									localPosition.y = 0;
-									if (localPosition.sqrMagnitude < 0.1f)
-									{
-										Log.Debug($"INTERNAL '{internalModel.internalName}' hatch PROP '{prop.propName}' at {prop.transform.position} auto-detected attachnode '{attachNode.id}'");
-										hatch.attachNodeId = attachNode.id;
-										break;
-									}
-								}
-							}
-						}
+						// attach node auto-detection is deferred to flight time (OnAwake in Hatch.cs)
+						// so that each part instance detects against its own nodes, avoiding
+						// shared-prefab pollution when multiple parts use the same internal
 					}
 				}
 			}
