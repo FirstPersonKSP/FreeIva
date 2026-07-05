@@ -517,7 +517,6 @@ namespace FreeIva
 			Part part = ModuleFreeIva.GetPartPrefabForInternal(internalModel.internalName);
 
 			List<FreeIvaHatch> hatches = new List<FreeIvaHatch>();
-			List<string> boundAirlockNames = new List<string>();
 
 			foreach (var prop in internalModel.props)
 			{
@@ -525,11 +524,6 @@ namespace FreeIva
 				if (hatch != null)
 				{
 					var hatchConfig = prop.GetComponent<HatchConfig>();
-
-					if (hatch.airlockName != string.Empty)
-					{
-						boundAirlockNames.Add(hatch.airlockName);
-					}
 
 					if (hatchConfig != null || hatch.cutoutTargetTransformName != string.Empty)
 					{
@@ -547,72 +541,9 @@ namespace FreeIva
 							AddPropCut(hatch);
 						}
 
-						// attach node auto-detection is deferred to flight time (OnAwake in Hatch.cs)
-						// so that each part instance detects against its own nodes, avoiding
+						// attach node and airlock auto-detection are deferred to flight time (OnAwake in Hatch.cs)
+						// so that each part instance detects against its own nodes/airlocks, avoiding
 						// shared-prefab pollution when multiple parts use the same internal
-					}
-				}
-			}
-
-			// auto-configure airlocks
-			// since hatches do not have a defined "out" direction (different hatches are authored in different orientations), we do this in part space (because the airlocks DO have a defined "in" direction)
-			Transform[] airlocks = part?.airlock == null ? null : part.FindModelTransformsWithTag(FreeIvaHatch.AIRLOCK_TAG);
-			string[] airlockNames = airlocks == null ? null : new string[airlocks.Length];
-
-			if (airlocks != null)
-			{
-				// get a unique name for each airlock
-				var countByName = new Dictionary<string, int>(airlocks.Length);
-				for (int i = 0; i < airlocks.Length; i++)
-				{
-					string name = airlocks[i].name;
-					if (countByName.TryGetValue(name, out int count))
-					{
-						airlockNames[i] = name + "," + count;
-						++count;
-						countByName[name] = count;
-					}
-					else
-					{
-						airlockNames[i] = name;
-						countByName[name] = 1;
-					}
-				}
-
-				for (int airlockIndex = 0; airlockIndex < airlocks.Length; airlockIndex++)
-				{
-					var airlock = airlocks[airlockIndex];
-					float bestDistanceSquared = 1; // we're pretty generous with positioning (compared to attachnodes) because these don't need to line up perfectly
-					FreeIvaHatch bestHatch = null;
-
-					if (boundAirlockNames.Contains(airlockNames[airlockIndex])) continue;
-
-					foreach (var hatch in hatches)
-					{
-						if (hatch.airlockName != string.Empty) continue;
-
-						Vector3 hatchInPartSpace = x_internalToPartSpace * hatch.transform.position;
-						
-						// NOTE: some airlocks have non-identity scale (e.g. mk2LanderCan from restock) so InverseTransformPoint doesn't work
-						Vector3 airlockToHatch = hatchInPartSpace - airlock.transform.position;
-						Vector3 hatchInAirlockSpace = airlock.transform.InverseTransformDirection(airlockToHatch);
-
-						// airlock's +Z is toward the part (the way the kerbal faces)
-						if (hatchInAirlockSpace.z >= 0 && hatchInAirlockSpace.z <= 1)
-						{
-							hatchInAirlockSpace.z = 0;
-							if (hatchInAirlockSpace.sqrMagnitude <= bestDistanceSquared)
-							{
-								bestDistanceSquared = hatchInAirlockSpace.sqrMagnitude;
-								bestHatch = hatch;
-							}
-						}
-					}
-
-					if (bestHatch != null)
-					{
-						bestHatch.airlockName = airlockNames[airlockIndex];
-						Log.Debug($"INTERNAL '{internalModel.internalName}' hatch PROP '{bestHatch.internalProp.propName}' at {bestHatch.internalProp.transform.position} auto-detected airlock '{bestHatch.airlockName}'");
 					}
 				}
 			}

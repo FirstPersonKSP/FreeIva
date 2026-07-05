@@ -330,6 +330,61 @@ namespace FreeIva
 				}
 			}
 
+			// Auto-detect airlockName per-instance at flight time against the actual part's airlocks.
+			// Cannot do this at prefab-load time (OnLoad_Finalize) because GetPartPrefabForInternal
+			// returns only the first part using the internal, polluting the shared prefab for every
+			// other part that shares the same internal (same root cause as attachNodeId pollution).
+			// Only auto-detect for hatches without a HatchConfig (i.e. those that need auto-configuration).
+			if (airlockName == string.Empty && !isEvaHatch && GetComponent<HatchConfig>() == null)
+			{
+				Transform[] airlocks = part.airlock == null ? null : part.FindModelTransformsWithTag(AIRLOCK_TAG);
+				if (airlocks != null && airlocks.Length > 0)
+				{
+					var countByName = new Dictionary<string, int>(airlocks.Length);
+					string[] airlockNames = new string[airlocks.Length];
+					for (int i = 0; i < airlocks.Length; i++)
+					{
+						string name = airlocks[i].name;
+						if (countByName.TryGetValue(name, out int count))
+						{
+							airlockNames[i] = name + "," + count;
+							countByName[name] = count + 1;
+						}
+						else
+						{
+							airlockNames[i] = name;
+							countByName[name] = 1;
+						}
+					}
+
+					float bestDistSq = 1f;
+					int bestIndex = -1;
+					Quaternion internalToPartSpace = Quaternion.Inverse(InternalModuleFreeIva.x_partToInternalSpace);
+					for (int i = 0; i < airlocks.Length; i++)
+					{
+						// NOTE: some airlocks have non-identity scale so InverseTransformPoint doesn't work
+						Vector3 hatchInPartSpace = internalToPartSpace * transform.position;
+						Vector3 delta = hatchInPartSpace - airlocks[i].transform.position;
+						Vector3 hatchInAirlockSpace = airlocks[i].transform.InverseTransformDirection(delta);
+						if (hatchInAirlockSpace.z >= 0 && hatchInAirlockSpace.z <= 1)
+						{
+							hatchInAirlockSpace.z = 0;
+							if (hatchInAirlockSpace.sqrMagnitude <= bestDistSq)
+							{
+								bestDistSq = hatchInAirlockSpace.sqrMagnitude;
+								bestIndex = i;
+							}
+						}
+					}
+
+					if (bestIndex >= 0)
+					{
+						airlockName = airlockNames[bestIndex];
+						Log.Debug($"INTERNAL '{internalModel.internalName}' hatch PROP '{internalProp.propName}' auto-detected airlock '{airlockName}' for part '{part.partInfo.name}'");
+					}
+				}
+			}
+
 			if (airlockName != string.Empty || isEvaHatch)
 			{
 				airlockTransform = FindAirlock(part, airlockName);
