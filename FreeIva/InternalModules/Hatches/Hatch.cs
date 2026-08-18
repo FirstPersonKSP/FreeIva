@@ -446,7 +446,7 @@ namespace FreeIva
 		{
 			yield return null;
 
-			while (vessel.packed)
+			while (vessel.packed && !vessel.isActiveVessel)
 			{
 				yield return null;
 			}
