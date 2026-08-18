@@ -676,7 +676,15 @@ namespace FreeIva
 
 			if (magnitude <= 0.01f)
 			{
-				return Vector3.zero;
+				if (FlightGlobals.ActiveVessel.LandedOrSplashed)  //In this event, we can safely assume surface gravity will be applied, since the base is landed.  This allows for support for packed bases like in PhysicsHold mod.
+				{
+					accelWorldSpace = Vector3.MoveTowards(Vector3.zero, FlightGlobals.currentMainBody.position, (float)(FlightGlobals.currentMainBody.gravParameter / (double)(Vector3.Distance(InternalSpace.InternalToWorld(internalSpacePosition), FlightGlobals.currentMainBody.position) * Vector3.Distance(InternalSpace.InternalToWorld(internalSpacePosition), FlightGlobals.currentMainBody.position))));
+					magnitude = vector.magnitude;
+				}
+				else
+				{
+					return Vector3.zero;
+				}
 			}
 
 			return WorldDirectionToInternal(accelWorldSpace) * magnitude;
