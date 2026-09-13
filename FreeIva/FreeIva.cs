@@ -645,7 +645,15 @@ namespace FreeIva
 
 			if (FlightGlobals.ActiveVessel.LandedOrSplashed)
 			{
-				accelWorldSpace = FlightGlobals.ActiveVessel.graviticAcceleration;
+				// This allows for support for packed bases like in PhysicsHold mod.  graviticAcceleration is only updated when unpacked
+				if (FlightGlobals.ActiveVessel.packed)
+				{
+					accelWorldSpace = FlightGlobals.ActiveVessel.gravityTrue;
+				}
+				else
+				{
+					accelWorldSpace = FlightGlobals.ActiveVessel.graviticAcceleration;
+				}
 			}
 			else
 			{

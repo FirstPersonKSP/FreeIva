@@ -28,6 +28,7 @@
 * Fix incorrect part name for orbital engine cluster from Near Future Spacecraft
 * Fix issues with B9PSConditionalProp when applied to hatches.  Props are now deleted instead of deactivated if their subtype is not active.
 * Add missing bottom hatch to vertical hub node from Planetside
+* Fixed bugs when using PhysicsHold (thanks @R-T-B)
 
 
 ## 0.2.20.2 - 2025-10-24
