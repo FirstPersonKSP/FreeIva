@@ -77,9 +77,30 @@ namespace FreeIva
 		// So ShowTutorial keeps getting set back to true even after clicking "close forever"
 		public static bool TutorialWasClosedForever = false;
 
+		// Returns the key bound to a stock action, or the fallback if it has none
+		static KeyCode GetStockKey(KeyBinding binding, KeyCode fallback)
+		{
+			if (binding.primary.code != KeyCode.None) return binding.primary.code;
+			if (binding.secondary.code != KeyCode.None) return binding.secondary.code;
+			return fallback;
+		}
+
 		public static void LoadSettings()
 		{
 			Log.Message("Loading settings...");
+
+			// Default to the stock EVA keys, which follow the keyboard layout (ZQSD on AZERTY) and the player's own bindings
+			OpenHatchKey = GetStockKey(GameSettings.EVA_Use, KeyCode.F);
+			ForwardKey = GetStockKey(GameSettings.EVA_forward, KeyCode.W);
+			BackwardKey = GetStockKey(GameSettings.EVA_back, KeyCode.S);
+			LeftKey = GetStockKey(GameSettings.EVA_left, KeyCode.A);
+			RightKey = GetStockKey(GameSettings.EVA_right, KeyCode.D);
+			RollCCWKey = GetStockKey(GameSettings.EVA_yaw_left, KeyCode.Q);
+			RollCWKey = GetStockKey(GameSettings.EVA_yaw_right, KeyCode.E);
+			UpKey = GetStockKey(GameSettings.EVA_Pack_up, KeyCode.LeftShift);
+			DownKey = GetStockKey(GameSettings.EVA_Pack_down, KeyCode.LeftControl);
+			JumpKey = GetStockKey(GameSettings.EVA_Jump, KeyCode.Space);
+
 			ConfigNode settings = GameDatabase.Instance.GetConfigNode("FreeIva/settings/FreeIvaConfig");
 			if (settings == null)
 			{
